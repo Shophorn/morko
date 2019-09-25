@@ -1,0 +1,7 @@
+# Only keep ProjectSettings and Assets folders in git projecct, ignore
+# EVERYTHING.
+
+.vs/
+*/Library/
+*/Logs/
+*/Temp/
