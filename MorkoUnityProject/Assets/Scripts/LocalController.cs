@@ -77,8 +77,6 @@ namespace Morko
 			package.rotation = character.gameObject.transform.rotation;
 			package.velocity = (character.transform.position - lastPosition) / Time.deltaTime;
 			
-			Debug.Log((package.velocity));
-            			
 			return package;
 		}
 	}
