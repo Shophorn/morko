@@ -73,6 +73,7 @@ namespace Morko
 			// Move
 			character.characterController.Move(moveDirection * Time.deltaTime);
 			
+			// Update package data
 			package.position = character.gameObject.transform.position;
 			package.rotation = character.gameObject.transform.rotation;
 			package.velocity = (character.transform.position - lastPosition) / Time.deltaTime;
