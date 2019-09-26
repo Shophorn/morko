@@ -29,6 +29,8 @@ namespace Morko
 
 		private float speed = 10;
 		private LayerMask groundMask = 1 << 9;
+		
+		// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 
 		public AvatarPackage Update()
 		{
