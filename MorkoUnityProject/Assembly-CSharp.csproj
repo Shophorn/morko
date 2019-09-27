@@ -59,12 +59,16 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\CameraController.cs" />
     <Compile Include="Assets\Scripts\Character.cs" />
+    <Compile Include="Assets\Scripts\HostWindow.cs" />
     <Compile Include="Assets\Scripts\LocalController.cs" />
+    <Compile Include="Assets\Scripts\MainMenu.cs" />
     <Compile Include="Assets\Scripts\Network\Client.cs" />
     <Compile Include="Assets\Scripts\Network\Server.cs" />
     <Compile Include="Assets\Scripts\NetworkController.cs" />
     <Compile Include="Assets\Scripts\NetworkTester.cs" />
+    <Compile Include="Assets\Scripts\PauseWindow.cs" />
     <Compile Include="Assets\Scripts\ProtoGameCreator.cs" />
+    <Compile Include="Assets\Scripts\WindowLoader.cs" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>C:/GitHub/morko/MorkoUnityProject/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
