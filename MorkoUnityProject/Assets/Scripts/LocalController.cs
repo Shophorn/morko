@@ -11,14 +11,36 @@ namespace Morko
 		private AvatarPackage package;
 		private Camera camera;
 		private Vector3 lastMousePosition = Input.mousePosition;
+		private LayerMask groundMask = 1 << 9;
 		
 		// mouseControl = True == control with mouse
 		// mouseControl = False == control with joystick
 		bool mouseControl = true;
 		
-		private float speed = 10;
-		private LayerMask groundMask = 1 << 9;
-		
+		private PlayerSettings playerSettings;
+		private float movementSpeed;
+		private float sneakSpeed;
+		private float runSpeed;
+		private bool isMorko = false;
+
+		public void changeState(bool toMorko)
+		{
+			if (toMorko)
+			{
+				isMorko = true;
+				movementSpeed = playerSettings.morkoMovementSpeed;
+				sneakSpeed = playerSettings.morkoMovementSpeed * playerSettings.morkoSneakMultiplier;
+				runSpeed = playerSettings.morkoMovementSpeed * playerSettings.morkoRunMultiplier;
+			}
+			else
+			{
+				isMorko = false;
+				movementSpeed = playerSettings.movementSpeed;
+				sneakSpeed = playerSettings.movementSpeed * playerSettings.sneakMultiplier;
+				runSpeed = playerSettings.movementSpeed * playerSettings.runMultiplier;
+			}
+		}
+
 		public static LocalController Create(Character character)
 		{
 			var result = new LocalController();
@@ -67,7 +89,7 @@ namespace Morko
 				Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateY"));
 				Quaternion lookRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
        
-				float step = speed * Time.deltaTime;
+				float step = movementSpeed * Time.deltaTime;
 				character.transform.rotation = Quaternion.RotateTowards(lookRotation, character.transform.rotation, step);
 			}
 			// Controller being used, right joystick not being used, look towards player forward
