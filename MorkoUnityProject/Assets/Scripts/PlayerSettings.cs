@@ -2,7 +2,7 @@
 
 [CreateAssetMenu(fileName = "PlayerSettings", menuName = "ScriptableObjects/PlayerSettings")]
 public class PlayerSettings : ScriptableObject
-{   
+{
     [Header("Character normal form")]
     [Range(1f, 10f)] public float movementSpeed = 5f;
     [Header("Set multiplier to 1 for no effect")]

@@ -41,7 +41,7 @@ namespace Morko
 			}
 		}
 
-		public static LocalController Create(Character character)
+		public static LocalController Create(Character character, PlayerSettings settings)
 		{
 			var result = new LocalController();
 			result.package = new AvatarPackage();
@@ -50,6 +50,10 @@ namespace Morko
 			result.package.position = Vector3.zero;
 			result.package.rotation = Quaternion.identity;
 			result.package.velocity = Vector3.zero;
+			result.playerSettings = settings;
+			result.movementSpeed = result.playerSettings.movementSpeed;
+			result.sneakSpeed = result.playerSettings.movementSpeed * result.playerSettings.sneakMultiplier;
+			result.runSpeed = result.playerSettings.movementSpeed * result.playerSettings.runMultiplier;
 
 			result.character = character;
 			result.camera = character.GetComponentInChildren<Camera>();
@@ -80,7 +84,8 @@ namespace Morko
 				RaycastHit hit;
 				Physics.Raycast(mouseRay, out hit, groundMask);
 				Vector3 lookDirection = (hit.point - character.transform.position).normalized;
-				character.transform.rotation = Quaternion.LookRotation(lookDirection);
+				Vector3 lookDirectionLevel = new Vector3(lookDirection.x, character.transform.position.y, lookDirection.z);
+				character.transform.rotation = Quaternion.LookRotation(lookDirectionLevel);
 			}
 			// If joystick is used for rotation, use controller
 			if (Mathf.Abs(joystickRotateX) > 0f || Mathf.Abs(joystickRotateY) > 0f )
@@ -93,7 +98,7 @@ namespace Morko
 				character.transform.rotation = Quaternion.RotateTowards(lookRotation, character.transform.rotation, step);
 			}
 			// Controller being used, right joystick not being used, look towards player forward
-			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == false)
+			if (moveDirection != Vector3.zero && joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == false)
 			{
 				character.transform.rotation = Quaternion.LookRotation(moveDirection);
 			}
