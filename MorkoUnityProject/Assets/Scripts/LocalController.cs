@@ -12,6 +12,10 @@ namespace Morko
 		private Camera camera;
 		private Vector3 lastMousePosition = Input.mousePosition;
 		
+		// mouseControl = True == control with mouse
+		// mouseControl = False == control with joystick
+		bool mouseControl = true;
+		
 		public static LocalController Create(Character character)
 		{
 			var result = new LocalController();
@@ -48,6 +52,7 @@ namespace Morko
 			// Mouse moved, use mouse
 			if (Mathf.Abs(mouseDelta.x) > 0 || Mathf.Abs(mouseDelta.y) > 0)
 			{
+				mouseControl = true;
 				lastMousePosition = currentMousePosition;
 				Ray mouseRay = camera.ScreenPointToRay(Input.mousePosition);
 				RaycastHit hit;
@@ -58,18 +63,25 @@ namespace Morko
 			// If joystick is used for rotation, use controller
 			if (Mathf.Abs(joystickRotateX) > 0f || Mathf.Abs(joystickRotateY) > 0f )
 			{
+				mouseControl = false;
 				Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateY"));
 				Quaternion lookRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
        
 				float step = speed * Time.deltaTime;
 				character.transform.rotation = Quaternion.RotateTowards(lookRotation, character.transform.rotation, step);
 			}
-			// Keep old rotation
-			else if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0)
+			// Controller being used, right joystick not being used, look towards player forward
+			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == false)
+			{
+				Debug.Log("CONTROLLER TURE BUTON NOT ROTATING");
+				character.transform.rotation = Quaternion.LookRotation(moveDirection);
+			}
+			// Mouse beign used, keep old rotation
+			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == true)
 			{
 				character.transform.rotation = package.rotation;
 			}
-			
+
 			// Move
 			character.characterController.Move(moveDirection * Time.deltaTime);
 			
