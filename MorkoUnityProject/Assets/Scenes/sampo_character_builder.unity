@@ -380,6 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c55f5e0aa390c4469f0919f12364a00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debug: 0
   characterPrefab: {fileID: 905078142086698094, guid: 46067794436602b478604e001b666856,
     type: 3}
 --- !u!4 &1895704731

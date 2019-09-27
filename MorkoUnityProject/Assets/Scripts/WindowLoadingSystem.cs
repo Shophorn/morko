@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -102,14 +103,32 @@ namespace Morko
 
         public void StartGame()
         {
-            SceneManager.LoadSceneAsync((dropdown.value+1),LoadSceneMode.Additive);
+            StartCoroutine(LoadScene(dropdown.value + 1));
             ToggleMainMenu();
             ToggleHostWindow();
+        }
+
+        IEnumerator LoadScene(int sceneIndex)
+        {
+            AsyncOperation load = SceneManager.LoadSceneAsync((sceneIndex),LoadSceneMode.Additive);
+            while (!load.isDone)
+            {
+                if (load.progress >= 0.95f)
+                {
+                    
+                    
+                }
+                yield return null;
+            }
+            
+            SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(sceneIndex));
+            ProtoGameCreator.Instance.StartScene();
         }
 
         public void ExitCurrentGame()
         {
             SceneManager.UnloadSceneAsync(dropdown.value+1);
+            SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(0));
             BackToMainMenu();
         }
     }
