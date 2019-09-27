@@ -16,6 +16,9 @@ namespace Morko
 		// mouseControl = False == control with joystick
 		bool mouseControl = true;
 		
+		private float speed = 10;
+		private LayerMask groundMask = 1 << 9;
+		
 		public static LocalController Create(Character character)
 		{
 			var result = new LocalController();
@@ -31,9 +34,6 @@ namespace Morko
 			return result;
 		}
 
-		private float speed = 10;
-		private LayerMask groundMask = 1 << 9;
-		
 		// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 
 		public AvatarPackage Update()
