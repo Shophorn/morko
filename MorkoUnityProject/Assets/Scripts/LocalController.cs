@@ -73,7 +73,6 @@ namespace Morko
 			// Controller being used, right joystick not being used, look towards player forward
 			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == false)
 			{
-				Debug.Log("CONTROLLER TURE BUTON NOT ROTATING");
 				character.transform.rotation = Quaternion.LookRotation(moveDirection);
 			}
 			// Mouse beign used, keep old rotation
