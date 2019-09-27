@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace Morko
 {
     public class WindowLoadingSystem : MonoBehaviour
-    {        
+    {
         public GameObject mainMenu;
         public GameObject menuWindow;
         public GameObject hostWindow;
@@ -103,24 +103,25 @@ namespace Morko
 
         public void StartGame()
         {
+            // Dropdown.value is used to identify scene from Build Settings: Scenes in Build
+            // scene 0 on Menu
             StartCoroutine(LoadScene(dropdown.value + 1));
             ToggleMainMenu();
             ToggleHostWindow();
         }
 
-        IEnumerator LoadScene(int sceneIndex)
+        IEnumerator LoadScene(int sceneIndex) // This async operation initiates character instantiation after the correct scene has been loaded and set as active
         {
             AsyncOperation load = SceneManager.LoadSceneAsync((sceneIndex),LoadSceneMode.Additive);
             while (!load.isDone)
             {
                 if (load.progress >= 0.95f)
                 {
-                    
-                    
+
                 }
                 yield return null;
             }
-            
+            // After scene has been loaded
             SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(sceneIndex));
             ProtoGameCreator.Instance.StartScene();
         }

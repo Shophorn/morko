@@ -9,10 +9,11 @@ public class ProtoGameCreator : MonoBehaviour
     public bool debug = false;
     public Character characterPrefab;
     private LocalController localController;
-    
+
+    //<body><b>SINGLETON PATTERN ON VÄLIAIKAINEN</b></body>
     private static ProtoGameCreator instance;
     public static ProtoGameCreator Instance { get {return instance;} }
-    
+
 
     // Start is called before the first frame update
     void Awake()
@@ -25,7 +26,9 @@ public class ProtoGameCreator : MonoBehaviour
             StartScene();
         }
     }
-
+    //TÄTÄ KUTSUTAAN LOADERISSA JOTTA HAHMOT INSTANSIOITUVAT OIKEAAN SCENEEN
+    //UNITY INSTANSIOI ASIAT AKTIIVISESN SKENEEN JOKA PITÄÄ ASETTAA SCENEMANAGERISSA
+    //SKENEÄ EI VOIDA ASETTAA AKTIIVISEKSI ENNENKUIN SE ON LOADATTU
     public void StartScene()
     {
         var character = Instantiate(characterPrefab, new Vector3(0, 0, 0), Quaternion.identity);
