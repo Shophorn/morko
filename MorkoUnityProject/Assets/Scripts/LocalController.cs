@@ -62,7 +62,7 @@ namespace Morko
 		{
 			Vector3 lastPosition = character.gameObject.transform.position;
 			// Move direction
-			var moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * speed;
+			var moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed;
 			
 			float joystickRotateX = Input.GetAxis("RotateX");
 			float joystickRotateY = Input.GetAxis("RotateY");
