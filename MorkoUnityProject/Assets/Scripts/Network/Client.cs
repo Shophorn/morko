@@ -17,10 +17,10 @@ namespace Morko.Network
 
 	public class AvatarPackage
 	{
-		UInt8 id;
-		Vector3 position;
-		Quaternion rotation;
-		Vector3 velocity;
+		public UInt8 id;
+		public Vector3 position;
+		public Quaternion rotation;
+		public Vector3 velocity;
 		AvatarFlags flags;
 	}
 
