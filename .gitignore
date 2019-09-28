@@ -1,9 +1,21 @@
 # Only keep ProjectSettings and Assets folders in git projecct, ignore
-# EVERYTHING.
+# EVERYTHING else.
 
-*/.vs/
-*/.idea/
 */Library/
 */Logs/
 */Temp/
 */Packages/
+
+# We may need to rethink this, but it is now ignored becouse it has HintPath property
+# that is full path to a location in current computer where some required files are.
+# Apparently unity generates these anyway when reloading scripts.
+# The drawback to watch out is that when new member joins team, they may not be able
+# to open project right away, but need to recreate it on their local machine.
+*.csproj
+
+# Development tool dependant folders, containing local settings and whatnot, not useful
+# to anyone else.
+*/.vs/
+*/.idea/
+*.sublime-project
+*.sublime-workspace

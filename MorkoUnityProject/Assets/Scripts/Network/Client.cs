@@ -33,13 +33,13 @@ namespace Morko.Network
 			int length = address.Length;
 			if (length > 15)
 			{
-				throw;
+				// throw;
 			}
 
 			var parts = address.Split('.');
 			if (parts.Length != 4)
 			{
-				throw;
+				// throw;
 			}
 
 			IPv4AddressFormat format = new IPv4AddressFormat();
@@ -50,14 +50,15 @@ namespace Morko.Network
 			return format;
 		}
 
-		string ToString()
+		public override string ToString()
 		{
 			string representation = $"{parts[0]}.{parts[1]}.{parts[2]}.{parts[3]}";
+			return representation;
 		}
 
 		static IPv4AddressFormat [] GetAdressesInSubnet(IPv4AddressFormat subnetMask)
 		{
-
+			return null;
 		}
 	}
 
