@@ -55,7 +55,7 @@ class Program
 
 			var responseData = Encoding.ASCII.GetBytes(response);
 			server.Send(responseData, responseData.Length, receiveEndPoint);
-			Print($"Received, send response to {receiveEndPoint}\n");
+			Print($"Received: {request}, send response to {receiveEndPoint}\n");
 
 		}
 	}
