@@ -292,6 +292,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83c618e065ac18c4a84d483c6e99f59a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  broadcastDelayMilliseconds: 500
+  servers: []
+  playerName: McCockadoo
+  selectedServerIndex: 0
+  assignedPlayerId: 0
 --- !u!4 &825081022
 Transform:
   m_ObjectHideFlags: 0

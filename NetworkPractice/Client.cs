@@ -7,21 +7,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
+using static System.Console;
+
 class Program
 {
-	private const int serverPort = 11000;
-	static void Print(string text) => Console.WriteLine(text);
+	private const string joinRequest = "MORKO REQUEST JOIN";
+	private const string joinConfrim = "MORKO CONFIRM JOIN";
+	private const string confirmConfirm = "MORKO CONFIRM CONFIRM";
+
+	private const int serverBroadcastPort = 11000;
 
 	public static void Main (string [] arguments)
 	{
-		if (arguments.Length == 0)
-		{
-			Print("Enter message as argument");
-			return;
-		}
-
-		var client 			= new UdpClient();
-		var requestData 	= Encoding.ASCII.GetBytes(arguments[0]);
+		// Note(Leo): 0 means that system will assign (random?) available port
+		var client 			= new UdpClient(0);
 		var serverEndPoint 	= new IPEndPoint(IPAddress.Any, 0);
 		
 		/* Note(Leo): Direct broadcast address is one where host bits are all set to 1,
@@ -31,16 +30,39 @@ class Program
 
 		// Note(Leo): We seem to not need this
 		// client.EnableBroadcast = true;
-		client.Send(requestData, requestData.Length, new IPEndPoint(IPAddress.Broadcast, serverPort));
-
+		var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, serverBroadcastPort);
 
 		/* Note (Leo): This works but ultimately returns only one server's response,
 		while there may be multiple. Next step is to use BeginReceive and EndReceive,
 		or asynchronously receive for some fixed time. */
-		var serverResponseData 	= client.Receive(ref serverEndPoint);
-		var serverResponse 		= Encoding.ASCII.GetString(serverResponseData);
-		Print($"Server responded: {serverResponse}");
 
+		bool joinedServer = false;
+
+		while (true)
+		{
+			if (joinedServer)
+			{
+				Write (">>> ");
+			}
+			else
+			{
+				Write ("> ");
+			}
+
+			var command = ReadLine();
+			if (command.ToLower() == "exit")
+			{
+				break;
+			}
+
+			var data = Encoding.ASCII.GetBytes(command);
+			client.Send(data, data.Length, broadcastEndPoint);
+	
+			var serverResponseData 	= client.Receive(ref serverEndPoint);
+			var serverResponse 		= Encoding.ASCII.GetString(serverResponseData);
+			WriteLine($"Server ({serverEndPoint}) x	responded: {serverResponse}");
+		}
 		client.Close();
+
 	}
 }
