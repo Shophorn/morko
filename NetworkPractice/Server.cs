@@ -110,6 +110,8 @@ public class Server
 			IPEndPoint receiveEndPoint 	= new IPEndPoint(new IPAddress(0), 0);
 			var data = udpClient.Receive(ref receiveEndPoint);
 
+			WriteLine(Encoding.ASCII.GetString(data));
+
 			if (Commands.IsCommand(data) == false)
 				continue;
 

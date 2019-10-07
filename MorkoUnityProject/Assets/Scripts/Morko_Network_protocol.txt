@@ -1,0 +1,7 @@
+Morko Network protocol
+
+SERVER Broadcast: "MORKO server <servername>"
+CLIENT: "MORKO playerJoin <playername>"
+
+SERVER: "MORKO joinOk <playerId>"
+CLIENT: "MORKO update <playerId> <player update package>"
