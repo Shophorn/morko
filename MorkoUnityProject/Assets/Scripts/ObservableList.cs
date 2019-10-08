@@ -1,5 +1,5 @@
 /*
-Sampo
+Sampo Tuisku
 GitHub: SAMPROO
 
 This class crates a generic list with the functionality of adding, removing at index and returning the size.
