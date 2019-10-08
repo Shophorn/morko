@@ -7,6 +7,7 @@ using System.Text;
 using UnityEngine;
 
 using Morko.Network;
+using static Morko.Network.Constants;
 
 [Serializable]
 public class ServerInfo
@@ -108,13 +109,15 @@ public class NetworkTester2 : MonoBehaviour
 		if (listenMode == UdpListenMode.None)
 			return;
 
-		int broadcastPort = 11000;
-		int multicastPort = 21000;
+		// int broadcastPort = 11000;
+		// int multicastPort = 21000;
 		string multicastAddress = "224.0.0.200";
 
 		switch (listenMode)
 		{
 			case UdpListenMode.Broadcast:
+			{
+				Debug.Log("Start listening broadcast");
 				udpClient = new UdpClient(broadcastPort);
 				var state = new UdpState
 				{
@@ -123,10 +126,11 @@ public class NetworkTester2 : MonoBehaviour
 				};
 				udpClient.BeginReceive(ReceiveCallback, state);	
 
-				break;
+			} break;
 
 			case UdpListenMode.Multicast:
-
+			{
+				Debug.Log("Start listening multicast");
 				var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
 				udpClient = new UdpClient(localEndPoint);
 				udpClient.JoinMulticastGroup(IPAddress.Parse(multicastAddress));
@@ -137,7 +141,7 @@ public class NetworkTester2 : MonoBehaviour
 					endPoint = new IPEndPoint(IPAddress.Any, 0)
 				};
 				udpClient.BeginReceive(ReceiveCallback, state);	
-				break;
+			} break;
 		}
 
 	}

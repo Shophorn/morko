@@ -6,7 +6,8 @@ files = [
 	"Server.cs",
 	"Logger.cs",
 	"ProtocolFormat.cs",
-	"NetworkCommand.cs"
+	"NetworkCommand.cs",
+	"Constants.cs"
 ]
 
 build_exe = "--exe" in sys.argv

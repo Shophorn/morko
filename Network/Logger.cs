@@ -22,5 +22,11 @@ namespace Morko.Logging
 
 			lock(threadLock) File.AppendAllText(filename, content);
 		}
+
+		private static void LogConsole(string text)
+		{
+			Log(text);
+			Console.WriteLine(text);
+		}
 	}
 }

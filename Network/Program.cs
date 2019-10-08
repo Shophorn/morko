@@ -1,3 +1,10 @@
+/*
+Leo Tamminen
+shophorn@protonmail.com
+
+Test standalone console app for MorkoNetwork server
+*/
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -33,13 +40,6 @@ class Program
 		return input;
 	}
 
-	private static string GetServerName()
-	{
-		WriteLine("Enter server name to begin broadcasting:");
-		string serverName = GetInput();
-		return serverName;
-	}		
-
 	private static Server StartServer(string serverName)
 	{
 		var serverInfo = new ServerInfo
@@ -54,6 +54,21 @@ class Program
 		return server;
 	}
 
+	private static void PrintInstructions()
+	{
+		string format = "\t{0,12}\t{1,20}\t{2}";
+		string info = 
+			string.Format(format,"create", "<server name>", "Create new server with a name\n")
+			+ string.Format(format,"start bc", "-", "Start broadcasting\n")
+			+ string.Format(format,"stop bc", "-", "Stop broadcasting\n")
+			+ string.Format(format,"start game", "-", "Start multicasting update to players\n")
+			+ string.Format(format,"stop game", "-", "Stop multicasting update to players\n")
+			+ string.Format(format,"status", "-", "Print current server status\n")
+			+ string.Format(format,"exit", "-", "Exit server. Remember to stop things first\n");
+	
+		Console.WriteLine(info);
+	}
+
 	public static void Main()
 	{
 		Server server = null;
@@ -62,14 +77,33 @@ class Program
 		bool doLoop = true;
 		while(doLoop)
 		{
-			WriteLine("Enter action [create, start bc, stop bc, start game, stop game, status, exit]");
+			WriteLine("Enter action ('help' for help");
 			string input = GetInput();
+			string args = null;
+
+			var parts = input.Split(new char [] {' '}, 2);
+			if (parts.Length == 2 && parts[0] == "create")
+			{
+				input = parts[0];
+				args = parts[1];
+			}
 
 			switch(input)
 			{
+				case "help":
+					PrintInstructions();
+					break;
+
 				case "create":
-					serverName = GetServerName();
-					server = StartServer(serverName);
+					if (args != null)
+					{
+						serverName = args;
+						server = StartServer(serverName);
+					}
+					else
+					{
+						WriteLine("No server name found!");
+					}
 					break;
 
 				case "start bc":
@@ -102,7 +136,7 @@ class Program
 		}
 
 		// ---- CLEANUP ----
-		server.Close();
+		server?.Close();
 		WriteLine ($"Stopped server '{serverName}'");
 
 		if (IsInOwnConsole())
