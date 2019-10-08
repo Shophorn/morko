@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+/*
+This class crates a generic list with the functionality of adding, removing at index and returning the size
+When Add() or RemoveAt(), Event is triggered
+*/
+
 public class ObservableList<T>
 {
     private readonly List<T> _data;
@@ -8,15 +13,9 @@ public class ObservableList<T>
     public event Action OnAdd;
     public event Action OnRemove;
 
-    public ObservableList()
-    {
-        _data = new List<T>();
-    }
+    public ObservableList() => _data = new List<T>();
 
-    public T this[int index]
-    {
-        get => _data[index];
-    }
+    public T this[int index] => _data[index];
 
     public void Add(T value)
     {
@@ -29,9 +28,6 @@ public class ObservableList<T>
         OnRemove?.Invoke();
         this._data.RemoveAt(fromEnd ? _data.Count - index : index);
     }
-    
-    public int Count()
-    {
-        return this._data.Count;
-    }
+
+    public int Count => this._data.Count;
 }
