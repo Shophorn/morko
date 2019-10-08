@@ -37,6 +37,9 @@ public class NetworkTester2 : MonoBehaviour
 	private UdpClient udpClient;
 	private bool listenBroadcast = false;
 
+	public enum UdpListenMode { None, Broadcast, Multicast }
+	public UdpListenMode listenMode;
+
 	private void ReceiveCallback(IAsyncResult result)
 	{
 		var state = (UdpState)result.AsyncState;
@@ -69,43 +72,20 @@ public class NetworkTester2 : MonoBehaviour
 					break;
 			}
 		}
-/*
-		bool found = false;
-		foreach (var server in servers)
-		{
-			if (IPEndPoint.Equals(server.endPoint, endPoint))
-			{
-				found = true;
-				server.lastConnectionTime = DateTime.Now;
-			}
-		}
 
-		if (found == false)
-		{
-			if (ProtocolFormat.TryGetServerName(data, out string serverName))
-			{
-				servers.Add(new ServerInfo
-				{
-					endPoint = endPoint,
-					name = serverName,
-					lastConnectionTime = DateTime.Now
-				});
-			}
-		}
-*/
 		// if (listenBroadcast)
 		udpClient.BeginReceive(ReceiveCallback, state);
 	}
 
 	private void Start()
 	{
-		udpClient = new UdpClient(11000);
-		var state = new UdpState
-		{
-			client = udpClient,
-			endPoint = new IPEndPoint(IPAddress.Any, 0)
-		};
-		udpClient.BeginReceive(ReceiveCallback, state);
+		// udpClient = new UdpClient(11000);
+		// var state = new UdpState
+		// {
+		// 	client = udpClient,
+		// 	endPoint = new IPEndPoint(IPAddress.Any, 0)
+		// };
+		// udpClient.BeginReceive(ReceiveCallback, state);
 	}
 
 
@@ -121,6 +101,56 @@ public class NetworkTester2 : MonoBehaviour
 			}
 		}
 	}
+
+
+	public void StartListen()
+	{
+		if (listenMode == UdpListenMode.None)
+			return;
+
+		int broadcastPort = 11000;
+		int multicastPort = 21000;
+		string multicastAddress = "224.0.0.200";
+
+		switch (listenMode)
+		{
+			case UdpListenMode.Broadcast:
+				udpClient = new UdpClient(broadcastPort);
+				var state = new UdpState
+				{
+					client = udpClient,
+					endPoint = new IPEndPoint(IPAddress.Any, 0)
+				};
+				udpClient.BeginReceive(ReceiveCallback, state);	
+
+				break;
+
+			case UdpListenMode.Multicast:
+
+				var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
+				udpClient = new UdpClient(localEndPoint);
+				udpClient.JoinMulticastGroup(IPAddress.Parse(multicastAddress));
+
+				var state = new UdpState
+				{
+					client = udpClient,
+					endPoint = new IPEndPoint(IPAddress.Any, 0)
+				};
+				udpClient.BeginReceive(ReceiveCallback, state);	
+				break;
+		}
+
+	}
+
+	public void StopListen()
+	{
+		if (listenMode == UdpListenMode.None)
+			return;
+
+		udpClient.Close();
+		listenMode = UdpListenMode.None;
+	}
+
 
 	private void OnDisable()
 	{

@@ -12,5 +12,15 @@ public class NetworkTester2Editor : Editor
 		{
 			(target as NetworkTester2).JoinSelectedServer();
 		}
+
+		if (GUILayout.Button("Start Listen"))
+		{
+			(target as NetworkTester2).StartListen();
+		}
+
+		if (GUILayout.Button("Stop Listen"))
+		{
+			(target as NetworkTester2).StopListen();
+		}
 	}
 }

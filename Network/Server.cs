@@ -1,3 +1,15 @@
+/*
+Leo Tamminen
+
+Resources:
+	https://docs.microsoft.com/en-us/dotnet/framework/network-programming/using-udp-services
+	https://gist.github.com/darkguy2008/413a6fea3a5b4e67e5e0d96f750088a9
+	https://stackoverflow.com/questions/22852781/how-to-do-network-discovery-using-udp-broadcast
+
+How to make forms application:
+	https://docs.microsoft.com/en-us/dotnet/framework/winforms/how-to-create-a-windows-forms-application-from-the-command-line
+*/
+
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -7,49 +19,32 @@ using System.Linq;
 
 using Morko.Network;
 
-using static System.Console;
+// using static System.Console;
 using static Morko.Logging.Logger;
 
-class Program
-{
-	public static void Main(string [] commandLine)
-	{
-		string name = commandLine.Length > 0 ? commandLine[0] : "DefaultServer";
-		Server server = Server.Create(name, 11000);
 
-		void CancelKeyPressHandler (object sender, ConsoleCancelEventArgs e)
-		{
-			server.StopBroadcasting();
-			WriteLine ($"Stopped server '{server.Name}'");
-		}
-		Console.CancelKeyPress += CancelKeyPressHandler;
-
-		Log("Start broadcasting");
-
-		server.StartBroadcasting();
-
-		// Just sleep for now, for ever
-		while(true)
-		{
-			Thread.Sleep(100);
-		}
-	}
-}
-
-class PlayerInfo
+internal class PlayerInfo
 {
 	public string name;
 	public IPEndPoint endPoint;
 	public DateTime lastConnectionTime;
 }
 
-struct UdpState
+internal struct UdpState
 {
 	public UdpClient client;
 	public IPEndPoint endPoint;
 }
 
-class ThreadControl
+public class ServerInfo
+{
+	public string serverName;
+	public string logFileName;
+	public int broadcastPort;
+}
+
+// Todo(Leo): Think if we really need this class
+public class ThreadControl
 {
 	private Thread thread;
 	public bool IsAlive { get; private set; }
@@ -75,37 +70,45 @@ class ThreadControl
 	}
 }
 
-class Server
+public class Server
 {
 	static byte [] Encode(string text) => System.Text.Encoding.ASCII.GetBytes(text);
 	static string Decode(byte [] data) => System.Text.Encoding.ASCII.GetString(data);
 
 	public int 		BroadcastPort	{ get; private set; }
+	public int 		MulticastPort 	{ get; private set; } = 21000;
 	public string 	Name 			{ get; private set; }
 
-	private static int broadcasDelayMs = 500;
-	private static int receiveTimeoutMs = 5000;
+
+	private int broadcastDelayMs = 500;
+	private int receiveTimeoutMs = 5000;
+	private int gameUpdateThreadDelayMs = 500;
+
+	// Note(Leo): https://en.wikipedia.org/wiki/Multicast_address
+	private string multicastAddress = "224.0.0.200"; 
 
 	private ThreadControl broadcastControl;
+	private bool stopPlayerJoining = false;
+
+	private ThreadControl gameUpdateThreadControl;
 
 	private UdpClient udpClient;
-
 
 	private List<PlayerInfo> players;
 
 	// Note(Leo): this disables the use of constructor outside class
 	private Server() {}
 
-	public static Server Create(string name, int broadcastPort)
+	public static Server Create(ServerInfo info)
 	{
 		var server = new Server
 		{
-			Name = name,
+			Name = info.serverName,
 			udpClient = new UdpClient(0),
-			BroadcastPort = broadcastPort,
+			BroadcastPort = info.broadcastPort,
 		};
 
-		server.udpClient.Client.ReceiveTimeout = receiveTimeoutMs;
+		server.udpClient.Client.ReceiveTimeout = server.receiveTimeoutMs;
 		server.players = new List<PlayerInfo>();
 		return server;
 	}
@@ -117,10 +120,9 @@ class Server
 		{
 			var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerIntroduce, Name);
 			udpClient.Send(data, data.Length, broadcastEndPoint);
-			Thread.Sleep(broadcasDelayMs);
-			// WriteLine("Sent data");
+			Thread.Sleep(broadcastDelayMs);
 		}
-		WriteLine("Stopped broadcast thread");
+		Log("Stopped broadcast thread");
 	}
 
 	private void ReceiveCallback(IAsyncResult result)
@@ -130,6 +132,10 @@ class Server
 		var endPoint = state.endPoint;
 
 		var data = udpClient.EndReceive(result, ref endPoint);
+
+		if (stopPlayerJoining)
+			return;
+
 		if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out string arguments))
 		{
 			switch (command)
@@ -153,6 +159,7 @@ class Server
 					}
 
 					break;
+				
 			}
 		}
 	
@@ -161,6 +168,7 @@ class Server
 
 	public void StartBroadcasting()
 	{
+		stopPlayerJoining = false;
 		broadcastControl = ThreadControl.Start(BroadcastThread);
 
 		UdpState state = new UdpState
@@ -174,15 +182,41 @@ class Server
 
 	public void StopBroadcasting()
 	{
-		WriteLine("Hello before stop");
-
+		stopPlayerJoining = true;
 		broadcastControl.Stop();
-		
+	}
 
-		WriteLine($"Stopped server");
+	public void StartGame()
+	{
+		gameUpdateThreadControl = ThreadControl.Start(GameUpdateThread);
+	}
 
+	public void StopGame()
+	{
+		gameUpdateThreadControl.Stop();
+	}
+
+	public int PlayerCount => players.Count;
+	public string [] PlayersNames => players.Select(player => player.name).ToArray();
+ 	
+ 	public void Close()
+	{
 		udpClient.Close();
-		WriteLine("Hello after stop");
+	}
+
+	private void GameUpdateThread(ThreadControl control)
+	{
+		IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(multicastAddress), MulticastPort);
+		udpClient.JoinMulticastGroup(IPAddress.Parse(multicastAddress));
+		while(control.IsAlive)
+		{
+			var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerMulticastTest, "I am multicaster");
+			udpClient.Send(data, data.Length, endPoint);
+			Log(Decode(data));
+
+			Thread.Sleep(gameUpdateThreadDelayMs);
+		}
+		udpClient.DropMulticastGroup(IPAddress.Parse(multicastAddress));
 	}
 
 	// public static string GetLocalIPAddress()
