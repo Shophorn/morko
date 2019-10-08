@@ -12,36 +12,29 @@ namespace Morko
         public GameObject hostWindow;
         public GameObject pauseWindow;
 		public GameObject loadWindow;
-
-		public GameObject[] menuWindowItems;
-		public GameObject[] hostWindowItems;
+		public GameObject joinWindow;
+		public GameObject lobbyWindow;
+		public GameObject creditWindow;
+		public GameObject Keyboard;
 
 		public ScrollContent scrollContent;
-
-        //private int numberOfScenes;
-        //private string[] sceneNames;
 
         private Dropdown dropdown = null;
 
 		private int currentActiveSelection;
 		private bool isAxisInUse;
-		//private bool dropdownShown;
 
         void Start()
         {
-            //numberOfScenes = SceneManager.sceneCountInBuildSettings;
-            //sceneNames = new string[numberOfScenes];
-            //for(int i = 0; i < numberOfScenes; i++)
-            //{
-            //    string path = SceneUtility.GetScenePathByBuildIndex(i);
-            //    string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
-            //    sceneNames[i] = sceneName;
-            //}
             mainMenu.SetActive(true);
             menuWindow.SetActive(true);
             hostWindow.SetActive(false);
             pauseWindow.SetActive(false);
 			loadWindow.SetActive(false);
+			joinWindow.SetActive(false);
+			lobbyWindow.SetActive(false);
+			creditWindow.SetActive(false);
+			Keyboard.SetActive(false);
 
 			currentActiveSelection = 1;
 			ChangeSelection(currentActiveSelection);
@@ -55,11 +48,6 @@ namespace Morko
             }
 			if(menuWindow.activeInHierarchy)
 				MoveInMenuWindow();
-			//if (hostWindow.activeInHierarchy && !dropdownShown)
-				//MoveInHostWindow();
-
-			//if (!dropdownShown && Input.GetButtonDown("Cancel"))
-				//BackToMainMenu();
 		}
 
 		public void ToggleMainMenu()
@@ -87,6 +75,23 @@ namespace Morko
 		{
 			loadWindow.SetActive(!loadWindow.activeInHierarchy);
 		}
+		public void ToggleJoinWindow()
+		{
+			loadWindow.SetActive(!joinWindow.activeInHierarchy);
+		}
+		public void ToggleLobbyWindow()
+		{
+			loadWindow.SetActive(!lobbyWindow.activeInHierarchy);
+		}
+		public void ToggleCreditWindow()
+		{
+			loadWindow.SetActive(!creditWindow.activeInHierarchy);
+		}
+		public void ToggleKeyboard()
+		{
+			loadWindow.SetActive(!Keyboard.activeInHierarchy);
+		}
+
 
         public void BackToMainMenu()
         {
@@ -100,16 +105,6 @@ namespace Morko
             pauseWindow.SetActive(false);
         }
 
-        //public int GetSceneIndexByName(string sceneName)
-        //{
-        //    for(int i = 1; i < sceneNames.Length; i++)
-        //    {
-        //        if(sceneName == sceneNames[i])
-        //            return i;
-        //    }
-        //    return -1;
-        //}
-
         public void QuitGame()
         {
             Application.Quit();
@@ -121,18 +116,11 @@ namespace Morko
             ToggleMenuWindow();
 			currentActiveSelection = 3;
 			ChangeSelection(currentActiveSelection);
-            //dropdown = GameObject.FindObjectOfType<Dropdown>();
-            //dropdown.ClearOptions();
-   //         for(int i = 1; i < sceneNames.Length; i++)
-   //         {
-			//	Dropdown.OptionData data = new Dropdown.OptionData(sceneNames[i]);
-			//	dropdown.options.Add(data);
-			//}
         }
 
         public void StartGame()
         {
-            // Dropdown.value is used to identify scene from Build Settings: Scenes in Build
+            // scrollContent.currentItem.id +1 is used to identify scene from Build Settings: Scenes in Build
             // scene 0 on Menu
             StartCoroutine(LoadScene(scrollContent.currentItem.id + 1));
             ToggleMainMenu();
@@ -159,7 +147,6 @@ namespace Morko
 
         public void ExitCurrentGame()
         {
-            //SceneManager.UnloadSceneAsync(dropdown.value+1);
             SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(0));
             BackToMainMenu();
         }
@@ -177,7 +164,7 @@ namespace Morko
 					joinButton.Select();
 					break;
 				case 3:
-					Button startButton = hostWindow.transform.Find("Start Game Button").GetComponent<Button>();
+					Button startButton = hostWindow.transform.Find("Host Game Button").GetComponent<Button>();
 					startButton.Select();
 					break;
 				case 4:

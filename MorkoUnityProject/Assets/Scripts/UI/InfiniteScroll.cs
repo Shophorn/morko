@@ -219,11 +219,12 @@ namespace Morko
 			float currentItemPositionalValue = (gridCenter.transform.localPosition.x - scrollContent.transform.localPosition.x / 300.0f) % (listElements.Length);
 			int positionalIntValue = Mathf.RoundToInt(currentItemPositionalValue);
 
-			if (positionalIntValue < 0)
-				positionalIntValue *= -1;
-
 			for (int i = 0; i < listElements.Length; i++)
 			{
+				if(positionalIntValue < 0)
+				{
+					positionalIntValue = positionalIntValue + listElements.Length -i;
+				}
 				if (positionalIntValue == listElements[i].id)
 				{
 					currentItem = listElements[i];
@@ -232,50 +233,6 @@ namespace Morko
 				if(positionalIntValue > listElements[listElements.Length-1].id)
 					currentItem = listElements[0];
 			}
-
-			//switch (positionalIntValue)
-			//{
-			//	case 0:
-			//		currentItem = listElements[0];
-			//		break;
-			//	case 1:
-			//		currentItem = listElements[1];
-			//		break;
-			//	case 2:
-			//		currentItem = listElements[2];
-			//		break;
-			//	case 3:
-			//		currentItem = listElements[0];
-			//		break;
-			//	case 4:
-			//		currentItem = listElements[0];
-			//		break;
-			//	case 5:
-			//		currentItem = listElements[0];
-			//		break;
-			//	case -1:
-			//		currentItem = listElements[listElements.Length - 1];
-			//		break;
-			//	case -2:
-			//		currentItem = listElements[listElements.Length - 2];
-			//		break;
-			//	case -3:
-			//		currentItem = listElements[listElements.Length - 3];
-			//		break;
-			//	case -4:
-			//		currentItem = listElements[listElements.Length - 4];
-			//		break;
-			//	case -5:
-			//		currentItem = listElements[0];
-			//		break;
-			//}
-
-			//1: Beastmon
-			//1-3: Ceresmon
-			//3-5: Cherrymon
-			//5-7: Kiwimon
-			//7-9: Crabmon
-			//9-11: Beastmon
 		}
 	}
 }
