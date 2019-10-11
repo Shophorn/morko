@@ -1,3 +1,12 @@
+/*
+Leo Tamminen
+shophorn@protonmail.com
+
+This class defines conversion to and from network packages in Morko Network Library.
+All conversions should happen here, so it is easy to change and locata both when 
+either one needs to change.
+*/
+
 using System;
 using System.Text;
 
@@ -23,37 +32,77 @@ namespace Morko.Network
 			return data;
 		}
 
-		public static bool TryParseCommand(	byte [] data, 
-											out NetworkCommand commmand,
-											out string arguments)
+		public static byte [] MakeCommand(NetworkCommand command, byte [] content = null)
 		{
-			/* Note(Leo): data is valid command if it:
+			char commandSymbol = (char)command;
+			var header = Encode($"{appId}{commandSymbol}");
+
+			var data = new byte[header.Length + content.Length];
+			Buffer.BlockCopy(header, 0, data, 0, header.Length);
+			Buffer.BlockCopy(content, 0, data, header.Length, content.Length);
+			
+			return data;
+		}
+
+		private static NetworkCommand GetCommand(byte[] input)
+		{
+			/* Note(Leo): input is valid command if it:
 				- 	starts with 'MORKO'
 				- 	has the following byte being valid NetworkCommmand value, i.e. less than
 					NetworkCommand.Undefined
-				-	this means to conclusion that data must be atleast 6 bytes long
+				-	this means to conclusion that input must be atleast 6 bytes long
 			*/
-
-			bool isCommand = data.Length >= (idBytesCount + commandBytesCount);
-
+			bool isCommand = input.Length >= (idBytesCount + commandBytesCount);
 			for (int byteIndex = 0; byteIndex < idBytesCount && isCommand; byteIndex++)
 			{
-				isCommand = isCommand && (data[byteIndex] == idBytes[byteIndex]);
+				isCommand = isCommand && (input[byteIndex] == idBytes[byteIndex]);
 			}
-			isCommand = isCommand && (data[commandByteIndex] < (byte)NetworkCommand.Undefined);
 
-			if (isCommand)
+			byte commandByte = input[commandByteIndex];
+			isCommand = isCommand && (input[commandByteIndex] < (byte)NetworkCommand.Undefined);
+
+			return isCommand ?
+				(NetworkCommand)commandByte :
+				NetworkCommand.Undefined;
+		}
+
+		public static bool TryParseCommand(	byte [] input, 
+											out NetworkCommand command,
+											out string arguments)
+		{
+			command = GetCommand(input);
+			if (command != NetworkCommand.Undefined)
 			{
-				commmand = (NetworkCommand)data[commandByteIndex];
-				arguments = Decode(data, idBytesCount + commandBytesCount);
+				arguments = Decode(input, idBytesCount + commandBytesCount);
+				return true;
 			}
 			else
 			{
-				commmand = NetworkCommand.Undefined;
 				arguments = null;
+				return false;
 			}
+		}
 
-			return isCommand; 	
+		public static bool TryParseCommand(	byte [] input,
+											out NetworkCommand command,
+											out byte [] data)
+		{
+			command = GetCommand(input);
+			if (command != NetworkCommand.Undefined)
+			{
+				int headerLength = idBytesCount + commandBytesCount;
+				int dataBytesCount = input.Length - headerLength;
+				
+				data = new byte[dataBytesCount];
+				Buffer.BlockCopy(input, headerLength, data, 0, dataBytesCount);
+				
+				return true;
+			}
+			else
+			{
+				data = null;
+				return false;
+			}
 		}
 	}
 }
