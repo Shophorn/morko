@@ -615,7 +615,6 @@ GameObject:
   m_Component:
   - component: {fileID: 616856524}
   - component: {fileID: 616856527}
-  - component: {fileID: 616856525}
   m_Layer: 0
   m_Name: Main Camera (1)
   m_TagString: MainCamera
@@ -637,19 +636,6 @@ Transform:
   m_Father: {fileID: 963194228}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
---- !u!114 &616856525
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 616856523}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eff26e4054181ea4f83b1e68211dbedb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pp: {fileID: 2100000, guid: 24b6fb8af63880d46bda8453121ba94a, type: 2}
 --- !u!20 &616856527
 Camera:
   m_ObjectHideFlags: 0
@@ -659,7 +645,7 @@ Camera:
   m_GameObject: {fileID: 616856523}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 4
+  m_ClearFlags: 2
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
@@ -682,14 +668,14 @@ Camera:
     serializedVersion: 2
     m_Bits: 1024
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: d666152b44ac8264ea91fe95aec8cb6c, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!1 &705507993
@@ -1175,7 +1161,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ea84438d5ec66e547b2913a06ba1489e, type: 2}
+  - {fileID: 2100000, guid: 8d7e8e5b20274c14f8e387d4d117ad32, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
