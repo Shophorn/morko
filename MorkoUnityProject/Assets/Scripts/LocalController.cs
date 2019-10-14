@@ -18,26 +18,34 @@ namespace Morko
 		bool mouseControl = true;
 		
 		private PlayerSettings playerSettings;
-		private float movementSpeed;
+		private float currentMovementSpeed = 0f;
+		private float maxSpeed;
 		private float sneakSpeed;
 		private float runSpeed;
+		private float accelerationTime;
+		private float decelerationTime;
 		private bool isMorko = false;
+
+		private Vector3 oldDirection = Vector3.zero;
+		private bool givingMovementInput = false;
+		private float decelerationTimer = 0f;
+		private float accelerationTimer = 0f;
 
 		public void changeState(bool toMorko)
 		{
 			if (toMorko)
 			{
 				isMorko = true;
-				movementSpeed = playerSettings.morkoMovementSpeed;
-				sneakSpeed = playerSettings.morkoMovementSpeed * playerSettings.morkoSneakMultiplier;
-				runSpeed = playerSettings.morkoMovementSpeed * playerSettings.morkoRunMultiplier;
+				maxSpeed = playerSettings.morkoMaxSpeed;
+				sneakSpeed = playerSettings.morkoMaxSpeed * playerSettings.morkoSneakMultiplier;
+				runSpeed = playerSettings.morkoMaxSpeed * playerSettings.morkoRunMultiplier;
 			}
 			else
 			{
 				isMorko = false;
-				movementSpeed = playerSettings.movementSpeed;
-				sneakSpeed = playerSettings.movementSpeed * playerSettings.sneakMultiplier;
-				runSpeed = playerSettings.movementSpeed * playerSettings.runMultiplier;
+				maxSpeed = playerSettings.maxSpeed;
+				sneakSpeed = playerSettings.maxSpeed * playerSettings.sneakMultiplier;
+				runSpeed = playerSettings.maxSpeed * playerSettings.runMultiplier;
 			}
 		}
 
@@ -51,9 +59,11 @@ namespace Morko
 			result.package.rotation = Quaternion.identity;
 			result.package.velocity = Vector3.zero;
 			result.playerSettings = settings;
-			result.movementSpeed = result.playerSettings.movementSpeed;
-			result.sneakSpeed = result.playerSettings.movementSpeed * result.playerSettings.sneakMultiplier;
-			result.runSpeed = result.playerSettings.movementSpeed * result.playerSettings.runMultiplier;
+			result.maxSpeed = result.playerSettings.maxSpeed;
+			result.sneakSpeed = result.playerSettings.maxSpeed * result.playerSettings.sneakMultiplier;
+			result.runSpeed = result.playerSettings.maxSpeed * result.playerSettings.runMultiplier;
+			result.accelerationTime = result.playerSettings.accelerationTime;
+			result.decelerationTime = result.playerSettings.decelerationTime;
 
 			result.character = character;
 			result.camera = character.GetComponentInChildren<Camera>();
@@ -65,9 +75,12 @@ namespace Morko
 		public AvatarPackage Update()
 		{
 			Vector3 lastPosition = character.gameObject.transform.position;
-			// Move direction
-			var moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")) * movementSpeed;
 			
+			// Move direction with keyboard
+			var moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")).normalized;
+			// Move direction with gamepad
+			//var moveDirectionGamepad = new Vector3(Input.GetAxis("GamepadHorizontal"), 0.0f, Input.GetAxis("GamepadVertical"));
+
 			float joystickRotateX = Input.GetAxis("RotateX");
 			float joystickRotateY = Input.GetAxis("RotateY");
 
@@ -94,7 +107,7 @@ namespace Morko
 				Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateY"));
 				Quaternion lookRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
        
-				float step = movementSpeed * Time.deltaTime;
+				float step = maxSpeed * Time.deltaTime;
 				character.transform.rotation = Quaternion.RotateTowards(lookRotation, character.transform.rotation, step);
 			}
 			// Controller being used, right joystick not being used, look towards player forward
@@ -102,14 +115,56 @@ namespace Morko
 			{
 				character.transform.rotation = Quaternion.LookRotation(moveDirection);
 			}
-			// Mouse beign used, keep old rotation
+			// Mouse being used, keep old rotation
 			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == true)
 			{
 				character.transform.rotation = package.rotation;
 			}
-
+			
+			// Acceleration/Deceleration
+			if (moveDirection != Vector3.zero && currentMovementSpeed < maxSpeed)
+			{
+				if (accelerationTimer < 0f)
+					accelerationTimer = 0f;
+				
+				accelerationTimer += Time.deltaTime;
+				decelerationTimer += Time.deltaTime;
+				
+				currentMovementSpeed = maxSpeed * (accelerationTimer / accelerationTime);
+			}
+			else if (moveDirection == Vector3.zero && currentMovementSpeed > 0f)
+			{
+				if (decelerationTimer > decelerationTime)
+					decelerationTimer = decelerationTime;
+				
+				decelerationTimer -= Time.deltaTime;
+				accelerationTimer -= Time.deltaTime;
+				
+				currentMovementSpeed = maxSpeed * (decelerationTimer / decelerationTime);
+			}
+			
+			else if (moveDirection != Vector3.zero && currentMovementSpeed >= maxSpeed)
+				currentMovementSpeed = maxSpeed;
+			else
+			{
+				accelerationTimer = 0f;
+				decelerationTimer = decelerationTime;
+				
+				currentMovementSpeed = 0;
+			}
+			
+			// Save direction when not moving
+			// Because direction is required even when not giving input for deceleration
+			if (moveDirection != Vector3.zero)
+				oldDirection = moveDirection;
+			
+			if (currentMovementSpeed > 0)
+				moveDirection = oldDirection.normalized;
+			else
+				moveDirection = Vector3.zero;
+			
 			// Move
-			character.characterController.Move(moveDirection * Time.deltaTime);
+			character.characterController.Move(moveDirection * currentMovementSpeed * Time.deltaTime);
 			
 			// Update package data
 			package.position = character.gameObject.transform.position;

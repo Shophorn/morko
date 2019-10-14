@@ -8,6 +8,7 @@ public class ProtoGameCreator : MonoBehaviour
 {
     public bool debug = false;
     public Character characterPrefab;
+    public PlayerSettings playerSettings;
     private LocalController localController;
 
     //<body><b>SINGLETON PATTERN ON VÄLIAIKAINEN</b></body>
@@ -32,7 +33,7 @@ public class ProtoGameCreator : MonoBehaviour
     public void StartScene()
     {
         var character = Instantiate(characterPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-        localController = LocalController.Create(character, new PlayerSettings());
+        localController = LocalController.Create(character, playerSettings);
     }
 
     private void Update()
