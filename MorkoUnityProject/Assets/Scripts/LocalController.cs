@@ -19,6 +19,7 @@ namespace Morko
 		
 		private PlayerSettings playerSettings;
 		private float currentMovementSpeed = 0f;
+		private float previousSpeed = 0f;
 		private float maxSpeed;
 		private float sneakSpeed;
 		private float runSpeed;
@@ -26,6 +27,8 @@ namespace Morko
 		private float decelerationTime;
 		private bool isMorko = false;
 
+		private Vector3 moveDirection;
+		private Vector3 moveDirectionGamepad;
 		private Vector3 oldDirection = Vector3.zero;
 		private bool givingMovementInput = false;
 		private float decelerationTimer = 0f;
@@ -77,9 +80,20 @@ namespace Morko
 			Vector3 lastPosition = character.gameObject.transform.position;
 			
 			// Move direction with keyboard
-			var moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")).normalized;
+			moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")).normalized;
 			// Move direction with gamepad
-			//var moveDirectionGamepad = new Vector3(Input.GetAxis("GamepadHorizontal"), 0.0f, Input.GetAxis("GamepadVertical"));
+			moveDirectionGamepad = new Vector3(Input.GetAxis("GamepadHorizontal"), 0.0f, Input.GetAxis("GamepadVertical"));
+
+			if (moveDirection.x + moveDirection.z > moveDirectionGamepad.x + moveDirectionGamepad.z)
+			{
+				// Moving with KB
+				//Debug.Log("KB");
+			}
+			else
+			{
+				// Moving with GP
+				//Debug.Log("KB");
+			}
 
 			float joystickRotateX = Input.GetAxis("RotateX");
 			float joystickRotateY = Input.GetAxis("RotateY");
@@ -121,37 +135,7 @@ namespace Morko
 				character.transform.rotation = package.rotation;
 			}
 			
-			// Acceleration/Deceleration
-			if (moveDirection != Vector3.zero && currentMovementSpeed < maxSpeed)
-			{
-				if (accelerationTimer < 0f)
-					accelerationTimer = 0f;
-				
-				accelerationTimer += Time.deltaTime;
-				decelerationTimer += Time.deltaTime;
-				
-				currentMovementSpeed = maxSpeed * (accelerationTimer / accelerationTime);
-			}
-			else if (moveDirection == Vector3.zero && currentMovementSpeed > 0f)
-			{
-				if (decelerationTimer > decelerationTime)
-					decelerationTimer = decelerationTime;
-				
-				decelerationTimer -= Time.deltaTime;
-				accelerationTimer -= Time.deltaTime;
-				
-				currentMovementSpeed = maxSpeed * (decelerationTimer / decelerationTime);
-			}
-			
-			else if (moveDirection != Vector3.zero && currentMovementSpeed >= maxSpeed)
-				currentMovementSpeed = maxSpeed;
-			else
-			{
-				accelerationTimer = 0f;
-				decelerationTimer = decelerationTime;
-				
-				currentMovementSpeed = 0;
-			}
+			CalculateMovementSpeed();
 			
 			// Save direction when not moving
 			// Because direction is required even when not giving input for deceleration
@@ -172,6 +156,43 @@ namespace Morko
 			package.velocity = (character.transform.position - lastPosition) / Time.deltaTime;
 			
 			return package;
+		}
+
+		// Acceleration/Deceleration
+		public void CalculateMovementSpeed()
+		{
+			
+			if (moveDirection != Vector3.zero && currentMovementSpeed < maxSpeed)
+			{
+				if (accelerationTimer < 0f)
+					accelerationTimer = 0f;
+				
+				accelerationTimer += Time.deltaTime;
+				decelerationTimer += Time.deltaTime;
+				
+				currentMovementSpeed = maxSpeed * (accelerationTimer / accelerationTime);
+				previousSpeed = currentMovementSpeed;
+			}
+			else if (moveDirection == Vector3.zero && currentMovementSpeed > 0f)
+			{
+				if (decelerationTimer > decelerationTime)
+					decelerationTimer = decelerationTime;
+				
+				decelerationTimer -= Time.deltaTime;
+				accelerationTimer -= Time.deltaTime;
+				
+				currentMovementSpeed = previousSpeed * (decelerationTimer / decelerationTime);
+			}
+			
+			else if (moveDirection != Vector3.zero && currentMovementSpeed >= maxSpeed)
+				currentMovementSpeed = maxSpeed;
+			else
+			{
+				accelerationTimer = 0f;
+				decelerationTimer = decelerationTime;
+				
+				currentMovementSpeed = 0;
+			}
 		}
 	}
 }
