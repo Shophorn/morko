@@ -13,9 +13,12 @@ namespace Morko
 		private Vector3 lastMousePosition = Input.mousePosition;
 		private LayerMask groundMask = 1 << 9;
 		
-		// mouseControl = True == control with mouse
-		// mouseControl = False == control with joystick
-		bool mouseControl = true;
+		// mouseRotate = True == rotate with mouse
+		// mouseRotate = False == rotate with joystick
+		// mouseMove = True == move with KB
+		// mouseMove = False == move with GP
+		bool mouseRotate = true;
+		bool mouseMove = true;
 		
 		private PlayerSettings playerSettings;
 		private float currentMovementSpeed = 0f;
@@ -27,8 +30,9 @@ namespace Morko
 		private float decelerationTime;
 		private bool isMorko = false;
 
-		private Vector3 moveDirection;
+		private Vector3 moveDirectionKeyboard;
 		private Vector3 moveDirectionGamepad;
+		private Vector3 lastPosition;
 		private Vector3 oldDirection = Vector3.zero;
 		private bool givingMovementInput = false;
 		private float decelerationTimer = 0f;
@@ -77,23 +81,31 @@ namespace Morko
 
 		public AvatarPackage Update()
 		{
-			Vector3 lastPosition = character.gameObject.transform.position;
+			lastPosition = character.gameObject.transform.position;
 			
 			// Move direction with keyboard
-			moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical")).normalized;
+			moveDirectionKeyboard = new Vector3(Input.GetAxis("Horizontal"), 0.0f, Input.GetAxis("Vertical"));
 			// Move direction with gamepad
 			moveDirectionGamepad = new Vector3(Input.GetAxis("GamepadHorizontal"), 0.0f, Input.GetAxis("GamepadVertical"));
 
-			if (moveDirection.x + moveDirection.z > moveDirectionGamepad.x + moveDirectionGamepad.z)
+			if (Mathf.Abs(moveDirectionKeyboard.x) + Mathf.Abs(moveDirectionKeyboard.z) > Mathf.Abs(moveDirectionGamepad.x) + Mathf.Abs(moveDirectionGamepad.z))
 			{
 				// Moving with KB
-				//Debug.Log("KB");
+				Debug.Log("KB");
+				mouseMove = true;
+			}
+			else if (moveDirectionKeyboard == Vector3.zero && moveDirectionGamepad == Vector3.zero)
+			{
+				// Neither is being used
 			}
 			else
 			{
 				// Moving with GP
-				//Debug.Log("KB");
+				Debug.Log("GP");
+				mouseMove = false;
 			}
+
+			moveDirectionKeyboard = moveDirectionKeyboard.normalized;
 
 			float joystickRotateX = Input.GetAxis("RotateX");
 			float joystickRotateY = Input.GetAxis("RotateY");
@@ -105,7 +117,7 @@ namespace Morko
 			// Mouse moved, use mouse
 			if (Mathf.Abs(mouseDelta.x) > 0 || Mathf.Abs(mouseDelta.y) > 0)
 			{
-				mouseControl = true;
+				mouseRotate = true;
 				lastMousePosition = currentMousePosition;
 				Ray mouseRay = camera.ScreenPointToRay(Input.mousePosition);
 				RaycastHit hit;
@@ -117,7 +129,7 @@ namespace Morko
 			// If joystick is used for rotation, use controller
 			if (Mathf.Abs(joystickRotateX) > 0f || Mathf.Abs(joystickRotateY) > 0f )
 			{
-				mouseControl = false;
+				mouseRotate = false;
 				Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateY"));
 				Quaternion lookRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
        
@@ -125,12 +137,12 @@ namespace Morko
 				character.transform.rotation = Quaternion.RotateTowards(lookRotation, character.transform.rotation, step);
 			}
 			// Controller being used, right joystick not being used, look towards player forward
-			if (moveDirection != Vector3.zero && joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == false)
+			if (moveDirectionKeyboard != Vector3.zero && joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseRotate == false)
 			{
-				character.transform.rotation = Quaternion.LookRotation(moveDirection);
+				character.transform.rotation = Quaternion.LookRotation(moveDirectionKeyboard);
 			}
 			// Mouse being used, keep old rotation
-			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseControl == true)
+			if (joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseRotate == true)
 			{
 				character.transform.rotation = package.rotation;
 			}
@@ -139,16 +151,16 @@ namespace Morko
 			
 			// Save direction when not moving
 			// Because direction is required even when not giving input for deceleration
-			if (moveDirection != Vector3.zero)
-				oldDirection = moveDirection;
+			if (moveDirectionKeyboard != Vector3.zero)
+				oldDirection = moveDirectionKeyboard;
 			
-			if (currentMovementSpeed > 0)
-				moveDirection = oldDirection.normalized;
-			else
-				moveDirection = Vector3.zero;
+			moveDirectionKeyboard = currentMovementSpeed > 0 ? oldDirection.normalized : Vector3.zero;
 			
 			// Move
-			character.characterController.Move(moveDirection * currentMovementSpeed * Time.deltaTime);
+			if (mouseMove)
+				character.characterController.Move(moveDirectionKeyboard * currentMovementSpeed * Time.deltaTime);
+			else
+				character.characterController.Move(moveDirectionGamepad * currentMovementSpeed * Time.deltaTime);
 			
 			// Update package data
 			package.position = character.gameObject.transform.position;
@@ -161,37 +173,43 @@ namespace Morko
 		// Acceleration/Deceleration
 		public void CalculateMovementSpeed()
 		{
+			if (mouseMove)
+			{
+				if (moveDirectionKeyboard != Vector3.zero && currentMovementSpeed < maxSpeed)
+				{
+					if (accelerationTimer < 0f)
+						accelerationTimer = 0f;
+				
+					accelerationTimer += Time.deltaTime;
+					decelerationTimer += Time.deltaTime;
+				
+					currentMovementSpeed = maxSpeed * (accelerationTimer / accelerationTime);
+					previousSpeed = currentMovementSpeed;
+				}
+				else if (moveDirectionKeyboard == Vector3.zero && currentMovementSpeed > 0f)
+				{
+					if (decelerationTimer > decelerationTime)
+						decelerationTimer = decelerationTime;
+				
+					decelerationTimer -= Time.deltaTime;
+					accelerationTimer -= Time.deltaTime;
+				
+					currentMovementSpeed = previousSpeed * (decelerationTimer / decelerationTime);
+				}
 			
-			if (moveDirection != Vector3.zero && currentMovementSpeed < maxSpeed)
-			{
-				if (accelerationTimer < 0f)
+				else if (moveDirectionKeyboard != Vector3.zero && currentMovementSpeed >= maxSpeed)
+					currentMovementSpeed = maxSpeed;
+				else
+				{
 					accelerationTimer = 0f;
-				
-				accelerationTimer += Time.deltaTime;
-				decelerationTimer += Time.deltaTime;
-				
-				currentMovementSpeed = maxSpeed * (accelerationTimer / accelerationTime);
-				previousSpeed = currentMovementSpeed;
-			}
-			else if (moveDirection == Vector3.zero && currentMovementSpeed > 0f)
-			{
-				if (decelerationTimer > decelerationTime)
 					decelerationTimer = decelerationTime;
 				
-				decelerationTimer -= Time.deltaTime;
-				accelerationTimer -= Time.deltaTime;
-				
-				currentMovementSpeed = previousSpeed * (decelerationTimer / decelerationTime);
+					currentMovementSpeed = 0;
+				}
 			}
-			
-			else if (moveDirection != Vector3.zero && currentMovementSpeed >= maxSpeed)
-				currentMovementSpeed = maxSpeed;
 			else
 			{
-				accelerationTimer = 0f;
-				decelerationTimer = decelerationTime;
-				
-				currentMovementSpeed = 0;
+				currentMovementSpeed = maxSpeed;
 			}
 		}
 	}
