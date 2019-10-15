@@ -22,6 +22,7 @@
 
 
 		_EdgeBlur("Blur Distance",Range(0.0,0.02)) = 0.0
+		_OutsideBlur("Outside Blur Scale",Range(0.0,0.02)) = 0.0
 		_BlurFilterSize("Blur filter size",int) = 5
 		_Saturation ("Desaturation",Range(0.0,1.0)) = 1.0
 		_BrightnessFactor ("Brightness Factor",Range(0.0,1.0))= 1.0
@@ -103,6 +104,7 @@
 			sampler2D _MorkoColor;
 			sampler2D _MorkoDepth;
 			int _BlurFilterSize;
+			float _OutsideBlur;
 			float _Saturation;
 			float _BrightnessFactor;
 			float _EdgeBlur;
@@ -125,12 +127,30 @@
 				return float2(min(col2, normalized).r,col2.g);
 			}
 
+			float3 BlurMasked(sampler2D originalColor, float2 uv, float blurAmount, float maskColor)
+			{
+				const int size = _BlurFilterSize;
+				float3 col = tex2D(originalColor, uv).rgb;
+				float3 col2 = col;
+				for (int y = -size; y <= size; ++y)
+				{
+					for (int x = -size; x <= size; ++x)
+					{
+						col += tex2D(originalColor, float2(uv.x + x * blurAmount/2 * maskColor, uv.y + y * blurAmount/2 * maskColor)).rgb;
+					}
+				}
+				float3 normalized = col / ((size * 2 + 1) * (size * 2 + 1));
+				return normalized;
+			}
+
 			float4 frag (v2f i) : SV_Target
             {
-                float3 originalColor = tex2D(_OriginColor, i.uv).rgb;
+                //float3 originalColor = tex2D(_OriginColor, i.uv).rgb;
+
 				float originalDepth = tex2D(_OriginDepth, i.uv).r;
 
 				float2 maskTex = BlurSampled(_MaskColor, i.uv, _EdgeBlur);
+				float3 originalColor = BlurMasked(_OriginColor, i.uv, _OutsideBlur, 1-max(maskTex.r,maskTex.g));
 				float maskFull = maskTex.g;
 				float maskPartial = maskTex.r;
 				float maskDepth = tex2D(_MaskDepth, i.uv).r;

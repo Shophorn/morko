@@ -42,7 +42,7 @@ public class FieldOfView : MonoBehaviour
 
     public float meshResolution;
 
-    private void Update()
+    private void LateUpdate()
     {
         DrawFieldOfView();
         DrawFullCone();

@@ -106,13 +106,13 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BlurFilterSize: 5
-    - _BrightnessFactor: 0.871
+    - _BlurFilterSize: 4
+    - _BrightnessFactor: 0.918
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _EdgeBlur: 0.0074
+    - _EdgeBlur: 0.0072
     - _FarClipPlane: 0.05
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -122,8 +122,9 @@ Material:
     - _Modulo: 0.772
     - _NearClipPlane: 0
     - _OcclusionStrength: 1
+    - _OutsideBlur: 0.0028
     - _Parallax: 0.02
-    - _Saturation: 0.334
+    - _Saturation: 0.439
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
