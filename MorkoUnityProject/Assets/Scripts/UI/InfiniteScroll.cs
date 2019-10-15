@@ -11,7 +11,8 @@ namespace Morko
 		public float scrollSpeed;
 		public ListItem currentItem;
 		public GameObject gridCenter;
-		public InputField inputField;
+		public InputField nameInputField;
+		public InputField roomInputField;
 
 		public ListItem[] listElements;
 
@@ -62,8 +63,11 @@ namespace Morko
 			else if (Input.GetAxis("Horizontal") < 0)
 				positiveDrag = false;
 
-			if (inputField.isFocused == true)
+			if (nameInputField.isFocused == true)
 				scrollFactor = 0;
+			if (roomInputField.isFocused == true)
+				scrollFactor = 0;
+
 
 			scrollContent.transform.localPosition = new Vector3(scrollContent.transform.localPosition.x + scrollFactor * scrollSpeed, 0, 0);
 			
@@ -219,19 +223,22 @@ namespace Morko
 			float currentItemPositionalValue = (gridCenter.transform.localPosition.x - scrollContent.transform.localPosition.x / 300.0f) % (listElements.Length);
 			int positionalIntValue = Mathf.RoundToInt(currentItemPositionalValue);
 
+			if (positionalIntValue < 0)
+				positionalIntValue *= -1;
+
 			for (int i = 0; i < listElements.Length; i++)
 			{
-				if(positionalIntValue < 0)
-				{
-					positionalIntValue = positionalIntValue + listElements.Length -i;
-				}
 				if (positionalIntValue == listElements[i].id)
 				{
 					currentItem = listElements[i];
+					currentItem.listItemName = listElements[i].listItemName;
 					continue;
 				}
-				if(positionalIntValue > listElements[listElements.Length-1].id)
+				if (positionalIntValue > listElements[listElements.Length - 1].id)
+				{
 					currentItem = listElements[0];
+					currentItem.listItemName = listElements[0].listItemName;
+				}
 			}
 		}
 	}

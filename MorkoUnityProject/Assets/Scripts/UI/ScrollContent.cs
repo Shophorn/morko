@@ -12,16 +12,18 @@ namespace Morko
 		public ListItem[] listElements;
 		private GameObject listGrid;
 
-		public InfiniteScroll levelSelectionList;
+		public InfiniteScroll selectionList;
 
 		public ListItem currentItem;
 
 		public Sprite[] levelImages;
+		public Sprite[] characterImages;
 
 		public GameObject gridCenter;
 
 		private int numberOfScenes;
-		private string[] levelNames;
+		public string[] levelNames;
+		private string[] characterNames;
 
 
 		/// <summary>
@@ -113,7 +115,7 @@ namespace Morko
 			else
 				InitializeContentHorizontal();
 
-			levelSelectionList.listElements = listElements;
+			selectionList.listElements = listElements;
 		}
 
 		private void CreateList()
@@ -135,23 +137,12 @@ namespace Morko
 				{
 					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
 					listElements[i].id = i;
+					listElements[i].listItemName = levelNames[i];
 					listElements[i].transform.Find("Level Name").GetComponent<Text>().text = levelNames[i];
 					listElements[i].transform.Find("Level Image").GetComponent<Image>().sprite = levelImages[i];
 					listElements[i].transform.parent = listGrid.transform;
 				}
 				currentItem = listElements[0];
-
-				for (int i = 0; i < numberOfScenes - 1; i++)
-				{
-					if (listElements[i].id != listElements[listElements.Length - 1].id)
-						listElements[i].nextItem = listElements[i + 1];
-					else
-						listElements[i].nextItem = listElements[0];
-					if (listElements[i].id != listElements[0].id)
-						listElements[i].lastItem = listElements[i - 1];
-					else
-						listElements[i].lastItem = listElements[listElements.Length - 1];
-				}
 			}
 		}
 

@@ -12,33 +12,36 @@ namespace Morko
         public GameObject hostWindow;
         public GameObject pauseWindow;
 		public GameObject loadWindow;
+		public GameObject lobbyHost;
+		public GameObject lobbyPlayer;
 		public GameObject joinWindow;
-		public GameObject lobbyWindow;
-		public GameObject creditWindow;
-		public GameObject Keyboard;
+		public GameObject optionsWindow;
+		public GameObject creditsWindow;
 
 		public ScrollContent scrollContent;
 
-        private Dropdown dropdown = null;
+		//private int currentActiveSelection;
+		//private bool isAxisInUse;
 
-		private int currentActiveSelection;
-		private bool isAxisInUse;
+		public GameObject menuDisabler;
 
         void Start()
         {
             mainMenu.SetActive(true);
             menuWindow.SetActive(true);
+			menuDisabler.SetActive(false);
             hostWindow.SetActive(false);
             pauseWindow.SetActive(false);
 			loadWindow.SetActive(false);
+			lobbyHost.SetActive(false);
+			lobbyPlayer.SetActive(false);
 			joinWindow.SetActive(false);
-			lobbyWindow.SetActive(false);
-			creditWindow.SetActive(false);
-			Keyboard.SetActive(false);
+			optionsWindow.SetActive(false);
+			creditsWindow.SetActive(false);
 
-			currentActiveSelection = 1;
-			ChangeSelection(currentActiveSelection);
-        }
+			//currentActiveSelection = 1;
+			//ChangeSelection(currentActiveSelection);
+		}
 
         void Update()
         {
@@ -46,8 +49,8 @@ namespace Morko
             {
                 TogglePauseWindow();
             }
-			if(menuWindow.activeInHierarchy)
-				MoveInMenuWindow();
+			//if(menuWindow.activeInHierarchy)
+			//	MoveInMenuWindow();
 		}
 
 		public void ToggleMainMenu()
@@ -63,7 +66,7 @@ namespace Morko
         public void ToggleMenuWindow()
         {
             menuWindow.SetActive(!menuWindow.activeInHierarchy);
-        }
+		}
 
         public void TogglePauseWindow()
         {
@@ -75,36 +78,50 @@ namespace Morko
 		{
 			loadWindow.SetActive(!loadWindow.activeInHierarchy);
 		}
+
+		public void ToggleLobbyHost()
+		{
+			lobbyHost.SetActive(!lobbyHost.activeInHierarchy);
+		}
+
+		public void ToggleLobbyPlayer()
+		{
+			lobbyPlayer.SetActive(!lobbyPlayer.activeInHierarchy);
+		}
+
 		public void ToggleJoinWindow()
 		{
-			loadWindow.SetActive(!joinWindow.activeInHierarchy);
-		}
-		public void ToggleLobbyWindow()
-		{
-			loadWindow.SetActive(!lobbyWindow.activeInHierarchy);
-		}
-		public void ToggleCreditWindow()
-		{
-			loadWindow.SetActive(!creditWindow.activeInHierarchy);
-		}
-		public void ToggleKeyboard()
-		{
-			loadWindow.SetActive(!Keyboard.activeInHierarchy);
+			joinWindow.SetActive(!joinWindow.activeInHierarchy);
 		}
 
+		public void ToggleOptionsWindow()
+		{
+			optionsWindow.SetActive(!optionsWindow.activeInHierarchy);
+		}
+		public void ToggleCreditsWindow()
+		{
+			creditsWindow.SetActive(!creditsWindow.activeInHierarchy);
+		}
 
-        public void BackToMainMenu()
+		public void BackToMainMenu()
         {
-			currentActiveSelection = 1;
-			ChangeSelection(currentActiveSelection);
-            if(hostWindow.activeInHierarchy == false)
-                SceneManager.UnloadSceneAsync(scrollContent.currentItem.id+1);
+			//currentActiveSelection = 1;
+			//ChangeSelection(currentActiveSelection);
+            //if(hostWindow.activeInHierarchy == false)
+            //    SceneManager.UnloadSceneAsync(scrollContent.currentItem.id+1);
             mainMenu.SetActive(true);
             menuWindow.SetActive(true);
-            hostWindow.SetActive(false);
+			hostWindow.SetActive(false);
+			joinWindow.SetActive(false);
             pauseWindow.SetActive(false);
-        }
+			menuDisabler.SetActive(false);
+			lobbyHost.SetActive(false);
+			lobbyPlayer.SetActive(false);
+			loadWindow.SetActive(false);
+			optionsWindow.SetActive(false);
+			creditsWindow.SetActive(false);
 
+		}
         public void QuitGame()
         {
             Application.Quit();
@@ -113,18 +130,49 @@ namespace Morko
         public void HostGame()
         {
             ToggleHostWindow();
-            ToggleMenuWindow();
-			currentActiveSelection = 3;
-			ChangeSelection(currentActiveSelection);
+			menuDisabler.SetActive(true);
+			//currentActiveSelection = 3;
+			//ChangeSelection(currentActiveSelection);
         }
 
-        public void StartGame()
+		public void JoinWindow()
+		{
+			ToggleJoinWindow();
+			menuDisabler.SetActive(true);
+		}
+
+		public void OptionsWindow()
+		{
+			ToggleOptionsWindow();
+			menuDisabler.SetActive(true);
+		}
+
+		public void CreditsWindow()
+		{
+			ToggleCreditsWindow();
+			menuDisabler.SetActive(true);
+		}
+
+		public void CreateRoom()
+		{
+			ToggleMainMenu();
+			ToggleHostWindow();
+			ToggleLobbyHost();
+		}
+
+		public void JoinRoom()
+		{
+			ToggleMainMenu();
+			ToggleJoinWindow();
+			ToggleLobbyPlayer();
+		}
+
+		public void StartGame()
         {
-            // scrollContent.currentItem.id +1 is used to identify scene from Build Settings: Scenes in Build
-            // scene 0 on Menu
             StartCoroutine(LoadScene(scrollContent.currentItem.id + 1));
             ToggleMainMenu();
-            ToggleHostWindow();
+            ToggleLobbyHost();
+			ToggleLobbyPlayer();
         }
 
         IEnumerator LoadScene(int sceneIndex) // This async operation initiates character instantiation after the correct scene has been loaded and set as active
@@ -147,109 +195,9 @@ namespace Morko
 
         public void ExitCurrentGame()
         {
+            SceneManager.UnloadSceneAsync(scrollContent.currentItem.id + 1);
             SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(0));
             BackToMainMenu();
         }
-
-		public void ChangeSelection(int currentSelection)
-		{
-			switch (currentSelection)
-			{
-				case 1:
-					Button hostButton = menuWindow.transform.Find("Host Button").GetComponent<Button>();
-					hostButton.Select();
-					break;
-				case 2:
-					Button joinButton = menuWindow.transform.Find("Join Button").GetComponent<Button>();
-					joinButton.Select();
-					break;
-				case 3:
-					Button startButton = hostWindow.transform.Find("Host Game Button").GetComponent<Button>();
-					startButton.Select();
-					break;
-				case 4:
-					Button quitButton = menuWindow.transform.Find("Quit Button").GetComponent<Button>();
-					quitButton.Select();
-					break;
-				case 5:
-					Button backToMenuButton = hostWindow.transform.Find("Back To Menu Button").GetComponent<Button>();
-					backToMenuButton.Select();
-					break;
-				case 6:
-					InputField nameInput = hostWindow.transform.Find("Host Name Field").GetComponent<InputField>();
-					nameInput.Select();
-					break;
-			}
-		}
-
-
-		private void MoveInMenuWindow()
-		{
-			if (Input.GetAxisRaw("Vertical") == -1)
-			{
-				if (!isAxisInUse)
-				{
-
-					currentActiveSelection++;
-					if (currentActiveSelection == 5)
-						currentActiveSelection = 1;
-					if (currentActiveSelection == 3)
-						currentActiveSelection = 4;
-					ChangeSelection(currentActiveSelection);
-					isAxisInUse = true;
-				}
-			}
-			if (Input.GetAxisRaw("Vertical") == 1)
-			{
-				if (!isAxisInUse)
-				{
-					currentActiveSelection--;
-					if (currentActiveSelection == 0)
-						currentActiveSelection = 4;
-					if (currentActiveSelection == 3)
-						currentActiveSelection = 2;
-					ChangeSelection(currentActiveSelection);
-					isAxisInUse = true;
-				}
-			}
-			if (Input.GetAxisRaw("Vertical") == 0)
-				isAxisInUse = false;
-		}
-
-		private void MoveInHostWindow()
-		{
-			if (Input.GetAxisRaw("Vertical") == -1)
-			{
-				if (!isAxisInUse)
-				{
-					currentActiveSelection++;
-					if (currentActiveSelection == 4)
-						currentActiveSelection = 5;
-					if (currentActiveSelection > 6)
-						currentActiveSelection = 3;
-					if (currentActiveSelection < 3)
-						currentActiveSelection = 6;
-					ChangeSelection(currentActiveSelection);
-					isAxisInUse = true;
-				}
-			}
-			if (Input.GetAxisRaw("Vertical") == 1)
-			{
-				if (!isAxisInUse)
-				{
-					currentActiveSelection--;
-					if (currentActiveSelection == 4)
-						currentActiveSelection = 3;
-					if (currentActiveSelection > 6)
-						currentActiveSelection = 3;
-					if (currentActiveSelection < 3)
-						currentActiveSelection = 6;
-					ChangeSelection(currentActiveSelection);
-					isAxisInUse = true;
-				}
-			}
-			if (Input.GetAxisRaw("Vertical") == 0)
-				isAxisInUse = false;
-		}
     }
 }
