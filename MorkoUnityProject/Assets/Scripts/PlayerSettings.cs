@@ -12,6 +12,8 @@ public class PlayerSettings : ScriptableObject
     [Range(1f, 2f)] public float runMultiplier = 1.5f;
     [Range(0f, 5f)] public float accelerationTime = 1.5f;
     [Range(0f, 5f)] public float decelerationTime = 1.5f;
+    [Range(0f, 5f)] public float accelerationRunTime = 1f;
+    [Range(0f, 5f)] public float decelerationRunTime = 3f;
 
     [FormerlySerializedAs("morkoMovementSpeed")]
     [Header("Mörkö")]
