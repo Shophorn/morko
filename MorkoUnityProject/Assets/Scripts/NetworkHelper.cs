@@ -2,10 +2,15 @@ using UnityEngine;
 
 public class NetworkHelper : MonoBehaviour
 {
-	private NetworkTester2 joinConnection;
-	private ServerTester hostConnection;
+	public bool autoStartHosting;
 
-	private bool HasAction => (joinConnection != null) || (hostConnection != null);
+	public bool autoStartJoining;
+	public GameObject testAvatarPrefab;
+
+	private ClientConnection clientConnection;
+	private ServerConnection serverConnection;
+
+	private bool HasAction => (clientConnection != null) || (serverConnection != null);
 
 	public void Host()
 	{
@@ -15,7 +20,8 @@ public class NetworkHelper : MonoBehaviour
 			return;
 		}
 
-		hostConnection = gameObject.AddComponent<ServerTester>();
+		serverConnection = gameObject.AddComponent<ServerConnection>();
+		serverConnection.AutoStart = autoStartHosting;
 	}
 
 	public void CancelHost()
@@ -26,8 +32,8 @@ public class NetworkHelper : MonoBehaviour
 			return;
 		}
 
-		Destroy(hostConnection);
-		hostConnection = null;
+		Destroy(serverConnection);
+		serverConnection = null;
 	}
 
 	public void Join()
@@ -38,7 +44,9 @@ public class NetworkHelper : MonoBehaviour
 			return;
 		}
 
-		joinConnection = gameObject.AddComponent<NetworkTester2>();
+		clientConnection = gameObject.AddComponent<ClientConnection>();
+		clientConnection.avatarPrefab = testAvatarPrefab;
+		clientConnection.AutoStart = autoStartJoining;
 	}
 
 	public void CancelJoin()
@@ -49,7 +57,7 @@ public class NetworkHelper : MonoBehaviour
 			return;
 		}
 
-		Destroy(joinConnection);
-		joinConnection = null;
+		Destroy(clientConnection);
+		clientConnection = null;
 	}
 }

@@ -1,13 +1,13 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ServerTester))]
-public class ServerTesterEditor : Editor
+[CustomEditor(typeof(ServerConnection))]
+public class ServerConnectionEditor : Editor
 {
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
-		var tester = target as ServerTester;
+		var tester = target as ServerConnection;
 
 
 		EditorGUILayout.LabelField($"Status: {tester.Status}");

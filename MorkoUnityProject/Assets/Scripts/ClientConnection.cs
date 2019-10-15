@@ -1,5 +1,6 @@
 using System; 
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -11,6 +12,7 @@ using UnityEngine;
 using Morko.Network;
 using Morko.Threading;
 
+// Todo(Leo): probably a bad idea
 using static Morko.Network.Constants;
 
 [Serializable]
@@ -27,25 +29,22 @@ public struct UdpState
 	public IPEndPoint endPoint;
 }
 
-[Serializable, StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct PlayerGameUpdatePackage
 {
 	public int playerId;
 	public Vector3 position;
 }
 
-public class NetworkTester2 : MonoBehaviour
+public class ClientConnection : MonoBehaviour
 {
-	public Transform senderTransform;
-	public Transform receiverTransform;
-
-	private Synchronized<Vector3> receivedPosition = new Synchronized<Vector3>();
+	public bool AutoStart { get; set; }
 
 	public int netUpdateIntervalMs = 50;
 	private float netUpdateInterval => netUpdateIntervalMs / 1000f;
 	private float nextNetUpdateTime;
 
-	public string playerName;
+	public string playerName = "Default Player";
 
 	public int selectedServerIndex;
 	public string selectedServerName;
@@ -56,8 +55,11 @@ public class NetworkTester2 : MonoBehaviour
 	public List<ServerInfo> servers = new List<ServerInfo>();
 	private ServerInfo requestedServer;
 	private ServerInfo joinedServer;
+	public GameObject avatarPrefab;
+	public Transform senderTransform;
 
-	private List<Synchronized<Vector3>> receivedPositions;
+	private Dictionary<int, Transform> receiverTransforms;
+	private Dictionary<int, Synchronized<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
 	private bool listenBroadcast = false;
@@ -69,29 +71,83 @@ public class NetworkTester2 : MonoBehaviour
 
 	public int myClientId;
 
-	int serverConnectionIndex;
+	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
 
-	public void CreateGame(PlayerStartInfo [] playerStartInfos)
-	{
+	[Serializable]
+	public struct EndPointDisplay
+	{	
+		public string address;
+		public int port;
 
-		foreach (var item in playerStartInfos)
+		public static EndPointDisplay FromEndPoint(IPEndPoint endPoint)
 		{
-			Debug.Log($"Player #{item.playerId}: {item.name}");
+			return new EndPointDisplay
+			{
+				address = endPoint.Address.ToString(),
+				port = endPoint.Port
+			};
+		}
+	}
+
+	private void Start()
+	{
+		if (AutoStart)
+		{
+			StartListen();
+		}
+	}
+
+	public EndPointDisplay serverEndpoint;
+	public EndPointDisplay myEndPoint;
+
+	public void CreateGameInstance(PlayerStartInfo [] playerStartInfos)
+	{
+		if (playerStartInfos.Length == 0)
+		{
+			Debug.LogError("Cannot start a game with 0 players");
+			return;
 		}
 
-		Debug.Log($"Game starts with {playerStartInfos.Length} players");
+		Debug.Log("Game session created");
+
+
+		senderTransform = Instantiate(avatarPrefab, Vector3.zero, Quaternion.identity).transform;
+		senderTransform.gameObject.AddComponent<ControlsTest>();
+
+		// Todo(Leo): Load proper level etc.
+
+		receiverTransforms = new Dictionary<int, Transform>();
+		receivedPositions = new Dictionary<int, Synchronized<Vector3>>();
+
+		// int netPlayerCount = playerStartInfos.Length - 1;
+		foreach (var item in playerStartInfos)
+		{
+			if (item.playerId != myClientId)
+			{
+				Vector3 startPosition = Vector3.zero;
+				
+				receiverTransforms.Add(	item.playerId,
+										Instantiate(avatarPrefab, startPosition, Quaternion.identity).transform);
+
+				receivedPositions.Add(	item.playerId,
+										new Synchronized<Vector3>(startPosition));
+			}
+		}
+
+		// Todo(Leo): Start update here 
+		doNetworkUpdate = true;
 	}
 
 	private class ReceiveThread : IThreadRunner
 	{
-		public NetworkTester2 tester;
+		public ClientConnection connection;
 
 		public void Run ()
 		{
 			var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
 			while(true)
 			{
-				if (ProtocolFormat.TryParseCommand(	tester.udpClient.Receive(ref receiveEndPoint),
+				if (ProtocolFormat.TryParseCommand(	connection.udpClient.Receive(ref receiveEndPoint),
 													out NetworkCommand command,
 													out byte [] contents) == false)
 				{
@@ -103,7 +159,7 @@ public class NetworkTester2 : MonoBehaviour
 					case NetworkCommand.ServerIntroduce:
 					{
 						receiveEndPoint.Port = Constants.serverReceivePort;
-						var existingServer = tester.servers
+						var existingServer = connection.servers
 												.Find(server => IPEndPoint.Equals(	server.endPoint,
 																					receiveEndPoint));
 						if (existingServer != null)
@@ -113,12 +169,19 @@ public class NetworkTester2 : MonoBehaviour
 						else
 						{
 							var arguments = contents.ToStructure<ServerIntroduceArgs>();
-							tester.servers.Add(new ServerInfo
+							connection.servers.Add(new ServerInfo
 							{
 								endPoint 			= receiveEndPoint,
 								name 				= arguments.name,
 								lastConnectionTime 	= DateTime.Now
 							});
+
+							// Todo(Leo): set default, so we get faster to play. Remove when testing is done
+							if (connection.selectedServerIndex < 0)
+							{
+								connection.selectedServerIndex = 0;
+								connection.OnValidate();
+							}
 						}
 					} break;
 
@@ -127,23 +190,30 @@ public class NetworkTester2 : MonoBehaviour
 						var arguments = contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
 						int playerCount = arguments.playerCount;
 						var playerStartInfos = packageData.ToArray<PlayerStartInfo>(playerCount);
-						tester.CreateGame(playerStartInfos);
+						
+						mainThreadSyncQueue.Enqueue(() => connection.CreateGameInstance(playerStartInfos));
 
 					} break;
 
 					case NetworkCommand.ServerGameUpdate:
 					{
 						var arguments = contents.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
-						Debug.Log($"Received player package: {packageData.Length}");
+						Debug.Log($"Received update from servers, id {arguments.playerId}");
 
-						if (packageData.Length == Marshal.SizeOf(default(PlayerGameUpdatePackage)))
+						if (connection.receivedPositions != null)
 						{
-							var package = packageData.ToStructure<PlayerGameUpdatePackage>();
-							tester.receivedPosition.Write(package.position);
+							// if (packageData.Length == Marshal.SizeOf(default(PlayerGameUpdatePackage)))
+							if (arguments.playerId != connection.myClientId)
+							{
+								var package = packageData.ToStructure<PlayerGameUpdatePackage>();
+								connection.receivedPositions[arguments.playerId].Write(package.position);
+							}
+						}
+						else
+						{
+							Debug.Log("Receivers not yet created");
 						}
 
-
-						Debug.Log($"Received update from servers, id {arguments.playerId}");
 
 					} break;
 
@@ -153,16 +223,16 @@ public class NetworkTester2 : MonoBehaviour
 
 						if (arguments.accepted)
 						{
-							tester.myClientId = arguments.playerId;
-							tester.joinedServer = tester.requestedServer;
-							Debug.Log($"Server accepted request, my id is {tester.myClientId}");
+							connection.myClientId = arguments.playerId;
+							connection.joinedServer = connection.requestedServer;
+							Debug.Log($"Server accepted request, my id is {connection.myClientId}");
 						}
 						else
 						{
 							Debug.Log("Server declined request");
 						}
 
-						tester.requestedServer = null;
+						connection.requestedServer = null;
 					} break;
 				}
 			}
@@ -219,9 +289,9 @@ public class NetworkTester2 : MonoBehaviour
 			udpClient 	= udpClient,
 			endPoint 	= joinedServer.endPoint
 		});
-		receiveUpdateThread.Start(new ReceiveThread { tester = this });
+		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 
-		doNetworkUpdate = true;
+		// doNetworkUpdate = true;
 	}
 
 	public void StopUpdate()
@@ -244,12 +314,23 @@ public class NetworkTester2 : MonoBehaviour
 			}
 		}
 
-		if (receiverTransform != null)
-			receiverTransform.position = receivedPosition.Read();			
+		while(mainThreadSyncQueue.TryDequeue(out Action action))
+		{
+			action.Invoke();
+		}
 
-		// Note(Leo): Lol, no accessing transform from threads??
-		if (senderTransform != null && sendUpdateThread.IsRunning)
-			sendUpdateThread.Runner.playerPosition = senderTransform.position;
+		if (doNetworkUpdate)
+		{
+			foreach (var item in receivedPositions)
+			{
+				int key = item.Key;
+				receiverTransforms[key].position = item.Value.Read();
+			}
+
+			// Note(Leo): Lol, no accessing transform from threads??
+			if (senderTransform != null && sendUpdateThread.IsRunning)
+				sendUpdateThread.Runner.playerPosition = senderTransform.position;
+		}
 	}
 
 	public void StartListen()
@@ -257,7 +338,7 @@ public class NetworkTester2 : MonoBehaviour
 		Debug.Log("Start listening broadcast");
 		udpClient = new UdpClient(broadcastPort);
 
-		detectServersThread.Start(new ReceiveThread {tester = this});
+		detectServersThread.Start(new ReceiveThread {connection = this});
 	}
 
 	public void StopListen()
@@ -308,10 +389,13 @@ public class NetworkTester2 : MonoBehaviour
 	{
 		requestedServer = servers[selectedServerIndex];
 
+		serverEndpoint = EndPointDisplay.FromEndPoint(requestedServer.endPoint);
+
 		var arguments 	= new PlayerRequestJoinArgs{ playerName = playerName };
 		var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);
 		var endPoint 	= requestedServer.endPoint;
 
-		udpClient.Send(data, data.Length, endPoint);
+		int sentBytes = udpClient.Send(data, data.Length, endPoint);
+		Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
 	}
 }

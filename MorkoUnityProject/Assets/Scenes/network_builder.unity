@@ -131,7 +131,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &149811780
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -300,7 +300,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &187743846
 Transform:
   m_ObjectHideFlags: 0
@@ -427,6 +427,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9718e75c73d60f4abc41d937e4ff938, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoStartHosting: 1
+  autoStartJoining: 1
+  testAvatarPrefab: {fileID: 8697868240952185027, guid: c646a66f36113314f8d0639175fa5277,
+    type: 3}
 --- !u!4 &825081022
 Transform:
   m_ObjectHideFlags: 0

@@ -1,8 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(NetworkTester2))]
-public class NetworkTester2Editor : Editor
+[CustomEditor(typeof(ClientConnection))]
+public class ClientConnectionEditor : Editor
 {
 	public override void OnInspectorGUI ()
 	{
@@ -10,27 +10,27 @@ public class NetworkTester2Editor : Editor
 
 		if (GUILayout.Button("Join Selected Server"))
 		{
-			(target as NetworkTester2).JoinSelectedServer();
+			(target as ClientConnection).JoinSelectedServer();
 		}
 
 		if (GUILayout.Button("Start Listen"))
 		{
-			(target as NetworkTester2).StartListen();
+			(target as ClientConnection).StartListen();
 		}
 
 		if (GUILayout.Button("Stop Listen"))
 		{
-			(target as NetworkTester2).StopListen();
+			(target as ClientConnection).StopListen();
 		}
 
 		if (GUILayout.Button("Start Update"))
 		{
-			(target as NetworkTester2).StartUpdate();
+			(target as ClientConnection).StartUpdate();
 		}
 
 		if (GUILayout.Button("Stop Update"))
 		{
-			(target as NetworkTester2).StopUpdate();
+			(target as ClientConnection).StopUpdate();
 		}
 	}
 }

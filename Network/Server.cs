@@ -77,7 +77,8 @@ namespace Morko.Network
 	[Serializable]
 	public class ServerStartInfo
 	{
-		public string serverName;
+		public string serverName = "Default Server";
+		public int playerUpdatePackageSize;
 		public Action<string> logFunction;
 	}
 
@@ -206,6 +207,7 @@ namespace Morko.Network
 		private UdpClient responseClient;
 
 		private List<PlayerConnectionInfo> players;
+		private int playerUpdatePackageSize;
 
 		public event Action OnPlayerAdded;
 
@@ -219,11 +221,13 @@ namespace Morko.Network
 
 			var server = new Server
 			{
-				name 			= info.serverName,
-				broadcastClient = new UdpClient(0),
-				responseClient 	= new UdpClient(Constants.serverReceivePort),
-				players 		= new List<PlayerConnectionInfo>(),
-				Log 			= info.logFunction ??  Morko.Logging.Logger.Log
+				name 					= info.serverName,
+				playerUpdatePackageSize = info.playerUpdatePackageSize,
+				Log 					= info.logFunction ??  Morko.Logging.Logger.Log,
+
+				broadcastClient 		= new UdpClient(0),
+				responseClient 			= new UdpClient(Constants.serverReceivePort),
+				players 				= new List<PlayerConnectionInfo>(),
 			};
 
 			server.Log($"Created '{server.name}");
@@ -327,6 +331,8 @@ namespace Morko.Network
 
 		public void StartGame()
 		{	
+			InitializePlayers();
+
 			Log($"[{name}]: Start Game");
 			gameUpdateThreadControl.Start(new GameUpdateThread { server = this});
 
@@ -351,6 +357,14 @@ namespace Morko.Network
 		{
 			broadcastClient?.Close();
 			responseClient?.Close();
+		}
+
+		private void InitializePlayers()
+		{
+			foreach (var player in players)
+			{
+				player.lastReceivedPackage = new byte[playerUpdatePackageSize];
+			}
 		}
 
 		private class GameUpdateThread : IThreadRunner
@@ -387,16 +401,45 @@ namespace Morko.Network
 
 				while(true)
 				{
-					for(int playerId = 0; playerId < server.players.Count; playerId++)
+					int playerCount = server.players.Count;
+					for (int playerId = 0; playerId < playerCount; playerId++)
 					{
-						foreach (var sender in server.players)
-						{
-							byte [] data = ProtocolFormat.MakeCommand(
-												new ServerGameUpdateArgs {playerId = playerId},
-												sender.lastReceivedPackage);
-							server.broadcastClient.Send(data, data.Length, endPoint);
-						}
+						var data = ProtocolFormat.MakeCommand(
+										new ServerGameUpdateArgs {playerId = playerId},
+										server.players[playerId].lastReceivedPackage);
+
+						server.broadcastClient.Send(data, data.Length, endPoint);
 					}
+
+
+					// int playerCount = server.players.Count;
+					// var playerUpdatePackages = new byte [playerCount * playerUpdatePackageSize];
+
+					// for (int playerId = 0; playerId < server.players.Count; playerId++)
+					// {
+					// 	int offset = playerId * playerUpdatePackageSize;
+					// 	Buffer.BlockCopy(	server.players[playerId].lastReceivedPackage, 0,
+					// 						playerUpdatePackages, offset,
+					// 						playerUpdatePackageSize);
+					// }
+					// byte [] data = ProtocolFormat.MakeCommand(
+					// 					new ServerGameUpdateArgs )
+
+					// server.broadcastClient.Send()
+
+					// for(int playerId = 0; playerId < server.players.Count; playerId++)
+					// {
+					// 	foreach (var sender in server.players)
+					// 	{
+					// 		byte [] data = ProtocolFormat.MakeCommand(
+					// 							new ServerGameUpdateArgs {playerId = playerId},
+					// 							sender.lastReceivedPackage);
+					// 		server.broadcastClient.Send(data, data.Length, endPoint);
+					// 	}
+					// }
+
+
+
 
 					Thread.Sleep(server.gameUpdateThreadDelayMs);
 				}

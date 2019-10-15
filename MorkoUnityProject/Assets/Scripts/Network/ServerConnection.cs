@@ -1,20 +1,34 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 using Morko.Network;
 
-public class ServerTester : MonoBehaviour
+public class ServerConnection : MonoBehaviour
 {
 	public enum StatusType {Idle, Broadcasting, RunningGame};
 	public StatusType Status { get; private set; }
 
-	public ServerStartInfo serverInfo;
+	public ServerStartInfo serverInfo = new ServerStartInfo();
 	private Server server;
 
 	public string [] players;
 
+	public bool AutoStart { get; set; }
+
+	private void Start()
+	{
+		if (AutoStart)
+		{
+			CreateServer();
+			StartBroadcast();
+		}
+	}
+
 	public void CreateServer()
 	{
 		serverInfo.logFunction = Debug.Log;
+		serverInfo.playerUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage));
+
 		server = Server.Create(serverInfo);
 		server.OnPlayerAdded += () => players = server.PlayersNames;
 	}

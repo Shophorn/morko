@@ -1,0 +1,6 @@
+Gamestate
+	timer
+	rules for ending
+
+Hahmon hyökkäys asiat
+	"minipeli" design
