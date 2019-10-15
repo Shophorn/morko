@@ -8,16 +8,12 @@ either one needs to change.
 */
 
 using System;
-using System.Text;
 
 namespace Morko.Network
 {
 	public static class ProtocolFormat
 	{
-		static byte [] Encode(string text) => Encoding.ASCII.GetBytes(text);
-		static string Decode(byte [] data) => Encoding.ASCII.GetString(data);
-		static string Decode(byte [] data, int firstIndex)
-			=> Encoding.ASCII.GetString(data, firstIndex, data.Length - firstIndex);
+		static byte [] Encode(string text) => System.Text.Encoding.ASCII.GetBytes(text);
 
 		private const string appId = "MORKO";
 		private static readonly byte [] idBytes = Encode(appId);
@@ -25,21 +21,26 @@ namespace Morko.Network
 		private const int commandBytesCount = 1;
 		private const int commandByteIndex 	= 5;
 
-		public static byte [] MakeCommand(NetworkCommand command, string arguments = null)
+		public static byte [] MakeCommand<T>(T arguments, byte [] package = null) 
+			where T : struct, INetworkCommandArgs
 		{
-			char commandSymbol = (char)command;
-			var data = Encode($"{appId}{commandSymbol}{arguments}");
-			return data;
-		}
-
-		public static byte [] MakeCommand(NetworkCommand command, byte [] content = null)
-		{
-			char commandSymbol = (char)command;
+			char commandSymbol = (char)arguments.Command;
 			var header = Encode($"{appId}{commandSymbol}");
+			var argsData = arguments.ToBinary();
 
-			var data = new byte[header.Length + content.Length];
+			int headerSize = header.Length;
+			int argsSize = argsData.Length;
+			int packageSize = package != null ? package.Length : 0;
+
+			var data = new byte[headerSize + argsSize + packageSize];
+
 			Buffer.BlockCopy(header, 0, data, 0, header.Length);
-			Buffer.BlockCopy(content, 0, data, header.Length, content.Length);
+			Buffer.BlockCopy(argsData, 0, data, header.Length, argsData.Length);
+
+			if (package != null)
+			{
+				Buffer.BlockCopy(package, 0, data, headerSize + argsSize, packageSize);
+			}
 			
 			return data;
 		}
@@ -64,23 +65,6 @@ namespace Morko.Network
 			return isCommand ?
 				(NetworkCommand)commandByte :
 				NetworkCommand.Undefined;
-		}
-
-		public static bool TryParseCommand(	byte [] input, 
-											out NetworkCommand command,
-											out string arguments)
-		{
-			command = GetCommand(input);
-			if (command != NetworkCommand.Undefined)
-			{
-				arguments = Decode(input, idBytesCount + commandBytesCount);
-				return true;
-			}
-			else
-			{
-				arguments = null;
-				return false;
-			}
 		}
 
 		public static bool TryParseCommand(	byte [] input,

@@ -7,8 +7,10 @@ public class ServerTesterEditor : Editor
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
-
 		var tester = target as ServerTester;
+
+
+		EditorGUILayout.LabelField($"Status: {tester.Status}");
 
 		if (GUILayout.Button("Create Server"))
 		{

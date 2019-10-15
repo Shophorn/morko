@@ -6,10 +6,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-
 using UnityEngine;
 
 using Morko.Network;
+using Morko.Threading;
+
 using static Morko.Network.Constants;
 
 [Serializable]
@@ -27,23 +28,22 @@ public struct UdpState
 }
 
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct CharacterUpdatePackage
+public struct PlayerGameUpdatePackage
 {
-	public int id;
-	public float orientation;
+	public int playerId;
 	public Vector3 position;
-	public Vector3 speed;
 }
 
 public class NetworkTester2 : MonoBehaviour
 {
-	public CharacterUpdatePackage characterUpdate;
+	public Transform senderTransform;
+	public Transform receiverTransform;
 
-	public int netUpdateIntervalMs;
+	private Synchronized<Vector3> receivedPosition = new Synchronized<Vector3>();
+
+	public int netUpdateIntervalMs = 50;
 	private float netUpdateInterval => netUpdateIntervalMs / 1000f;
 	private float nextNetUpdateTime;
-
-	public Vector3 [] testPackageData;
 
 	public string playerName;
 
@@ -54,78 +54,179 @@ public class NetworkTester2 : MonoBehaviour
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
 	public List<ServerInfo> servers = new List<ServerInfo>();
+	private ServerInfo requestedServer;
 	private ServerInfo joinedServer;
+
+	private List<Synchronized<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
 	private bool listenBroadcast = false;
 
-	public enum UdpListenMode { None, Broadcast, Multicast }
-	public UdpListenMode listenMode;
+	private readonly ThreadControl detectServersThread = new ThreadControl();
+	private readonly ThreadControl receiveUpdateThread = new ThreadControl();
+	private readonly ThreadControl<SendUpdateThread> sendUpdateThread 
+		= new ThreadControl<SendUpdateThread>();
 
-	Vector3 testNetPlayerPosition;
-
-	public bool requestedJoinFromServer;
-	public bool serverConfirmedJoin;
 	public int myClientId;
 
 	int serverConnectionIndex;
 
-	private void ReceiveCallback(IAsyncResult result)
+	public void CreateGame(PlayerStartInfo [] playerStartInfos)
 	{
-		var state = (UdpState)result.AsyncState;
-		var udpClient = state.client;
-		var endPoint = state.endPoint;
 
-		var data = udpClient.EndReceive(result, ref endPoint);
-		Debug.Log($"CALLBACK Received{endPoint}: {Encoding.ASCII.GetString(data)}");
-
-		if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out string arguments))
+		foreach (var item in playerStartInfos)
 		{
-			switch (command)
+			Debug.Log($"Player #{item.playerId}: {item.name}");
+		}
+
+		Debug.Log($"Game starts with {playerStartInfos.Length} players");
+	}
+
+	private class ReceiveThread : IThreadRunner
+	{
+		public NetworkTester2 tester;
+
+		public void Run ()
+		{
+			var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+			while(true)
 			{
-				case NetworkCommand.ServerIntroduce:
-					endPoint.Port = Constants.serverReceivePort;
-					var existingServer = servers.Find(server => IPEndPoint.Equals(server.endPoint, endPoint));
-					if (existingServer != null)
+				if (ProtocolFormat.TryParseCommand(	tester.udpClient.Receive(ref receiveEndPoint),
+													out NetworkCommand command,
+													out byte [] contents) == false)
+				{
+					continue;
+				}
+
+				switch (command)
+				{
+					case NetworkCommand.ServerIntroduce:
 					{
-						existingServer.lastConnectionTime = DateTime.Now;
-					}
-					else
-					{
-						var serverName = arguments;
-						servers.Add(new ServerInfo
+						receiveEndPoint.Port = Constants.serverReceivePort;
+						var existingServer = tester.servers
+												.Find(server => IPEndPoint.Equals(	server.endPoint,
+																					receiveEndPoint));
+						if (existingServer != null)
 						{
-							endPoint 			= endPoint,
-							name 				= serverName,
-							lastConnectionTime 	= DateTime.Now
-						});
-					}
-					break;
+							existingServer.lastConnectionTime = DateTime.Now;
+						}
+						else
+						{
+							var arguments = contents.ToStructure<ServerIntroduceArgs>();
+							tester.servers.Add(new ServerInfo
+							{
+								endPoint 			= receiveEndPoint,
+								name 				= arguments.name,
+								lastConnectionTime 	= DateTime.Now
+							});
+						}
+					} break;
+
+					case NetworkCommand.ServerStartGame:
+					{
+						var arguments = contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
+						int playerCount = arguments.playerCount;
+						var playerStartInfos = packageData.ToArray<PlayerStartInfo>(playerCount);
+						tester.CreateGame(playerStartInfos);
+
+					} break;
+
+					case NetworkCommand.ServerGameUpdate:
+					{
+						var arguments = contents.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
+						Debug.Log($"Received player package: {packageData.Length}");
+
+						if (packageData.Length == Marshal.SizeOf(default(PlayerGameUpdatePackage)))
+						{
+							var package = packageData.ToStructure<PlayerGameUpdatePackage>();
+							tester.receivedPosition.Write(package.position);
+						}
+
+
+						Debug.Log($"Received update from servers, id {arguments.playerId}");
+
+					} break;
+
+					case NetworkCommand.ServerConfirmJoin:
+					{
+						var arguments = contents.ToStructure<ServerConfirmJoinArgs>();
+
+						if (arguments.accepted)
+						{
+							tester.myClientId = arguments.playerId;
+							tester.joinedServer = tester.requestedServer;
+							Debug.Log($"Server accepted request, my id is {tester.myClientId}");
+						}
+						else
+						{
+							Debug.Log("Server declined request");
+						}
+
+						tester.requestedServer = null;
+					} break;
+				}
 			}
 		}
 
-		// if (listenBroadcast)
-		udpClient.BeginReceive(ReceiveCallback, state);
+		public void CleanUp(){}
 	}
 
-	private void Start()
+	public class SendUpdateThread : IThreadRunner
 	{
-		// udpClient = new UdpClient(11000);
-		// var state = new UdpState
-		// {
-		// 	client = udpClient,
-		// 	endPoint = new IPEndPoint(IPAddress.Any, 0)
-		// };
-		// udpClient.BeginReceive(ReceiveCallback, state);
+		public Vector3 		playerPosition;
+		public int 			sendDelayMs;
+		public int 			clientId;
+		public UdpClient 	udpClient;
+		public IPEndPoint 	endPoint;
+
+		public void Run()
+		{
+			Debug.Log($"Start SendUpdateThread, endPoint = {endPoint}");
+			while(true)
+			{
+				var updateArgs = new PlayerGameUpdateArgs
+				{
+					playerId = clientId
+				};
+
+				byte [] updatePackage = new PlayerGameUpdatePackage
+				{
+					playerId = clientId,
+					position = playerPosition
+				}.ToBinary();
+
+				byte [] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
+
+				udpClient.Send(data, data.Length, endPoint);
+
+				Thread.Sleep(sendDelayMs);
+			}
+		}
+
+		public void CleanUp() {}
 	}
 
 	public void StartUpdate()
 	{
+		var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
+		udpClient = new UdpClient(localEndPoint);
+		udpClient.JoinMulticastGroup(multicastAddress);
+
+		sendUpdateThread.Start(new SendUpdateThread
+		{
+			sendDelayMs = netUpdateIntervalMs,
+			clientId 	= myClientId,
+			udpClient 	= udpClient,
+			endPoint 	= joinedServer.endPoint
+		});
+		receiveUpdateThread.Start(new ReceiveThread { tester = this });
+
 		doNetworkUpdate = true;
 	}
 
 	public void StopUpdate()
 	{
+		receiveUpdateThread.Stop();
 		doNetworkUpdate = false;
 	}
 
@@ -143,103 +244,26 @@ public class NetworkTester2 : MonoBehaviour
 			}
 		}
 
-		if (doNetworkUpdate && (Time.time > nextNetUpdateTime))
-		{
-			Debug.Log($"Sending update to {joinedServer.endPoint}");
-			var data = EncodePackage(myClientId, testPackageData);
-			udpClient.Send(data, data.Length, joinedServer.endPoint);
+		if (receiverTransform != null)
+			receiverTransform.position = receivedPosition.Read();			
 
-			nextNetUpdateTime = Time.time + netUpdateInterval;
-		}
+		// Note(Leo): Lol, no accessing transform from threads??
+		if (senderTransform != null && sendUpdateThread.IsRunning)
+			sendUpdateThread.Runner.playerPosition = senderTransform.position;
 	}
-
-	private const int Vector3Size = sizeof(float) * 3;	
-	public static byte [] EncodePackage(int clientId, Vector3 [] package)
-	{
-		int packageByteCount = Vector3Size * package.Length;
-		int dataByteCount = sizeof(int) + packageByteCount;
-		
-
-		byte [] countBytes = BitConverter.GetBytes(package.Length);
-		byte [] data = new byte[dataByteCount];
-		
-		Buffer.BlockCopy(countBytes, 0, data, 0, sizeof(int));
-
-		if (packageByteCount == 0)
-			return data;
-
-		unsafe
-		{
-			// Buffer.BlockCopy(package, 0, data, sizeof(int), packageByteCount);
-
-			fixed (Vector3 * source = &package[0])
-			fixed (byte * destination = &data[0])
-			{
-				Buffer.MemoryCopy(source, destination + sizeof(int), packageByteCount, packageByteCount);
-			}		
-		}
-
-		return data;
-	}
-
-
-	public static Vector3 [] DecodePackage(byte [] data)
-	{
-		int count = BitConverter.ToInt32(data, 0);
-		int packageByteCount = count * Vector3Size;
-
-		Vector3 [] package = new Vector3[count];
-		Buffer.BlockCopy(data, sizeof(int), package, 0, packageByteCount);
-
-		return package;
-	}
-
 
 	public void StartListen()
 	{
-		if (listenMode == UdpListenMode.None)
-			return;
+		Debug.Log("Start listening broadcast");
+		udpClient = new UdpClient(broadcastPort);
 
-		switch (listenMode)
-		{
-			case UdpListenMode.Broadcast:
-			{
-				Debug.Log("Start listening broadcast");
-				udpClient = new UdpClient(broadcastPort);
-				var state = new UdpState
-				{
-					client = udpClient,
-					endPoint = new IPEndPoint(IPAddress.Any, 0)
-				};
-				udpClient.BeginReceive(ReceiveCallback, state);	
-
-			} break;
-
-			case UdpListenMode.Multicast:
-			{
-				Debug.Log("Start listening multicast");
-				var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
-				udpClient = new UdpClient(localEndPoint);
-				udpClient.JoinMulticastGroup(multicastAddress);
-
-				var state = new UdpState
-				{
-					client = udpClient,
-					endPoint = new IPEndPoint(IPAddress.Any, 0)
-				};
-				udpClient.BeginReceive(ReceiveCallback, state);	
-			} break;
-		}
-
+		detectServersThread.Start(new ReceiveThread {tester = this});
 	}
 
 	public void StopListen()
 	{
-		if (listenMode == UdpListenMode.None)
-			return;
-
+		detectServersThread.Stop();
 		udpClient?.Close();
-		listenMode = UdpListenMode.None;
 	}
 
 	public bool waitRequestThreadRunning;
@@ -260,6 +284,14 @@ public class NetworkTester2 : MonoBehaviour
 
 	private void OnValidate()
 	{
+		// Note(Leo): These are for debugging only
+		// string printout = "";
+		// printout += $"sizeof(ServerIntroduceArgs) = {Marshal.SizeOf(default(ServerIntroduceArgs))}\n";
+		// printout += $"sizeof(ServerConfirmJoinArgs) = {Marshal.SizeOf(default(ServerConfirmJoinArgs))}\n";
+		// printout += $"sizeof(ServerStartGameArgs) = {Marshal.SizeOf(default(ServerStartGameArgs))}\n";
+		// printout += $"sizeof(PlayerRequestJoinArgs) = {Marshal.SizeOf(default(PlayerRequestJoinArgs))}\n";
+		// Debug.Log(printout);
+
 		if (servers.Count == 0)
 		{
 			selectedServerIndex = -1;
@@ -274,42 +306,12 @@ public class NetworkTester2 : MonoBehaviour
 
 	public void JoinSelectedServer()
 	{
-		// Todo(Leo): this needs to be confirmed from server side
-		var sendData = Morko.Network.ProtocolFormat.MakeCommand(NetworkCommand.PlayerJoin, playerName);
-		var endPoint = servers[selectedServerIndex].endPoint;
-		udpClient.Send(sendData, sendData.Length, endPoint);
+		requestedServer = servers[selectedServerIndex];
 
-		joinedServer = servers[selectedServerIndex];
+		var arguments 	= new PlayerRequestJoinArgs{ playerName = playerName };
+		var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);
+		var endPoint 	= requestedServer.endPoint;
 
-		requestedJoinFromServer = true;
-		waitRequestFromServerThread = new Thread(() => {
-			var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-			waitRequestThreadRunning = true;
-			var data = udpClient.Receive(ref receiveEndPoint);
-			if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] content))
-			{
-				switch (command)
-				{
-					case NetworkCommand.ServerConfirmJoin:
-						int index = BitConverter.ToInt32(content, 0);
-						Debug.Log("Server confirmed join");
-						serverConfirmedJoin = true;
-						myClientId = index;
-						break;
-
-					case NetworkCommand.ServerDeclineJoin:
-						Debug.Log("Server declined join");
-						break;
-
-					default:
-						Debug.Log($"Uninteresting message: {command}");
-						break;
-				}
-			}
-
-			waitRequestThreadRunning = false;
-		});
-
-		waitRequestFromServerThread.Start();
+		udpClient.Send(data, data.Length, endPoint);
 	}
 }
