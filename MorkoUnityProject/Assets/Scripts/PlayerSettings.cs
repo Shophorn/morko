@@ -11,7 +11,9 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0.1f, 1f)] public float sneakMultiplier = 0.5f;
     [Range(1f, 2f)] public float runMultiplier = 1.5f;
     [Range(0f, 1f)] public float sideMultiplier = 1;
+    [Range(0f, 1f)] public float sideRunMultiplier = 1;
     [Range(0f, 1f)] public float backwardMultiplier = 1f;
+    [Range(0f, 1f)] public float backwardRunMultiplier = 1f;
     
     public float sneakSpeed => walkSpeed * sneakMultiplier;
     public float runSpeed => walkSpeed * runMultiplier;
@@ -29,7 +31,9 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0.1f, 1f)] public float morkoSneakMultiplier = 0.3f;
     [Range(1f, 2f)] public float morkoRunMultiplier = 1.2f;
     [Range(0f, 1f)] public float morkoSideMultiplier = 1f;
+    [Range(0f, 1f)] public float morkoSideRunMultiplier = 1;
     [Range(0f, 1f)] public float morkoBackwardMultiplier = 1f;
+    [Range(0f, 1f)] public float morkoBackwardRunMultiplier = 1f;
     
     public float morkoSneakSpeed => morkoWalkSpeed * morkoSneakMultiplier;
     public float morkoRunSpeed => morkoWalkSpeed * morkoRunMultiplier;

@@ -26,6 +26,8 @@ namespace Morko
 		private float runSpeed;
 		private float sideMultiplier;
 		private float backwardMultiplier;
+		private float sideRunMultiplier;
+		private float backwardRunMultiplier;
 		private float accelerationTime;
 		private float decelerationTime;
 		private float accelerationRunTime;
@@ -57,6 +59,8 @@ namespace Morko
 				runSpeed = playerSettings.morkoRunSpeed;
 				sideMultiplier = playerSettings.morkoSideMultiplier;
 				backwardMultiplier = playerSettings.morkoBackwardMultiplier;
+				sideRunMultiplier = playerSettings.morkoSideRunMultiplier;
+				backwardRunMultiplier = playerSettings.morkoBackwardRunMultiplier;
 				accelerationTime = playerSettings.morkoAccelerationTime;
 				decelerationTime = playerSettings.morkoDecelerationTime;
 				accelerationRunTime = playerSettings.morkoAccelerationRunTime;
@@ -71,6 +75,8 @@ namespace Morko
 				runSpeed = playerSettings.runSpeed;
 				sideMultiplier = playerSettings.sideMultiplier;
 				backwardMultiplier = playerSettings.backwardMultiplier;
+				sideRunMultiplier = playerSettings.sideRunMultiplier;
+				backwardRunMultiplier = playerSettings.backwardRunMultiplier;
 				accelerationTime = playerSettings.accelerationTime;
 				decelerationTime = playerSettings.decelerationTime;
 				accelerationRunTime = playerSettings.accelerationRunTime;
@@ -92,7 +98,9 @@ namespace Morko
 			result.sneakSpeed = settings.sneakSpeed;
 			result.runSpeed = settings.runSpeed;
 			result.sideMultiplier = settings.sideMultiplier;
+			result.sideRunMultiplier = settings.sideRunMultiplier;
 			result.backwardMultiplier = settings.backwardMultiplier;
+			result.backwardRunMultiplier = settings.backwardRunMultiplier;
 			result.runSpeed = settings.runSpeed;
 			result.accelerationTime = settings.accelerationTime;
 			result.decelerationTime = settings.decelerationTime;
@@ -175,14 +183,28 @@ namespace Morko
 			float decrease = 1f;
 			// Apply sideways multiplier lerp
 			if (moveLookDotProduct >= 0)
-				decrease = Mathf.Lerp(sideMultiplier, 1f, moveLookDotProduct);
+			{
+				// Walk side multiplier
+				if (currentMovementSpeed <= walkSpeed)
+					decrease = Mathf.Lerp(sideMultiplier, 1f, moveLookDotProduct);
+				// Run side multiplier
+				else
+					decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
+			}
 			// Apply backwards multiplier lerp
 			else
-				decrease = Mathf.Lerp(sideMultiplier, backwardMultiplier, Mathf.Abs(moveLookDotProduct));
+			{
+				// Walk backwards multiplier
+				if (currentMovementSpeed <= walkSpeed)
+					decrease = Mathf.Lerp(sideMultiplier, backwardMultiplier, Mathf.Abs(moveLookDotProduct));
+				// Run backwards multiplier
+				else
+					decrease = Mathf.Lerp(sideRunMultiplier, backwardRunMultiplier, Mathf.Abs(moveLookDotProduct));
+			}
 			
 			// Change speed according to decrease
 			float finalSpeed = currentMovementSpeed * decrease;
-			
+			Debug.Log("SPEED: " + finalSpeed);			
 			// Save direction when not moving
 			// Because direction is required even when not giving input for deceleration
 			if (moveDirectionKeyboard != Vector3.zero)
