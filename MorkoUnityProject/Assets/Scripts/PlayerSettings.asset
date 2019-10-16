@@ -19,10 +19,10 @@ MonoBehaviour:
   sideRunMultiplier: 0.4
   backwardMultiplier: 0.2
   backwardRunMultiplier: 0.2
-  accelerationTime: 1
-  decelerationTime: 0.55
+  accelerationTime: 2.31
+  decelerationTime: 0.2
   accelerationRunTime: 5
-  decelerationRunTime: 1.5
+  decelerationRunTime: 4
   morkoWalkSpeed: 5
   morkoSneakMultiplier: 0.3
   morkoRunMultiplier: 1.2
