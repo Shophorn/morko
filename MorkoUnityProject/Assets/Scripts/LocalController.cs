@@ -29,6 +29,7 @@ namespace Morko
 		private float sideRunMultiplier;
 		private float backwardRunMultiplier;
 		private float accelerationWalk;
+		private float accelerateSneak;
 		private float accelerationRun;
 		private float decelerationWalk;
 		private float decelerationRun;
@@ -41,8 +42,6 @@ namespace Morko
 		private Vector3 lastPosition;
 		private Vector3 oldDirectionKeyboard = Vector3.zero;
 		private Vector3 oldDirectionGamepad = Vector3.zero;
-		private Vector3 gamepadMovementSpeed;
-		private Vector3 gamepadPreviousMovementSpeed;
 		private bool ran = false;
 
 		public void changeState(bool toMorko)
@@ -57,6 +56,9 @@ namespace Morko
 				backwardMultiplier = playerSettings.morkoBackwardMultiplier;
 				sideRunMultiplier = playerSettings.morkoSideRunMultiplier;
 				backwardRunMultiplier = playerSettings.morkoBackwardRunMultiplier;
+				accelerationWalk = playerSettings.morkoAccelerationWalk;
+				accelerateSneak = playerSettings.morkoAccelerationSneak;
+				accelerationRun = playerSettings.morkoAccelerationRun;
 			}
 			else
 			{
@@ -68,6 +70,9 @@ namespace Morko
 				backwardMultiplier = playerSettings.backwardMultiplier;
 				sideRunMultiplier = playerSettings.sideRunMultiplier;
 				backwardRunMultiplier = playerSettings.backwardRunMultiplier;
+				accelerationWalk = playerSettings.accelerationWalk;
+				accelerateSneak = playerSettings.accelerateSneak;
+				accelerationRun = playerSettings.accelerationRun;
 			}
 		}
 
@@ -90,7 +95,8 @@ namespace Morko
 			result.sideRunMultiplier = settings.sideRunMultiplier;
 			result.backwardMultiplier = settings.backwardMultiplier;
 			result.backwardRunMultiplier = settings.backwardRunMultiplier;
-			
+
+			result.accelerateSneak = settings.accelerateSneak;
 			result.accelerationWalk = settings.accelerationWalk;
 			result.decelerationWalk = settings.decelerationWalk;
 			result.accelerationRun = settings.accelerationRun;
@@ -178,7 +184,13 @@ namespace Morko
 			// Parallel == 1
 			// Perpendicular == 0
 			// Opposite == -1
-			var moveLookDotProduct = Vector3.Dot(moveDirectionKeyboard, character.transform.forward);
+			float moveLookDotProduct = 1;
+			
+			if (keyboardMove)
+				moveLookDotProduct = Vector3.Dot(moveDirectionKeyboard, character.transform.forward);
+			else
+				moveLookDotProduct = Vector3.Dot(moveDirectionGamepad, character.transform.forward);
+			
 			float decrease = 1f;
 			// Apply sideways multiplier lerp
 			if (moveLookDotProduct >= 0)
@@ -210,7 +222,7 @@ namespace Morko
 			if (keyboardMove)
 				character.characterController.Move(moveDirectionKeyboard * finalSpeed * Time.deltaTime);
 			else
-				character.characterController.Move(new Vector3(moveDirectionGamepad.x * gamepadMovementSpeed.x, 0f,moveDirectionGamepad.z * gamepadMovementSpeed.z) * Time.deltaTime);
+				character.characterController.Move(moveDirectionGamepad * finalSpeed * Time.deltaTime);
 
 			// Update package data
 			package.position = character.gameObject.transform.position;
@@ -267,30 +279,48 @@ namespace Morko
 			// Moving with gamepad
 			else
 			{
-				if (moveDirectionGamepad != Vector3.zero && currentMovementSpeed < sneakSpeed)
+				// Hardcoded min magnitude value where joystick is maxed out
+				bool joystickMaxed = moveDirectionGamepad.magnitude >= 0.8;
+				
+				// Sneak
+				if (moveDirectionGamepad != Vector3.zero && joystickMaxed == false &&
+				    currentMovementSpeed <= sneakSpeed)
+					currentMovementSpeed = sneakSpeed;
+				// Accelerate walk
+				else if (joystickMaxed == true && currentMovementSpeed < walkSpeed)
+					currentMovementSpeed += accelerateSneak * Time.deltaTime;
+				// Decelerate walk
+				else if ((moveDirectionGamepad == Vector3.zero || joystickMaxed == false) &&
+				         currentMovementSpeed <= walkSpeed && currentMovementSpeed > 0f)
+					currentMovementSpeed -= decelerationWalk * Time.deltaTime;
+				// Maximum running speed
+				else if (Input.GetButton("Sprint") && joystickMaxed && currentMovementSpeed >= runSpeed)
 				{
-					
+					ran = true;
+					currentMovementSpeed = runSpeed;
 				}
-				if (moveDirectionGamepad != Vector3.zero && currentMovementSpeed < walkSpeed)
+				// Accelerate run
+				else if (Input.GetButton("Sprint") && joystickMaxed && currentMovementSpeed >= walkSpeed)
 				{
-					gamepadMovementSpeed = new Vector3(x:walkSpeed, y:0, z:walkSpeed);
-					gamepadPreviousMovementSpeed = new Vector3(moveDirectionGamepad.x * gamepadMovementSpeed.x, 0f,
-						moveDirectionGamepad.z * gamepadMovementSpeed.z) * Time.deltaTime;
+					ran = true;
+					currentMovementSpeed += accelerationRun * Time.deltaTime;
 				}
-				else if ((moveDirectionGamepad.x == 1 || moveDirectionGamepad.z == 1) && currentMovementSpeed < walkSpeed)
+				// Decelerate run
+				else if (Input.GetButton("Sprint") == false && currentMovementSpeed > walkSpeed && ran)
 				{
-					gamepadMovementSpeed = new Vector3(x:walkSpeed, y:0, z:walkSpeed);
-					gamepadPreviousMovementSpeed = new Vector3(moveDirectionGamepad.x * gamepadMovementSpeed.x, 0f,
-						moveDirectionGamepad.z * gamepadMovementSpeed.z) * Time.deltaTime;
+					currentMovementSpeed -= decelerationRun * Time.deltaTime;
+					if (currentMovementSpeed <= walkSpeed)
+					{
+						currentMovementSpeed = walkSpeed;
+						ran = false;
+					}
 				}
-				else if (moveDirectionGamepad == Vector3.zero && currentMovementSpeed > 0f)
-				{
-
-				}
+				// Maximum walking speed
+				else if (joystickMaxed == true && currentMovementSpeed >= walkSpeed && ran == false)
+					currentMovementSpeed = walkSpeed;
+				// Still
 				else
-				{
-					gamepadMovementSpeed = Vector3.zero;
-				}
+					currentMovementSpeed = 0f;
 			}
 		}
 	}

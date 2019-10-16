@@ -28,6 +28,7 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0f, 5f)] public float accelerationRunTime = 1f;
     [Range(0f, 5f)] public float decelerationRunTime = 3f;
     
+    public float accelerateSneak => walkSpeed / (accelerationTime + sneakSpeed);
     public float accelerationWalk => walkSpeed / accelerationTime;
     public float accelerationRun => walkSpeed / accelerationRunTime;
     public float decelerationWalk => walkSpeed / decelerationTime;
@@ -53,4 +54,10 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0f, 5)] public float morkoDecelerationTime = 1.5f;
     [Range(0f, 5f)] public float morkoAccelerationRunTime = 1f;
     [Range(0f, 5f)] public float morkoDecelerationRunTime = 3f;
+    
+    public float morkoAccelerationSneak => morkoWalkSpeed / (morkoAccelerationTime + morkoSneakSpeed);
+    public float morkoAccelerationWalk => morkoWalkSpeed / morkoAccelerationTime;
+    public float morkoAccelerationRun => morkoWalkSpeed / morkoAccelerationRunTime;
+    public float morkoDecelerationWalk => morkoWalkSpeed / morkoDecelerationTime;
+    public float morkoDecelerationRun => morkoWalkSpeed / morkoDecelerationRunTime;
 }
