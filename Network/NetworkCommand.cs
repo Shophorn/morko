@@ -1,6 +1,8 @@
 /*
 Leo Tamminen
 shophorn@protonmail.com
+
+NetworkCommand enum describes the function we want to execute
 */
 
 using System.Runtime.InteropServices;	
@@ -18,13 +20,13 @@ namespace Morko.Network
 		ServerConfirmJoin,
 		ServerStartGame,
 
-		PlayerRequestJoin,
+		ClientRequestJoin,
 
 
 		// Note(Leo): Updates may have some data in addition to Args structure.
 		ServerLobbyUpdate,
 		ServerGameUpdate,
-		PlayerGameUpdate,
+		ClientGameUpdate,
 
 		Undefined,
 	}
@@ -82,17 +84,17 @@ namespace Morko.Network
 
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct PlayerRequestJoinArgs : INetworkCommandArgs
+	public struct ClientRequestJoinArgs : INetworkCommandArgs
 	{
-		public NetworkCommand Command => NetworkCommand.PlayerRequestJoin;
+		public NetworkCommand Command => NetworkCommand.ClientRequestJoin;
 
 		public NetworkName playerName;
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct PlayerGameUpdateArgs : INetworkCommandArgs
+	public struct ClientGameUpdateArgs : INetworkCommandArgs
 	{
-		public NetworkCommand Command => NetworkCommand.PlayerGameUpdate;
+		public NetworkCommand Command => NetworkCommand.ClientGameUpdate;
 
 		public int playerId;
 	}

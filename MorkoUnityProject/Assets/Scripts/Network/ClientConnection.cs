@@ -12,7 +12,7 @@ using UnityEngine;
 using Morko.Network;
 using Morko.Threading;
 
-// Todo(Leo): probably a bad idea
+// Todo(Leo): probably a bad idea to use statically
 using static Morko.Network.Constants;
 
 [Serializable]
@@ -38,56 +38,58 @@ public struct PlayerGameUpdatePackage
 
 public class ClientConnection : MonoBehaviour
 {
-	public bool AutoStart { get; set; }
-
+	[Header("Network Cofiguration")]
 	public int netUpdateIntervalMs = 50;
+	public int connectionRetryTimeMs = 500;
+
 	private float netUpdateInterval => netUpdateIntervalMs / 1000f;
 	private float nextNetUpdateTime;
-
-	public string playerName = "Default Player";
-
-	public int selectedServerIndex;
-	public string selectedServerName;
-
-	public int connectionRetryTimeMs = 500;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-	public List<ServerInfo> servers = new List<ServerInfo>();
+
+	public bool AutoStart { get; set; }
+
+	[Header("Player info")]
+	[HideInInspector] public string playerName = "Default Player";
+	[HideInInspector] public int ClientId { get; private set; } = -1;
+
+	[HideInInspector] public int selectedServerIndex;
+
+	[HideInInspector] public List<ServerInfo> servers = new List<ServerInfo>();
 	private ServerInfo requestedServer;
 	private ServerInfo joinedServer;
-	public GameObject avatarPrefab;
-	public Transform senderTransform;
-
+	
+	public GameObject AvatarPrefab { get; set; }
+	private Transform senderTransform;
 	private Dictionary<int, Transform> receiverTransforms;
 	private Dictionary<int, Synchronized<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
-	private bool listenBroadcast = false;
 
 	private readonly ThreadControl detectServersThread = new ThreadControl();
 	private readonly ThreadControl receiveUpdateThread = new ThreadControl();
 	private readonly ThreadControl<SendUpdateThread> sendUpdateThread 
 		= new ThreadControl<SendUpdateThread>();
 
-	public int myClientId;
-
+	private bool doNetworkUpdate = false;
 	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
 
-	[Serializable]
-	public struct EndPointDisplay
-	{	
-		public string address;
-		public int port;
+	// Note(Leo): Debug class only
+	// [Serializable]
+	// public struct EndPointDisplay
+	// {	
+	// 	public string address;
+	// 	public int port;
 
-		public static EndPointDisplay FromEndPoint(IPEndPoint endPoint)
-		{
-			return new EndPointDisplay
-			{
-				address = endPoint.Address.ToString(),
-				port = endPoint.Port
-			};
-		}
-	}
+	// 	public static EndPointDisplay FromEndPoint(IPEndPoint endPoint)
+	// 	{
+	// 		return new EndPointDisplay
+	// 		{
+	// 			address = endPoint.Address.ToString(),
+	// 			port = endPoint.Port
+	// 		};
+	// 	}
+	// }
 
 	private void Start()
 	{
@@ -97,9 +99,6 @@ public class ClientConnection : MonoBehaviour
 		}
 	}
 
-	public EndPointDisplay serverEndpoint;
-	public EndPointDisplay myEndPoint;
-
 	public void CreateGameInstance(PlayerStartInfo [] playerStartInfos)
 	{
 		if (playerStartInfos.Length == 0)
@@ -108,10 +107,10 @@ public class ClientConnection : MonoBehaviour
 			return;
 		}
 
-		Debug.Log("Game session created");
+		Debug.Log($"Game session created, {playerStartInfos.Length} players");
 
 
-		senderTransform = Instantiate(avatarPrefab, Vector3.zero, Quaternion.identity).transform;
+		senderTransform = Instantiate(AvatarPrefab, Vector3.zero, Quaternion.identity).transform;
 		senderTransform.gameObject.AddComponent<ControlsTest>();
 
 		// Todo(Leo): Load proper level etc.
@@ -122,12 +121,12 @@ public class ClientConnection : MonoBehaviour
 		// int netPlayerCount = playerStartInfos.Length - 1;
 		foreach (var item in playerStartInfos)
 		{
-			if (item.playerId != myClientId)
+			if (item.playerId != ClientId)
 			{
 				Vector3 startPosition = Vector3.zero;
 				
 				receiverTransforms.Add(	item.playerId,
-										Instantiate(avatarPrefab, startPosition, Quaternion.identity).transform);
+										Instantiate(AvatarPrefab, startPosition, Quaternion.identity).transform);
 
 				receivedPositions.Add(	item.playerId,
 										new Synchronized<Vector3>(startPosition));
@@ -187,10 +186,13 @@ public class ClientConnection : MonoBehaviour
 
 					case NetworkCommand.ServerStartGame:
 					{
+						Debug.Log("Server called to start game");
+
 						var arguments = contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
 						int playerCount = arguments.playerCount;
 						var playerStartInfos = packageData.ToArray<PlayerStartInfo>(playerCount);
 						
+						Debug.Log("Server called to start game, arguments parsed");
 						mainThreadSyncQueue.Enqueue(() => connection.CreateGameInstance(playerStartInfos));
 
 					} break;
@@ -203,7 +205,7 @@ public class ClientConnection : MonoBehaviour
 						if (connection.receivedPositions != null)
 						{
 							// if (packageData.Length == Marshal.SizeOf(default(PlayerGameUpdatePackage)))
-							if (arguments.playerId != connection.myClientId)
+							if (arguments.playerId != connection.ClientId)
 							{
 								var package = packageData.ToStructure<PlayerGameUpdatePackage>();
 								connection.receivedPositions[arguments.playerId].Write(package.position);
@@ -223,9 +225,9 @@ public class ClientConnection : MonoBehaviour
 
 						if (arguments.accepted)
 						{
-							connection.myClientId = arguments.playerId;
+							connection.ClientId = arguments.playerId;
 							connection.joinedServer = connection.requestedServer;
-							Debug.Log($"Server accepted request, my id is {connection.myClientId}");
+							Debug.Log($"Server accepted request, my id is {connection.ClientId}");
 						}
 						else
 						{
@@ -254,7 +256,7 @@ public class ClientConnection : MonoBehaviour
 			Debug.Log($"Start SendUpdateThread, endPoint = {endPoint}");
 			while(true)
 			{
-				var updateArgs = new PlayerGameUpdateArgs
+				var updateArgs = new ClientGameUpdateArgs
 				{
 					playerId = clientId
 				};
@@ -285,7 +287,7 @@ public class ClientConnection : MonoBehaviour
 		sendUpdateThread.Start(new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
-			clientId 	= myClientId,
+			clientId 	= ClientId,
 			udpClient 	= udpClient,
 			endPoint 	= joinedServer.endPoint
 		});
@@ -300,7 +302,6 @@ public class ClientConnection : MonoBehaviour
 		doNetworkUpdate = false;
 	}
 
-	public bool doNetworkUpdate = false;
 
 	private void Update()
 	{
@@ -347,20 +348,9 @@ public class ClientConnection : MonoBehaviour
 		udpClient?.Close();
 	}
 
-	public bool waitRequestThreadRunning;
-	Thread waitRequestFromServerThread;
-
 	private void OnDisable()
 	{
-		listenBroadcast = false;
 		udpClient?.Close();
-
-		if (waitRequestThreadRunning)
-		{
-			try { waitRequestFromServerThread.Abort();}
-			catch (ThreadAbortException) { Debug.Log("Wait join confirm aborted");}
-			waitRequestThreadRunning = false;
-		}
 	}
 
 	private void OnValidate()
@@ -373,25 +363,25 @@ public class ClientConnection : MonoBehaviour
 		// printout += $"sizeof(PlayerRequestJoinArgs) = {Marshal.SizeOf(default(PlayerRequestJoinArgs))}\n";
 		// Debug.Log(printout);
 
-		if (servers.Count == 0)
-		{
-			selectedServerIndex = -1;
-			selectedServerName = "-";
-		}
-		else
-		{
-			selectedServerIndex = Mathf.Clamp(selectedServerIndex, 0, servers.Count - 1);
-			selectedServerName = servers[selectedServerIndex].name;
-		}
+		// if (servers.Count == 0)
+		// {
+		// 	selectedServerIndex = -1;
+		// 	selectedServerName = "-";
+		// }
+		// else
+		// {
+		// 	selectedServerIndex = Mathf.Clamp(selectedServerIndex, 0, servers.Count - 1);
+		// 	selectedServerName = servers[selectedServerIndex].name;
+		// }
 	}
 
 	public void JoinSelectedServer()
 	{
 		requestedServer = servers[selectedServerIndex];
 
-		serverEndpoint = EndPointDisplay.FromEndPoint(requestedServer.endPoint);
+		// serverEndpoint = EndPointDisplay.FromEndPoint(requestedServer.endPoint);
 
-		var arguments 	= new PlayerRequestJoinArgs{ playerName = playerName };
+		var arguments 	= new ClientRequestJoinArgs{ playerName = playerName };
 		var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);
 		var endPoint 	= requestedServer.endPoint;
 

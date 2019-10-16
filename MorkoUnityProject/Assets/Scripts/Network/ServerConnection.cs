@@ -17,6 +17,8 @@ public class ServerConnection : MonoBehaviour
 
 	private void Start()
 	{
+		serverInfo.serverName = ServerNameGenerator.GetRandom();
+
 		if (AutoStart)
 		{
 			CreateServer();
@@ -27,7 +29,7 @@ public class ServerConnection : MonoBehaviour
 	public void CreateServer()
 	{
 		serverInfo.logFunction = Debug.Log;
-		serverInfo.playerUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage));
+		serverInfo.clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage));
 
 		server = Server.Create(serverInfo);
 		server.OnPlayerAdded += () => players = server.PlayersNames;

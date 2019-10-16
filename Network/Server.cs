@@ -25,7 +25,7 @@ using Morko.Threading;
 
 namespace Morko.Network
 {
-	internal class PlayerConnectionInfo
+	internal class ClientConnectionInfo
 	{
 		public string name;
 		public IPEndPoint endPoint;
@@ -78,7 +78,7 @@ namespace Morko.Network
 	public class ServerStartInfo
 	{
 		public string serverName = "Default Server";
-		public int playerUpdatePackageSize;
+		public int clientUpdatePackageSize;
 		public Action<string> logFunction;
 	}
 
@@ -206,8 +206,8 @@ namespace Morko.Network
 		private UdpClient broadcastClient;
 		private UdpClient responseClient;
 
-		private List<PlayerConnectionInfo> players;
-		private int playerUpdatePackageSize;
+		private List<ClientConnectionInfo> players;
+		private int clientUpdatePackageSize;
 
 		public event Action OnPlayerAdded;
 
@@ -222,12 +222,12 @@ namespace Morko.Network
 			var server = new Server
 			{
 				name 					= info.serverName,
-				playerUpdatePackageSize = info.playerUpdatePackageSize,
+				clientUpdatePackageSize = info.clientUpdatePackageSize,
 				Log 					= info.logFunction ??  Morko.Logging.Logger.Log,
 
 				broadcastClient 		= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
-				players 				= new List<PlayerConnectionInfo>(),
+				players 				= new List<ClientConnectionInfo>(),
 			};
 
 			server.Log($"Created '{server.name}");
@@ -277,7 +277,7 @@ namespace Morko.Network
 					{
 						switch (command)
 						{
-							case NetworkCommand.PlayerRequestJoin:
+							case NetworkCommand.ClientRequestJoin:
 								var existingPlayer = server.players.Find(player => IPEndPoint.Equals(player.endPoint, receiveEndPoint));
 								if (existingPlayer != null)
 								{
@@ -285,15 +285,15 @@ namespace Morko.Network
 								}
 								else
 								{
-									var arguments = contents.ToStructure<PlayerRequestJoinArgs>();
+									var arguments = contents.ToStructure<ClientRequestJoinArgs>();
 									int playerIndex = server.players.Count;
-									server.players.Add(new PlayerConnectionInfo 
+									server.players.Add(new ClientConnectionInfo 
 									{
 										endPoint 			= receiveEndPoint,
 										name 				= arguments.playerName,
 										lastConnectionTime 	= DateTime.Now
 									});
-									server.Log($"Added player {arguments.playerName}");
+									server.Log($"Added player {arguments.playerName} ({receiveEndPoint})");
 									server.OnPlayerAdded?.Invoke();
 
 									var response = ProtocolFormat.MakeCommand(
@@ -363,7 +363,7 @@ namespace Morko.Network
 		{
 			foreach (var player in players)
 			{
-				player.lastReceivedPackage = new byte[playerUpdatePackageSize];
+				player.lastReceivedPackage = new byte[clientUpdatePackageSize];
 			}
 		}
 
@@ -376,9 +376,9 @@ namespace Morko.Network
 				IPEndPoint endPoint = new IPEndPoint(Constants.multicastAddress, Constants.multicastPort);
 				server.broadcastClient.JoinMulticastGroup(Constants.multicastAddress);
 
+				int playerCount = server.players.Count;
 				// Send gameStartInfo
 				{
-					int playerCount = server.players.Count;
 					var playerStartInfos = new PlayerStartInfo [playerCount];
 					for(int playerId = 0; playerId < playerCount; playerId++)
 					{
@@ -398,10 +398,15 @@ namespace Morko.Network
 					server.broadcastClient.Send(data, data.Length, endPoint);
 				}
 
+				string printout = "Start updating players:\n";
+				foreach (var player in server.players)
+				{
+					printout += $"\t{player.endPoint}\n";
+				}
+				server.Log(printout);
 
 				while(true)
 				{
-					int playerCount = server.players.Count;
 					for (int playerId = 0; playerId < playerCount; playerId++)
 					{
 						var data = ProtocolFormat.MakeCommand(
@@ -413,14 +418,14 @@ namespace Morko.Network
 
 
 					// int playerCount = server.players.Count;
-					// var playerUpdatePackages = new byte [playerCount * playerUpdatePackageSize];
+					// var playerUpdatePackages = new byte [playerCount * clientUpdatePackageSize];
 
 					// for (int playerId = 0; playerId < server.players.Count; playerId++)
 					// {
-					// 	int offset = playerId * playerUpdatePackageSize;
+					// 	int offset = playerId * clientUpdatePackageSize;
 					// 	Buffer.BlockCopy(	server.players[playerId].lastReceivedPackage, 0,
 					// 						playerUpdatePackages, offset,
-					// 						playerUpdatePackageSize);
+					// 						clientUpdatePackageSize);
 					// }
 					// byte [] data = ProtocolFormat.MakeCommand(
 					// 					new ServerGameUpdateArgs )
@@ -467,8 +472,8 @@ namespace Morko.Network
 					{
 						switch (command)
 						{
-						case NetworkCommand.PlayerGameUpdate:
-							var arguments = contents.ToStructure<PlayerGameUpdateArgs>(out byte [] package);
+						case NetworkCommand.ClientGameUpdate:
+							var arguments = contents.ToStructure<ClientGameUpdateArgs>(out byte [] package);
 							server.Log($"Received update from '{server.players[arguments.playerId].name}'");
 							server.players[arguments.playerId].lastReceivedPackage = package;
 

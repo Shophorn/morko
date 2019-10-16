@@ -45,7 +45,7 @@ public class NetworkHelper : MonoBehaviour
 		}
 
 		clientConnection = gameObject.AddComponent<ClientConnection>();
-		clientConnection.avatarPrefab = testAvatarPrefab;
+		clientConnection.AvatarPrefab = testAvatarPrefab;
 		clientConnection.AutoStart = autoStartJoining;
 	}
 
