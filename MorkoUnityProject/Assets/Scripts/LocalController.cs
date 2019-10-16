@@ -24,6 +24,8 @@ namespace Morko
 		private float walkSpeed;
 		private float sneakSpeed;
 		private float runSpeed;
+		private float sideMultiplier;
+		private float backwardMultiplier;
 		private float accelerationTime;
 		private float decelerationTime;
 		private float accelerationRunTime;
@@ -53,6 +55,8 @@ namespace Morko
 				walkSpeed = playerSettings.morkoWalkSpeed;
 				sneakSpeed = playerSettings.morkoSneakSpeed;
 				runSpeed = playerSettings.morkoRunSpeed;
+				sideMultiplier = playerSettings.morkoSideMultiplier;
+				backwardMultiplier = playerSettings.morkoBackwardMultiplier;
 				accelerationTime = playerSettings.morkoAccelerationTime;
 				decelerationTime = playerSettings.morkoDecelerationTime;
 				accelerationRunTime = playerSettings.morkoAccelerationRunTime;
@@ -65,6 +69,8 @@ namespace Morko
 				walkSpeed = playerSettings.walkSpeed;
 				sneakSpeed = playerSettings.sneakSpeed;
 				runSpeed = playerSettings.runSpeed;
+				sideMultiplier = playerSettings.sideMultiplier;
+				backwardMultiplier = playerSettings.backwardMultiplier;
 				accelerationTime = playerSettings.accelerationTime;
 				decelerationTime = playerSettings.decelerationTime;
 				accelerationRunTime = playerSettings.accelerationRunTime;
@@ -84,7 +90,9 @@ namespace Morko
 			result.playerSettings = settings;
 			result.walkSpeed = result.playerSettings.walkSpeed;
 			result.sneakSpeed = settings.sneakSpeed;
-			result.sneakSpeed = settings.sneakSpeed;
+			result.runSpeed = settings.runSpeed;
+			result.sideMultiplier = settings.sideMultiplier;
+			result.backwardMultiplier = settings.backwardMultiplier;
 			result.runSpeed = settings.runSpeed;
 			result.accelerationTime = settings.accelerationTime;
 			result.decelerationTime = settings.decelerationTime;
@@ -163,20 +171,17 @@ namespace Morko
 			// Parallel == 1
 			// Perpendicular == 0
 			// Opposite == -1
-//			var moveLookDotProduct = Vector3.Dot(moveDirectionKeyboard, character.transform.forward);
-//
-//			// Apply sideways walking speed lerp
-//			if (moveLookDotProduct > 0)
-//			{
-//				currentMovementSpeed = Mathf.Lerp(ps.sideSpeed, walkingSpeed, moveLookDotProduct);
-//				Debug.Log(moveLookDotProduct + ": " + currentMovementSpeed);
-//			}
-//			// Apply backwards walking speed lerp
-//			else
-//			{
-//				currentMovementSpeed = Mathf.Lerp(ps.sideSpeed, ps.backwardSpeed, Mathf.Abs(moveLookDotProduct));
-//				Debug.Log(moveLookDotProduct + ": " + currentMovementSpeed);
-//			}
+			var moveLookDotProduct = Vector3.Dot(moveDirectionKeyboard, character.transform.forward);
+			float decrease = 1f;
+			// Apply sideways multiplier lerp
+			if (moveLookDotProduct >= 0)
+				decrease = Mathf.Lerp(sideMultiplier, 1f, moveLookDotProduct);
+			// Apply backwards multiplier lerp
+			else
+				decrease = Mathf.Lerp(sideMultiplier, backwardMultiplier, Mathf.Abs(moveLookDotProduct));
+			
+			// Change speed according to decrease
+			float finalSpeed = currentMovementSpeed * decrease;
 			
 			// Save direction when not moving
 			// Because direction is required even when not giving input for deceleration
@@ -190,7 +195,7 @@ namespace Morko
 			
 			// Move
 			if (keyboardMove)
-				character.characterController.Move(moveDirectionKeyboard * currentMovementSpeed * Time.deltaTime);
+				character.characterController.Move(moveDirectionKeyboard * finalSpeed * Time.deltaTime);
 			else
 				character.characterController.Move(new Vector3(moveDirectionGamepad.x * gamepadMovementSpeed.x, 0f,moveDirectionGamepad.z * gamepadMovementSpeed.z) * Time.deltaTime);
 

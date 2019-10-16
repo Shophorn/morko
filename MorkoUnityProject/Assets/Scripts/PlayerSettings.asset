@@ -13,19 +13,19 @@ MonoBehaviour:
   m_Name: PlayerSettings
   m_EditorClassIdentifier: 
   walkSpeed: 5
-  sideSpeed: 2
-  backwardSpeed: 1
   sneakMultiplier: 0.5
   runMultiplier: 2
+  sideMultiplier: 0.5
+  backwardMultiplier: 0.2
   accelerationTime: 1
   decelerationTime: 0.55
   accelerationRunTime: 5
   decelerationRunTime: 1.5
   morkoWalkSpeed: 5
-  morkoSideSpeed: 3
-  morkoBackwardSpeed: 2.5
   morkoSneakMultiplier: 0.3
   morkoRunMultiplier: 1.2
+  morkoSideMultiplier: 1
+  morkoBackwardMultiplier: 1
   morkoAccelerationTime: 1.5
   morkoDecelerationTime: 1.5
   morkoAccelerationRunTime: 1
