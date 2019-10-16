@@ -175,6 +175,16 @@ namespace Morko
 			
 			CalculateMovementSpeed();
 			
+			// Save direction when not moving
+			// Because direction is required even when not giving input for deceleration
+			if (moveDirectionKeyboard != Vector3.zero)
+				oldDirectionKeyboard = moveDirectionKeyboard;
+			if (moveDirectionGamepad != Vector3.zero)
+				oldDirectionGamepad = moveDirectionGamepad;
+			
+			moveDirectionKeyboard = currentMovementSpeed > 0 ? oldDirectionKeyboard.normalized : Vector3.zero;
+			moveDirectionGamepad = currentMovementSpeed > 0 ? oldDirectionGamepad.normalized : Vector3.zero;
+			
 			// Dot product between character facing direction and character moving direction
 			// Parallel == 1
 			// Perpendicular == 0
@@ -204,16 +214,6 @@ namespace Morko
 			
 			// Change speed according to decrease
 			float finalSpeed = currentMovementSpeed * decrease;
-			Debug.Log("SPEED: " + finalSpeed);			
-			// Save direction when not moving
-			// Because direction is required even when not giving input for deceleration
-			if (moveDirectionKeyboard != Vector3.zero)
-				oldDirectionKeyboard = moveDirectionKeyboard;
-			if (moveDirectionGamepad != Vector3.zero)
-				oldDirectionGamepad = moveDirectionGamepad;
-			
-			moveDirectionKeyboard = currentMovementSpeed > 0 ? oldDirectionKeyboard.normalized : Vector3.zero;
-			moveDirectionGamepad = currentMovementSpeed > 0 ? oldDirectionGamepad.normalized : Vector3.zero;
 			
 			// Move
 			if (keyboardMove)
