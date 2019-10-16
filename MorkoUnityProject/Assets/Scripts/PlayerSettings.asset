@@ -12,15 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91257595ed1a36542baacc40a3c74ed5, type: 3}
   m_Name: PlayerSettings
   m_EditorClassIdentifier: 
-  maxSpeed: 10
+  walkSpeed: 5
+  sideSpeed: 2
+  backwardSpeed: 1
   sneakMultiplier: 0.5
   runMultiplier: 2
   accelerationTime: 1
   decelerationTime: 0.55
   accelerationRunTime: 5
   decelerationRunTime: 1.5
-  morkoMaxSpeed: 5
+  morkoWalkSpeed: 5
+  morkoSideSpeed: 3
+  morkoBackwardSpeed: 2.5
   morkoSneakMultiplier: 0.3
   morkoRunMultiplier: 1.2
   morkoAccelerationTime: 1.5
   morkoDecelerationTime: 1.5
+  morkoAccelerationRunTime: 1
+  morkoDecelerationRunTime: 3

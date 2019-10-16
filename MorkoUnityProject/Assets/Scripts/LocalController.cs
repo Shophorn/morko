@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using Morko.Network;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -22,9 +21,7 @@ namespace Morko
 		bool keyboardMove = true;
 		
 		private PlayerSettings playerSettings;
-		private float currentMovementSpeed = 0f;
-		private float previousSpeed = 0f;
-		private float maxSpeed;
+		private float walkSpeed;
 		private float sneakSpeed;
 		private float runSpeed;
 		private float accelerationTime;
@@ -33,6 +30,8 @@ namespace Morko
 		private float decelerationRunTime;
 		private bool isMorko = false;
 
+		private float currentMovementSpeed = 0f;
+		private float previousSpeed = 0f;
 		private Vector3 moveDirectionKeyboard;
 		private Vector3 moveDirectionGamepad;
 		private Vector3 lastPosition;
@@ -51,16 +50,25 @@ namespace Morko
 			if (toMorko)
 			{
 				isMorko = true;
-				maxSpeed = playerSettings.morkoMaxSpeed;
-				sneakSpeed = playerSettings.morkoMaxSpeed * playerSettings.morkoSneakMultiplier;
-				runSpeed = playerSettings.morkoMaxSpeed * playerSettings.morkoRunMultiplier;
+				walkSpeed = playerSettings.morkoWalkSpeed;
+				sneakSpeed = playerSettings.morkoSneakSpeed;
+				runSpeed = playerSettings.morkoRunSpeed;
+				accelerationTime = playerSettings.morkoAccelerationTime;
+				decelerationTime = playerSettings.morkoDecelerationTime;
+				accelerationRunTime = playerSettings.morkoAccelerationRunTime;
+				decelerationRunTime = playerSettings.morkoDecelerationRunTime;
+
 			}
 			else
 			{
 				isMorko = false;
-				maxSpeed = playerSettings.maxSpeed;
-				sneakSpeed = playerSettings.maxSpeed * playerSettings.sneakMultiplier;
-				runSpeed = playerSettings.maxSpeed * playerSettings.runMultiplier;
+				walkSpeed = playerSettings.walkSpeed;
+				sneakSpeed = playerSettings.sneakSpeed;
+				runSpeed = playerSettings.runSpeed;
+				accelerationTime = playerSettings.accelerationTime;
+				decelerationTime = playerSettings.decelerationTime;
+				accelerationRunTime = playerSettings.accelerationRunTime;
+				decelerationRunTime = playerSettings.decelerationRunTime;
 			}
 		}
 
@@ -74,13 +82,14 @@ namespace Morko
 			result.package.rotation = Quaternion.identity;
 			result.package.velocity = Vector3.zero;
 			result.playerSettings = settings;
-			result.maxSpeed = result.playerSettings.maxSpeed;
-			result.sneakSpeed = result.playerSettings.maxSpeed * result.playerSettings.sneakMultiplier;
-			result.runSpeed = result.playerSettings.maxSpeed * result.playerSettings.runMultiplier;
-			result.accelerationTime = result.playerSettings.accelerationTime;
-			result.decelerationTime = result.playerSettings.decelerationTime;
-			result.accelerationRunTime = result.playerSettings.accelerationRunTime;
-			result.decelerationRunTime = result.playerSettings.decelerationRunTime;
+			result.walkSpeed = result.playerSettings.walkSpeed;
+			result.sneakSpeed = settings.sneakSpeed;
+			result.sneakSpeed = settings.sneakSpeed;
+			result.runSpeed = settings.runSpeed;
+			result.accelerationTime = settings.accelerationTime;
+			result.decelerationTime = settings.decelerationTime;
+			result.accelerationRunTime = settings.accelerationRunTime;
+			result.decelerationRunTime = settings.decelerationRunTime;
 
 			result.character = character;
 			result.camera = character.GetComponentInChildren<Camera>();
@@ -98,22 +107,14 @@ namespace Morko
 			// Move direction with gamepad
 			moveDirectionGamepad = new Vector3(Input.GetAxisRaw("GamepadHorizontal"), 0.0f, Input.GetAxisRaw("GamepadVertical"));
 			
+			// Moving with KB
 			if (Mathf.Abs(moveDirectionKeyboard.x) + Mathf.Abs(moveDirectionKeyboard.z) > Mathf.Abs(moveDirectionGamepad.x) + Mathf.Abs(moveDirectionGamepad.z))
-			{
-				// Moving with KB
-				Debug.Log("KB");
 				keyboardMove = true;
-			}
-			else if (moveDirectionKeyboard == Vector3.zero && moveDirectionGamepad == Vector3.zero)
-			{
-				// Neither is being used
-			}
+			// Neither is being used
+			else if (moveDirectionKeyboard == Vector3.zero && moveDirectionGamepad == Vector3.zero);
+			// Moving with GP
 			else
-			{
-				// Moving with GP
-				Debug.Log("GP");
 				keyboardMove = false;
-			}
 
 			moveDirectionKeyboard = moveDirectionKeyboard.normalized;
 
@@ -157,7 +158,25 @@ namespace Morko
 			}
 			
 			CalculateMovementSpeed();
-			//Debug.Log(currentMovementSpeed);
+			
+			// Dot product between character facing direction and character moving direction
+			// Parallel == 1
+			// Perpendicular == 0
+			// Opposite == -1
+//			var moveLookDotProduct = Vector3.Dot(moveDirectionKeyboard, character.transform.forward);
+//
+//			// Apply sideways walking speed lerp
+//			if (moveLookDotProduct > 0)
+//			{
+//				currentMovementSpeed = Mathf.Lerp(ps.sideSpeed, walkingSpeed, moveLookDotProduct);
+//				Debug.Log(moveLookDotProduct + ": " + currentMovementSpeed);
+//			}
+//			// Apply backwards walking speed lerp
+//			else
+//			{
+//				currentMovementSpeed = Mathf.Lerp(ps.sideSpeed, ps.backwardSpeed, Mathf.Abs(moveLookDotProduct));
+//				Debug.Log(moveLookDotProduct + ": " + currentMovementSpeed);
+//			}
 			
 			// Save direction when not moving
 			// Because direction is required even when not giving input for deceleration
@@ -190,7 +209,7 @@ namespace Morko
 			if (keyboardMove)
 			{
 				// Accelerate walking
-				if (moveDirectionKeyboard != Vector3.zero && currentMovementSpeed < maxSpeed)
+				if (moveDirectionKeyboard != Vector3.zero && currentMovementSpeed < walkSpeed)
 				{
 					if (accelerationTimer < 0f)
 						accelerationTimer = 0f;
@@ -198,7 +217,7 @@ namespace Morko
 					accelerationTimer += Time.deltaTime;
 					decelerationTimer += Time.deltaTime;
 				
-					currentMovementSpeed = maxSpeed * (accelerationTimer / accelerationTime);
+					currentMovementSpeed = walkSpeed * (accelerationTimer / accelerationTime);
 					previousSpeed = currentMovementSpeed;
 				}
 				// Decelerate walking
@@ -212,26 +231,20 @@ namespace Morko
 				
 					currentMovementSpeed = previousSpeed * (decelerationTimer / decelerationTime);
 				}
-				else if (moveDirectionKeyboard != Vector3.zero && currentMovementSpeed >= maxSpeed)
+				else if (moveDirectionKeyboard != Vector3.zero && currentMovementSpeed >= walkSpeed)
 				{
 					// Accelerate running
 					if (Input.GetKey(KeyCode.LeftShift) == true && currentMovementSpeed < runSpeed)
 					{
 						if (accelerationRunTimer < 0f)
 							accelerationRunTimer = 0f;
-						if (decelerationRunTimer <= 0)
+						if (decelerationRunTimer < 0)
 							decelerationRunTimer = 0f;
 						
 						accelerationRunTimer += Time.deltaTime;
 						decelerationRunTimer += Time.deltaTime;
 
-						float acceleratedSpeed = runSpeed * (accelerationRunTimer / accelerationRunTime);
-
-						if (acceleratedSpeed > maxSpeed)
-							currentMovementSpeed = runSpeed * (accelerationRunTimer / accelerationRunTime);
-						else
-							currentMovementSpeed = maxSpeed + acceleratedSpeed;
-
+						currentMovementSpeed = walkSpeed + runSpeed * (accelerationRunTimer / accelerationRunTime);
 						previousSpeed = currentMovementSpeed;
 					}
 					// Maximum running speed
@@ -239,10 +252,11 @@ namespace Morko
 					{
 						currentMovementSpeed = runSpeed;
 						decelerationRunTimer = decelerationRunTime;
+						accelerationRunTimer = accelerationRunTime;
 						previousSpeed = currentMovementSpeed;
 					}
 					// Decelerate running
-					else if (Input.GetKey(KeyCode.LeftShift) == false && currentMovementSpeed > maxSpeed)
+					else if (Input.GetKey(KeyCode.LeftShift) == false && currentMovementSpeed > walkSpeed)
 					{
 						if (decelerationRunTimer > decelerationRunTime)
 							decelerationRunTimer = decelerationRunTime;
@@ -251,12 +265,18 @@ namespace Morko
 						accelerationRunTimer -= Time.deltaTime;
 
 						currentMovementSpeed = previousSpeed * (decelerationRunTimer / decelerationRunTime);
-						if (currentMovementSpeed < maxSpeed)
-							currentMovementSpeed = maxSpeed;
+						if (currentMovementSpeed < walkSpeed)
+							currentMovementSpeed = walkSpeed;
 					}
 					// Max walking speed
 					else
-						currentMovementSpeed = maxSpeed;
+					{
+						currentMovementSpeed = walkSpeed;
+						decelerationTimer = decelerationTime;
+						accelerationTimer = accelerationTime;
+						accelerationRunTimer = 0f;
+						decelerationRunTimer = decelerationRunTime;
+					}
 				}
 				else
 				{
@@ -268,22 +288,20 @@ namespace Morko
 			// Moving with gamepad
 			else
 			{
-				if (moveDirectionGamepad != Vector3.zero && currentMovementSpeed < maxSpeed)
+				if (moveDirectionGamepad != Vector3.zero && currentMovementSpeed < walkSpeed)
 				{
-					gamepadMovementSpeed = new Vector3(x:maxSpeed, y:0, z:maxSpeed);
+					gamepadMovementSpeed = new Vector3(x:walkSpeed, y:0, z:walkSpeed);
 					gamepadPreviousMovementSpeed = new Vector3(moveDirectionGamepad.x * gamepadMovementSpeed.x, 0f,
 						moveDirectionGamepad.z * gamepadMovementSpeed.z) * Time.deltaTime;
 				}
-				else if ((moveDirectionGamepad.x == 1 || moveDirectionGamepad.z == 1) && currentMovementSpeed < maxSpeed)
+				else if ((moveDirectionGamepad.x == 1 || moveDirectionGamepad.z == 1) && currentMovementSpeed < walkSpeed)
 				{
-					gamepadMovementSpeed = new Vector3(x:maxSpeed, y:0, z:maxSpeed);
+					gamepadMovementSpeed = new Vector3(x:walkSpeed, y:0, z:walkSpeed);
 					gamepadPreviousMovementSpeed = new Vector3(moveDirectionGamepad.x * gamepadMovementSpeed.x, 0f,
 						moveDirectionGamepad.z * gamepadMovementSpeed.z) * Time.deltaTime;
-					Debug.Log("AC");
 				}
 				else if (moveDirectionGamepad == Vector3.zero && currentMovementSpeed > 0f)
 				{
-					Debug.Log("DC");
 					if (decelerationTimer > decelerationTime)
 						decelerationTimer = decelerationTime;
 				
@@ -294,7 +312,6 @@ namespace Morko
 				}
 				else
 				{
-					Debug.Log("STILL");
 					gamepadMovementSpeed = Vector3.zero;
 				}
 			}
