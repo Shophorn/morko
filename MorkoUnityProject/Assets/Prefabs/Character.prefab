@@ -276,7 +276,7 @@ GameObject:
   - component: {fileID: 905078142086698094}
   - component: {fileID: 4258687238538738330}
   m_Layer: 0
-  m_Name: CharacterSoul
+  m_Name: Character
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -326,6 +326,6 @@ CharacterController:
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
-  m_SkinWidth: 0.08
+  m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.5, z: 0}
