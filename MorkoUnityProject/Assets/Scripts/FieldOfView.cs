@@ -7,6 +7,9 @@ using UnityEngine;
 /// </summary>
 public class FieldOfView : MonoBehaviour
 {
+    [Range(-1f,1f)]
+    public float hitOffset;
+
     public float viewRadius;
     [Range(0,360)]
     public float viewAngle;
@@ -14,13 +17,19 @@ public class FieldOfView : MonoBehaviour
     public float maskCutDistance = 0.2f;
 
     public MeshFilter viewMeshFilter;
+    public MeshFilter fullMeshFilter;
     Mesh viewMesh;
+    Mesh fullMesh;
 
     private void Start()
     {
         viewMesh = new Mesh();
         viewMesh.name = "View Mesh";
         viewMeshFilter.mesh = viewMesh;
+
+        fullMesh = new Mesh();
+        fullMesh.name = "Full Mesh";
+        fullMeshFilter.mesh = fullMesh;
     }
 
     public Vector3 DirFromAngle(float degreeAngle, bool globalAngle)
@@ -33,9 +42,10 @@ public class FieldOfView : MonoBehaviour
 
     public float meshResolution;
 
-    private void Update()
+    private void LateUpdate()
     {
         DrawFieldOfView();
+        DrawFullCone();
     }
 
     void DrawFieldOfView()
@@ -73,10 +83,44 @@ public class FieldOfView : MonoBehaviour
         viewMesh.triangles = triangles;
         viewMesh.RecalculateNormals();
     }
+    void DrawFullCone()
+    {
+        int stepCount = Mathf.RoundToInt(viewAngle * meshResolution);
+        float stepAngleSize = viewAngle / stepCount;
+        List<Vector3> viewPoints = new List<Vector3>();
+        for (int i = 0; i <= stepCount; i++)
+        {
+            float angle = transform.eulerAngles.y - viewAngle / 2 + stepAngleSize * i;
+            ViewCastInfo newViewCast = new ViewCastInfo(false, transform.position + DirFromAngle(angle, true) * viewRadius, viewRadius, angle);
+            viewPoints.Add(newViewCast.point);
+        }
+
+        int vertexCount = viewPoints.Count + 1;
+        Vector3[] vertices = new Vector3[vertexCount];
+        int[] triangles = new int[(vertexCount - 2) * 3];
+
+        vertices[0] = Vector3.zero;
+
+        for (int i = 0; i < vertexCount - 1; i++)
+        {
+            vertices[i + 1] = transform.InverseTransformPoint(viewPoints[i] + Vector3.forward * maskCutDistance);
+
+            if (i < vertexCount - 2)
+            {
+                triangles[i * 3] = 0;
+                triangles[i * 3 + 1] = i + 1;
+                triangles[i * 3 + 2] = i + 2;
+            }
+
+        }
+        fullMesh.Clear();
+        fullMesh.vertices = vertices;
+        fullMesh.triangles = triangles;
+        fullMesh.RecalculateNormals();
+    }
+
 
     int mask = 1 << 8;
-
-
     ViewCastInfo ViewCast(float globalAngle)
     {
         Vector3 dir = DirFromAngle(globalAngle, true);
@@ -84,7 +128,8 @@ public class FieldOfView : MonoBehaviour
 
         if(Physics.Raycast(transform.position,dir,out hit, viewRadius,mask))
         {
-            return new ViewCastInfo(true, hit.point, hit.distance, globalAngle);
+            float distance = hit.distance + hitOffset;
+            return new ViewCastInfo(true, transform.position + dir * distance, distance, globalAngle);
         }
         else
         {
