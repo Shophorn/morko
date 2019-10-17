@@ -63,9 +63,9 @@ namespace Morko
 			else if (Input.GetAxis("Horizontal") < 0)
 				positiveDrag = false;
 
-			if (nameInputField.isFocused == true)
+			if (nameInputField != null && nameInputField.isFocused == true)
 				scrollFactor = 0;
-			if (roomInputField.isFocused == true)
+			if (roomInputField != null && roomInputField.isFocused == true)
 				scrollFactor = 0;
 
 
@@ -90,15 +90,16 @@ namespace Morko
 		/// <param name="eventData">The data related to the drag event.</param>
 		public void OnDrag(PointerEventData eventData)
 		{
-			if (scrollContent.Vertical)
-			{
-				positiveDrag = eventData.position.y > lastDragPosition.y;
-			}
-			else if (scrollContent.Horizontal)
-			{
-				positiveDrag = eventData.position.x > lastDragPosition.x;
-			}
+			//if (scrollContent.Vertical)
+			//{
+			//	positiveDrag = eventData.position.y > lastDragPosition.y;
+			//}
+			//else if (scrollContent.Horizontal)
+			//{
+			//	positiveDrag = eventData.position.x > lastDragPosition.x;
+			//}
 
+			positiveDrag = eventData.position.x > lastDragPosition.x;
 			lastDragPosition = eventData.position;
 		}
 
@@ -126,45 +127,47 @@ namespace Morko
 		/// </summary>
 		public void OnViewScroll()
 		{
-			if (scrollContent.Vertical)
-			{
-				HandleVerticalScroll();
-			}
-			else
-			{
-				HandleHorizontalScroll();
-			}
+			HandleHorizontalScroll();
+
+			//if (scrollContent.Vertical)
+			//{
+			//	HandleVerticalScroll();
+			//}
+			//else
+			//{
+			//	HandleHorizontalScroll();
+			//}
 		}
 
 		/// <summary>
 		/// Called if the scroll view is oriented vertically.
 		/// </summary>
-		private void HandleVerticalScroll()
-		{
-			int currItemIndex = positiveDrag ? scrollRect.content.childCount - 1 : 0;
-			var currItem = scrollRect.content.GetChild(currItemIndex);
+		//private void HandleVerticalScroll()
+		//{
+		//	int currItemIndex = positiveDrag ? scrollRect.content.childCount - 1 : 0;
+		//	var currItem = scrollRect.content.GetChild(currItemIndex);
 
-			if (!ReachedThreshold(currItem))
-			{
-				return;
-			}
+		//	if (!ReachedThreshold(currItem))
+		//	{
+		//		return;
+		//	}
 
-			int endItemIndex = positiveDrag ? 0 : scrollRect.content.childCount - 1;
-			Transform endItem = scrollRect.content.GetChild(endItemIndex);
-			Vector2 newPos = endItem.position;
+		//	int endItemIndex = positiveDrag ? 0 : scrollRect.content.childCount - 1;
+		//	Transform endItem = scrollRect.content.GetChild(endItemIndex);
+		//	Vector2 newPos = endItem.position;
 
-			if (positiveDrag)
-			{
-				newPos.y = endItem.position.y - scrollContent.Height * 1.5f + scrollContent.ItemSpacing;
-			}
-			else
-			{
-				newPos.y = endItem.position.y + scrollContent.Height * 1.5f - scrollContent.ItemSpacing;
-			}
+		//	if (positiveDrag)
+		//	{
+		//		newPos.y = endItem.position.y - scrollContent.Height * 1.5f + scrollContent.ItemSpacing;
+		//	}
+		//	else
+		//	{
+		//		newPos.y = endItem.position.y + scrollContent.Height * 1.5f - scrollContent.ItemSpacing;
+		//	}
 
-			currItem.position = newPos;
-			currItem.SetSiblingIndex(endItemIndex);
-		}
+		//	currItem.position = newPos;
+		//	currItem.SetSiblingIndex(endItemIndex);
+		//}
 
 		/// <summary>
 		/// Called if the scroll view is oriented horizontally.
@@ -184,11 +187,11 @@ namespace Morko
 
 			if (positiveDrag)
 			{
-				newPos.x = endItem.position.x - scrollContent.Width * 1.5f + scrollContent.ItemSpacing;
+				newPos.x = endItem.position.x - scrollContent.Width - scrollContent.ItemSpacing;
 			}
 			else
 			{
-				newPos.x = endItem.position.x + scrollContent.Width * 1.5f - scrollContent.ItemSpacing;
+				newPos.x = endItem.position.x + scrollContent.Width + scrollContent.ItemSpacing;
 			}
 
 			currItem.position = newPos;
@@ -202,25 +205,30 @@ namespace Morko
 		/// <returns>True if the item has reached the threshold for either ends of the scroll view, false otherwise.</returns>
 		private bool ReachedThreshold(Transform item)
 		{
-			if (scrollContent.Vertical)
-			{
-				float posYThreshold = transform.position.y + scrollContent.Height * 0.5f + outOfBoundsThreshold;
-				float negYThreshold = transform.position.y - scrollContent.Height * 0.5f - outOfBoundsThreshold;
-				return positiveDrag ? item.position.y - scrollContent.Width * 0.5f > posYThreshold :
-					item.position.y + scrollContent.Width * 0.5f < negYThreshold;
-			}
-			else
-			{
-				float posXThreshold = transform.position.x + scrollContent.Width * 0.5f + outOfBoundsThreshold;
-				float negXThreshold = transform.position.x - scrollContent.Width * 0.5f - outOfBoundsThreshold;
-				return positiveDrag ? item.position.x - scrollContent.Width * 0.5f > posXThreshold :
-					item.position.x + scrollContent.Width * 0.5f < negXThreshold;
-			}
+			float posXThreshold = transform.position.x + scrollContent.Width * 0.5f + outOfBoundsThreshold;
+			float negXThreshold = transform.position.x - scrollContent.Width * 0.5f - outOfBoundsThreshold;
+			return positiveDrag ? item.position.x - scrollContent.Width * 0.5f > posXThreshold :
+				item.position.x + scrollContent.Width * 0.5f < negXThreshold;
+
+			//if (scrollContent.Vertical)
+			//{
+			//	float posYThreshold = transform.position.y + scrollContent.Height * 0.5f + outOfBoundsThreshold;
+			//	float negYThreshold = transform.position.y - scrollContent.Height * 0.5f - outOfBoundsThreshold;
+			//	return positiveDrag ? item.position.y - scrollContent.Width * 0.5f > posYThreshold :
+			//		item.position.y + scrollContent.Width * 0.5f < negYThreshold;
+			//}
+			//else
+			//{
+			//	float posXThreshold = transform.position.x + scrollContent.Width * 0.5f + outOfBoundsThreshold;
+			//	float negXThreshold = transform.position.x - scrollContent.Width * 0.5f - outOfBoundsThreshold;
+			//	return positiveDrag ? item.position.x - scrollContent.Width * 0.5f > posXThreshold :
+			//		item.position.x + scrollContent.Width * 0.5f < negXThreshold;
+			//}
 		}
 
 		private void DetermineCurrentItem()
 		{
-			float currentItemPositionalValue = (gridCenter.transform.localPosition.x - scrollContent.transform.localPosition.x / 300.0f) % (listElements.Length);
+			float currentItemPositionalValue = (gridCenter.transform.localPosition.x - scrollContent.transform.localPosition.x / 240.0f) % (listElements.Length);
 			int positionalIntValue = Mathf.RoundToInt(currentItemPositionalValue);
 
 			if (positionalIntValue < 0)

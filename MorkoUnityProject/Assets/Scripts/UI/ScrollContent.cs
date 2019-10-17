@@ -19,11 +19,13 @@ namespace Morko
 		public Sprite[] levelImages;
 		public Sprite[] characterImages;
 
+		public int amountOfCharacters;
+
 		public GameObject gridCenter;
 
 		private int numberOfScenes;
 		public string[] levelNames;
-		private string[] characterNames;
+		public string[] characterNames;
 
 
 		/// <summary>
@@ -99,26 +101,36 @@ namespace Morko
 		private void Start()
 		{
 			listGrid = GameObject.Find("ScrollContent");
-			CreateList();
+			if (CompareTag("Host Window"))
+				CreateLevelList();
+			else
+				CreateCharacterList();
 
 			rectTransform = GetComponent<RectTransform>();
 
-			// Subtract the margin from both sides.
-			width = rectTransform.rect.width - (2 * horizontalMargin);
+			width = rectTransform.rect.width;
+			height = rectTransform.rect.height;
 
-			// Subtract the margin from the top and bottom.
-			height = rectTransform.rect.height - (2 * verticalMargin);
+			//Margins not in use currently
+			//// Subtract the margin from both sides.
+			//width = rectTransform.rect.width - (2 * horizontalMargin);
 
-			horizontal = !vertical;
-			if (vertical)
-				InitializeContentVertical();
-			else
-				InitializeContentHorizontal();
+			//// Subtract the margin from the top and bottom.
+			//height = rectTransform.rect.height - (2 * verticalMargin);
+
+
+			//horizontal = !vertical;
+			//if (vertical)
+			//	InitializeContentVertical();
+			//else
+			//	InitializeContentHorizontal();
+
+			InitializeContentHorizontal();
 
 			selectionList.listElements = listElements;
 		}
 
-		private void CreateList()
+		private void CreateLevelList()
 		{
 			numberOfScenes = SceneManager.sceneCountInBuildSettings;
 			listElements = new ListItem[numberOfScenes - 1];
@@ -138,8 +150,27 @@ namespace Morko
 					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
 					listElements[i].id = i;
 					listElements[i].listItemName = levelNames[i];
-					listElements[i].transform.Find("Level Name").GetComponent<Text>().text = levelNames[i];
-					listElements[i].transform.Find("Level Image").GetComponent<Image>().sprite = levelImages[i];
+					listElements[i].transform.Find("Name").GetComponent<Text>().text = levelNames[i];
+					listElements[i].transform.Find("Image").GetComponent<Image>().sprite = levelImages[i];
+					listElements[i].transform.parent = listGrid.transform;
+				}
+				currentItem = listElements[0];
+			}
+		}
+
+		private void CreateCharacterList()
+		{
+			listElements = new ListItem[amountOfCharacters];
+
+			if (listGrid != null)
+			{
+				for (int i = 0; i < amountOfCharacters; i++)
+				{
+					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
+					listElements[i].id = i;
+					listElements[i].listItemName = characterNames[i];
+					listElements[i].transform.Find("Name").GetComponent<Text>().text = characterNames[i];
+					listElements[i].transform.Find("Image").GetComponent<Image>().sprite = characterImages[i];
 					listElements[i].transform.parent = listGrid.transform;
 				}
 				currentItem = listElements[0];

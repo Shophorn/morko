@@ -15,21 +15,28 @@ namespace Morko
 		[SerializeField]
 		private string levelName;
 		[SerializeField]
-		private string maxPlayers;
+		private int maxPlayers;
+		[SerializeField]
+		private int joinedPlayers;
 		[SerializeField]
 		private string roundLength;
 
 		[SerializeField]
-		private Player[] players;
+		private List<Player> players;
 
 
 		public int ID { get => id; set => id = value; }
 		public string HostName { get => hostName; set => hostName = value; }
 		public string RoomName { get => roomName; set => roomName = value; }
 		public string LevelName { get => levelName; set => levelName = value; }
-		public string MaxPlayers { get => maxPlayers; set => maxPlayers = value; }
+		public int MaxPlayers { get => maxPlayers; set => maxPlayers = value; }
+		public int PlayersJoined { get => joinedPlayers; set => joinedPlayers = value; }
 		public string RoundLength { get => roundLength; set => roundLength = value; }
+		public List<Player> Players { get => players;}
 
-		public Room() { }
+		public Room()
+		{
+			players = new List<Player>();
+		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,8 +8,8 @@ namespace Morko
 	{
 		public GameObject hostWindow;
 		public GameObject joinWindow;
-		public GameObject lobbyHost;
-		public GameObject lobbyPlayer;
+
+		public LobbyWindow lobby;
 
 		public Text hostNameText;
 		public Text roomNameText;
@@ -34,10 +33,26 @@ namespace Morko
 			room.HostName = hostNameText.text;
 			room.RoomName = roomNameText.text;
 			room.LevelName = levelSelectionList.currentItem.listItemName;
-			room.MaxPlayers = playerAmount.text;
+			room.MaxPlayers = int.Parse(playerAmount.text);
+			room.PlayersJoined = 1;
 			room.RoundLength = timerValue.text;
 
-			rooms.Add(room);
+			room.Players.Add(CreateHostPlayer());
+
+			Debug.Log(rooms.Count);
+
+			lobby.selectedRoomId = room.ID;
+			rooms.Add(room);			
+		}
+
+		public Player CreateHostPlayer()
+		{
+			Player player = new Player();
+			player.Name = hostNameText.text;
+			player.Character = "";
+			player.Host = true;
+
+			return player;
 		}
 	}
 }
