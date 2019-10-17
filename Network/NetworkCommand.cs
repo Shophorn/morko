@@ -14,8 +14,13 @@ namespace Morko.Network
 
 		ServerIntroduce = 1,
 		ServerMulticastTest,
+		ServerConfirmJoin,
+		ServerDeclineJoin,
+		ServerGameUpdate,
 
 		PlayerJoin,
+
+
 
 		Undefined,
 	}

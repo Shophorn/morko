@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+
 
 using UnityEngine;
 
@@ -23,8 +26,25 @@ public struct UdpState
 	public IPEndPoint endPoint;
 }
 
+[Serializable, StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct CharacterUpdatePackage
+{
+	public int id;
+	public float orientation;
+	public Vector3 position;
+	public Vector3 speed;
+}
+
 public class NetworkTester2 : MonoBehaviour
 {
+	public CharacterUpdatePackage characterUpdate;
+
+	public int netUpdateIntervalMs;
+	private float netUpdateInterval => netUpdateIntervalMs / 1000f;
+	private float nextNetUpdateTime;
+
+	public Vector3 [] testPackageData;
+
 	public string playerName;
 
 	public int selectedServerIndex;
@@ -34,12 +54,21 @@ public class NetworkTester2 : MonoBehaviour
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
 	public List<ServerInfo> servers = new List<ServerInfo>();
+	private ServerInfo joinedServer;
 
 	private UdpClient udpClient;
 	private bool listenBroadcast = false;
 
 	public enum UdpListenMode { None, Broadcast, Multicast }
 	public UdpListenMode listenMode;
+
+	Vector3 testNetPlayerPosition;
+
+	public bool requestedJoinFromServer;
+	public bool serverConfirmedJoin;
+	public int myClientId;
+
+	int serverConnectionIndex;
 
 	private void ReceiveCallback(IAsyncResult result)
 	{
@@ -55,6 +84,7 @@ public class NetworkTester2 : MonoBehaviour
 			switch (command)
 			{
 				case NetworkCommand.ServerIntroduce:
+					endPoint.Port = Constants.serverReceivePort;
 					var existingServer = servers.Find(server => IPEndPoint.Equals(server.endPoint, endPoint));
 					if (existingServer != null)
 					{
@@ -89,6 +119,17 @@ public class NetworkTester2 : MonoBehaviour
 		// udpClient.BeginReceive(ReceiveCallback, state);
 	}
 
+	public void StartUpdate()
+	{
+		doNetworkUpdate = true;
+	}
+
+	public void StopUpdate()
+	{
+		doNetworkUpdate = false;
+	}
+
+	public bool doNetworkUpdate = false;
 
 	private void Update()
 	{
@@ -101,6 +142,56 @@ public class NetworkTester2 : MonoBehaviour
 				serverIndex--;
 			}
 		}
+
+		if (doNetworkUpdate && (Time.time > nextNetUpdateTime))
+		{
+			Debug.Log($"Sending update to {joinedServer.endPoint}");
+			var data = EncodePackage(myClientId, testPackageData);
+			udpClient.Send(data, data.Length, joinedServer.endPoint);
+
+			nextNetUpdateTime = Time.time + netUpdateInterval;
+		}
+	}
+
+	private const int Vector3Size = sizeof(float) * 3;	
+	public static byte [] EncodePackage(int clientId, Vector3 [] package)
+	{
+		int packageByteCount = Vector3Size * package.Length;
+		int dataByteCount = sizeof(int) + packageByteCount;
+		
+
+		byte [] countBytes = BitConverter.GetBytes(package.Length);
+		byte [] data = new byte[dataByteCount];
+		
+		Buffer.BlockCopy(countBytes, 0, data, 0, sizeof(int));
+
+		if (packageByteCount == 0)
+			return data;
+
+		unsafe
+		{
+			// Buffer.BlockCopy(package, 0, data, sizeof(int), packageByteCount);
+
+			fixed (Vector3 * source = &package[0])
+			fixed (byte * destination = &data[0])
+			{
+				Buffer.MemoryCopy(source, destination + sizeof(int), packageByteCount, packageByteCount);
+			}		
+		}
+
+		return data;
+	}
+
+
+	public static Vector3 [] DecodePackage(byte [] data)
+	{
+		int count = BitConverter.ToInt32(data, 0);
+		int packageByteCount = count * Vector3Size;
+
+		Vector3 [] package = new Vector3[count];
+		Buffer.BlockCopy(data, sizeof(int), package, 0, packageByteCount);
+
+		return package;
 	}
 
 
@@ -108,10 +199,6 @@ public class NetworkTester2 : MonoBehaviour
 	{
 		if (listenMode == UdpListenMode.None)
 			return;
-
-		// int broadcastPort = 11000;
-		// int multicastPort = 21000;
-		string multicastAddress = "224.0.0.200";
 
 		switch (listenMode)
 		{
@@ -133,7 +220,7 @@ public class NetworkTester2 : MonoBehaviour
 				Debug.Log("Start listening multicast");
 				var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
 				udpClient = new UdpClient(localEndPoint);
-				udpClient.JoinMulticastGroup(IPAddress.Parse(multicastAddress));
+				udpClient.JoinMulticastGroup(multicastAddress);
 
 				var state = new UdpState
 				{
@@ -151,15 +238,24 @@ public class NetworkTester2 : MonoBehaviour
 		if (listenMode == UdpListenMode.None)
 			return;
 
-		udpClient.Close();
+		udpClient?.Close();
 		listenMode = UdpListenMode.None;
 	}
 
+	public bool waitRequestThreadRunning;
+	Thread waitRequestFromServerThread;
 
 	private void OnDisable()
 	{
 		listenBroadcast = false;
-		udpClient.Close();
+		udpClient?.Close();
+
+		if (waitRequestThreadRunning)
+		{
+			try { waitRequestFromServerThread.Abort();}
+			catch (ThreadAbortException) { Debug.Log("Wait join confirm aborted");}
+			waitRequestThreadRunning = false;
+		}
 	}
 
 	private void OnValidate()
@@ -178,8 +274,42 @@ public class NetworkTester2 : MonoBehaviour
 
 	public void JoinSelectedServer()
 	{
+		// Todo(Leo): this needs to be confirmed from server side
 		var sendData = Morko.Network.ProtocolFormat.MakeCommand(NetworkCommand.PlayerJoin, playerName);
 		var endPoint = servers[selectedServerIndex].endPoint;
 		udpClient.Send(sendData, sendData.Length, endPoint);
+
+		joinedServer = servers[selectedServerIndex];
+
+		requestedJoinFromServer = true;
+		waitRequestFromServerThread = new Thread(() => {
+			var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+			waitRequestThreadRunning = true;
+			var data = udpClient.Receive(ref receiveEndPoint);
+			if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] content))
+			{
+				switch (command)
+				{
+					case NetworkCommand.ServerConfirmJoin:
+						int index = BitConverter.ToInt32(content, 0);
+						Debug.Log("Server confirmed join");
+						serverConfirmedJoin = true;
+						myClientId = index;
+						break;
+
+					case NetworkCommand.ServerDeclineJoin:
+						Debug.Log("Server declined join");
+						break;
+
+					default:
+						Debug.Log($"Uninteresting message: {command}");
+						break;
+				}
+			}
+
+			waitRequestThreadRunning = false;
+		});
+
+		waitRequestFromServerThread.Start();
 	}
 }

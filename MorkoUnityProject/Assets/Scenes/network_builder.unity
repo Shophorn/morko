@@ -273,6 +273,7 @@ GameObject:
   m_Component:
   - component: {fileID: 825081022}
   - component: {fileID: 825081023}
+  - component: {fileID: 825081021}
   m_Layer: 0
   m_Name: NETWORK_TESTER
   m_TagString: Untagged
@@ -280,6 +281,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &825081021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 825081020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aa1669f9b01f5d4f945b7ebd175c205, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serverInfo:
+    serverName: Land of Badgers
+  players: []
 --- !u!4 &825081022
 Transform:
   m_ObjectHideFlags: 0
@@ -306,8 +322,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4acf33716d022ba449ebdfe0738a56ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  netUpdateIntervalMs: 100
+  testPackageData:
+  - {x: 0, y: 0, z: 0}
   playerName: Jackalope Cruz
   selectedServerIndex: -1
   selectedServerName: '-'
   connectionRetryTimeMs: 1000
   servers: []
+  listenMode: 0
+  requestedJoinFromServer: 0
+  serverConfirmedJoin: 0
+  myClientId: -9
+  doNetworkUpdate: 0
+  waitRequestThreadRunning: 0
