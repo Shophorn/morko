@@ -617,7 +617,8 @@ MonoBehaviour:
   debug: 1
   characterPrefab: {fileID: 905078142086698094, guid: 46067794436602b478604e001b666856,
     type: 3}
-  playerSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
+  normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
+  morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
 --- !u!4 &1895704731
 Transform:
   m_ObjectHideFlags: 0

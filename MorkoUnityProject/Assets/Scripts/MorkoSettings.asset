@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91257595ed1a36542baacc40a3c74ed5, type: 3}
-  m_Name: PlayerSettings
+  m_Name: MorkoSettings
   m_EditorClassIdentifier: 
   walkSpeed: 5
   sneakMultiplier: 0.2
@@ -23,14 +23,3 @@ MonoBehaviour:
   decelerationTime: 0.5
   accelerationRunTime: 1.5
   decelerationRunTime: 1
-  morkoWalkSpeed: 5
-  morkoSneakMultiplier: 0.3
-  morkoRunMultiplier: 1.2
-  morkoSideMultiplier: 1
-  morkoSideRunMultiplier: 1
-  morkoBackwardMultiplier: 1
-  morkoBackwardRunMultiplier: 1
-  morkoAccelerationTime: 1.5
-  morkoDecelerationTime: 1.5
-  morkoAccelerationRunTime: 1
-  morkoDecelerationRunTime: 3

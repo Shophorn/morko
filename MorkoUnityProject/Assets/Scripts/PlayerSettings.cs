@@ -1,11 +1,8 @@
-﻿using DefaultNamespace;
-using UnityEngine;
-using UnityEngine.Serialization;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "PlayerSettings", menuName = "ScriptableObjects/PlayerSettings")]
 public class PlayerSettings : ScriptableObject //, IPlayerFields
 {
-    [Header("Character normal form")]
     [Range(1f, 10f)] public float walkSpeed = 5f;
     [Header("Set multiplier to 1 for no effect")]
     [Range(0.1f, 1f)] public float sneakMultiplier = 0.5f;
@@ -33,31 +30,4 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     public float accelerationRun => walkSpeed / accelerationRunTime;
     public float decelerationWalk => walkSpeed / decelerationTime;
     public float decelerationRun => walkSpeed / decelerationRunTime;
-
-
-    [Header("Mörkö")]
-    [Space(10)]
-    
-    [Range(1f, 10f)] public float morkoWalkSpeed = 5f;
-    [Header("Set multiplier to 1 for no effect")]
-    [Range(0.1f, 1f)] public float morkoSneakMultiplier = 0.3f;
-    [Range(1f, 2f)] public float morkoRunMultiplier = 1.2f;
-    [Range(0f, 1f)] public float morkoSideMultiplier = 1f;
-    [Range(0f, 1f)] public float morkoSideRunMultiplier = 1;
-    [Range(0f, 1f)] public float morkoBackwardMultiplier = 1f;
-    [Range(0f, 1f)] public float morkoBackwardRunMultiplier = 1f;
-    
-    public float morkoSneakSpeed => morkoWalkSpeed * morkoSneakMultiplier;
-    public float morkoRunSpeed => morkoWalkSpeed * morkoRunMultiplier;
-    
-    [Range(0f, 5)] public float morkoAccelerationTime = 1.5f;
-    [Range(0f, 5)] public float morkoDecelerationTime = 1.5f;
-    [Range(0f, 5f)] public float morkoAccelerationRunTime = 1f;
-    [Range(0f, 5f)] public float morkoDecelerationRunTime = 3f;
-    
-    public float morkoAccelerationSneak => morkoWalkSpeed / (morkoAccelerationTime + morkoSneakSpeed);
-    public float morkoAccelerationWalk => morkoWalkSpeed / morkoAccelerationTime;
-    public float morkoAccelerationRun => morkoWalkSpeed / morkoAccelerationRunTime;
-    public float morkoDecelerationWalk => morkoWalkSpeed / morkoDecelerationTime;
-    public float morkoDecelerationRun => morkoWalkSpeed / morkoDecelerationRunTime;
 }
