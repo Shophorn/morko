@@ -1,10 +1,11 @@
-# Only keep ProjectSettings and Assets folders in git projecct, ignore
+# Only keep ProjectSettings and Assets folders in git project, ignore
 # EVERYTHING else.
 
 */Library/
 */Logs/
 */Temp/
 */Packages/
+*/Builds/
 
 # We may need to rethink this, but it is now ignored becouse it has HintPath property
 # that is full path to a location in current computer where some required files are.
@@ -19,3 +20,6 @@
 */.idea/
 *.sublime-project
 *.sublime-workspace
+
+# This is only needed for net code development
+MorkoUnityProjectCopyForNetDev/

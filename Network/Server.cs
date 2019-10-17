@@ -12,224 +12,293 @@ How to make forms application:
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Linq;
+using System.Reflection;
 
 using Morko.Network;
 
 // using static System.Console;
-using static Morko.Logging.Logger;
-
+// using static Morko.Logging.Logger;
 
 internal class PlayerInfo
 {
 	public string name;
 	public IPEndPoint endPoint;
 	public DateTime lastConnectionTime;
+	public byte [] lastReceivedPackage;
 }
 
-internal struct UdpState
+internal interface IControlledThread
 {
-	public UdpClient client;
-	public IPEndPoint endPoint;
+	void Run();
+	void CleanUp();
 }
 
-public class ServerInfo
-{
-	public string serverName;
-	public string logFileName;
-	public int broadcastPort;
-}
-
-// Todo(Leo): Think if we really need this class
-public class ThreadControl
+internal class ThreadControl
 {
 	private Thread thread;
-	public bool IsAlive { get; private set; }
+	private ThreadControl(){}
 
-	public delegate void ControlledThreadFunction(ThreadControl control);
+	// Todo(Leo): Make some assertions that we do not start this more than once
 
-	private ThreadControl() {}
-
-	public static ThreadControl Start(ControlledThreadFunction threadFunction)
+	public static ThreadControl Start(IControlledThread threadRunner)
 	{
-		var control = new ThreadControl { IsAlive = true };
-		var thread = new Thread(() => threadFunction(control));
-		control.thread = thread;
+		/* Note(Leo): We start thread with an infinite loop and/or
+		blocking io/network/other function calls. Calling Thread.Abort
+		causes ThreadAbortException to be thrown from thread and by
+		catching it we are able to exit gracefully. */
+		var control = new ThreadControl();
+		control.thread = new Thread (() => 
+		{
+			try { threadRunner.Run(); }
+			catch (ThreadAbortException) { threadRunner.CleanUp(); }	
+		});
+		// Todo(Leo): Check if this is something we want
+		// control.thread.IsBackground = true;
 		control.thread.Start();
 		return control;
 	}
 
-	public Thread Stop()
+	public void Stop()
 	{
-		IsAlive = false;
-		thread.Join();
-		return thread;
+		thread.Abort();
 	}
 }
 
-public class Server
+namespace Morko.Network
 {
-	static byte [] Encode(string text) => System.Text.Encoding.ASCII.GetBytes(text);
-	static string Decode(byte [] data) => System.Text.Encoding.ASCII.GetString(data);
-
-	public int 		BroadcastPort	{ get; private set; }
-	public int 		MulticastPort 	{ get; private set; } = 21000;
-	public string 	Name 			{ get; private set; }
-
-
-	private int broadcastDelayMs = 500;
-	private int receiveTimeoutMs = 5000;
-	private int gameUpdateThreadDelayMs = 500;
-
-	// Note(Leo): https://en.wikipedia.org/wiki/Multicast_address
-	private string multicastAddress = "224.0.0.200"; 
-
-	private ThreadControl broadcastControl;
-	private bool stopPlayerJoining = false;
-
-	private ThreadControl gameUpdateThreadControl;
-
-	private UdpClient udpClient;
-
-	private List<PlayerInfo> players;
-
-	// Note(Leo): this disables the use of constructor outside class
-	private Server() {}
-
-	public static Server Create(ServerInfo info)
+	[Serializable]
+	public class ServerStartInfo
 	{
-		var server = new Server
-		{
-			Name = info.serverName,
-			udpClient = new UdpClient(0),
-			BroadcastPort = info.broadcastPort,
-		};
-
-		server.udpClient.Client.ReceiveTimeout = server.receiveTimeoutMs;
-		server.players = new List<PlayerInfo>();
-		return server;
+		public string serverName;
+		public Action<string> logFunction;
 	}
 
-	private void BroadcastThread(ThreadControl control)
+	[Serializable]
+	public class Server
 	{
-		var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, BroadcastPort);
-		while(control.IsAlive)
+		static byte [] Encode(string text) => System.Text.Encoding.ASCII.GetBytes(text);
+		static string Decode(byte [] data) => System.Text.Encoding.ASCII.GetString(data);
+
+		public string 	Name 			{ get; private set; }
+
+		private int broadcastDelayMs = 500;
+		private int gameUpdateThreadDelayMs = 500;
+
+		private ThreadControl broadcastControl;
+		private ThreadControl broadcastReceiveControl;
+
+		private ThreadControl gameUpdateThreadControl;
+		private ThreadControl gameUpdateReceiveThreadControl;
+
+		private UdpClient broadcastClient;
+		private UdpClient responseClient;
+
+		private List<PlayerInfo> players;
+
+		public event Action OnPlayerAdded;
+
+		private Action<string> Log;
+
+		// Note(Leo): this disables the use of constructor outside class
+		private Server() {}
+
+		public static Server Create(ServerStartInfo info)
 		{
-			var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerIntroduce, Name);
-			udpClient.Send(data, data.Length, broadcastEndPoint);
-			Thread.Sleep(broadcastDelayMs);
-		}
-		Log("Stopped broadcast thread");
-	}
-
-	private void ReceiveCallback(IAsyncResult result)
-	{
-		var state = (UdpState)result.AsyncState;
-		var udpClient = state.client;
-		var endPoint = state.endPoint;
-
-		var data = udpClient.EndReceive(result, ref endPoint);
-
-		if (stopPlayerJoining)
-			return;
-
-		if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out string arguments))
-		{
-			switch (command)
+			var server = new Server
 			{
-				case NetworkCommand.PlayerJoin:
-					var existingPlayer = players.Find(player => IPEndPoint.Equals(player.endPoint, endPoint));
-					if (existingPlayer != null)
+				Name 			= info.serverName,
+				broadcastClient = new UdpClient(0),
+				responseClient 	= new UdpClient(Constants.serverReceivePort),
+				players 		= new List<PlayerInfo>(),
+				Log 			= info.logFunction ??  Morko.Logging.Logger.Log
+			};
+
+			server.Log($"Created '{server.Name}");
+			return server;
+		}
+
+		private class BroadcastThread : IControlledThread
+		{
+			public Server server;
+
+			public void Run()
+			{
+				server.Log($"[{server.Name}]: Start broadcasting");
+				var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, Constants.broadcastPort);
+				while(true)
+				{
+					var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerIntroduce, server.Name);
+					server.broadcastClient.Send(data, data.Length, broadcastEndPoint);
+					Thread.Sleep(server.broadcastDelayMs);
+				}
+			}
+
+			public void CleanUp()
+			{
+				server.Log($"[{server.Name}]: Stop broadcasting");
+			}
+		}
+
+		private class BroadcastReceiveThread : IControlledThread
+		{
+			public Server server;
+
+			public void Run()
+			{
+				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+				while(true)
+				{
+					var data = server.responseClient.Receive(ref receiveEndPoint);
+
+					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out string arguments))
 					{
-						existingPlayer.lastConnectionTime = DateTime.Now;
+						switch (command)
+						{
+							case NetworkCommand.PlayerJoin:
+								var existingPlayer = server.players.Find(player => IPEndPoint.Equals(player.endPoint, receiveEndPoint));
+								if (existingPlayer != null)
+								{
+									existingPlayer.lastConnectionTime = DateTime.Now;
+								}
+								else
+								{
+									var playerName = arguments;
+									int playerIndex = server.players.Count;
+									server.players.Add(new PlayerInfo 
+									{
+										endPoint 			= receiveEndPoint,
+										name 				= playerName,
+										lastConnectionTime 	= DateTime.Now
+									});
+									server.Log($"Added player {playerName}");
+									server.OnPlayerAdded?.Invoke();
+
+									var response = ProtocolFormat.MakeCommand(NetworkCommand.ServerConfirmJoin, BitConverter.GetBytes(playerIndex));
+									server.responseClient.Send(response, response.Length, server.players[playerIndex].endPoint);
+								}
+
+								break;
+						}
+					}
+				}
+			}
+
+			public void CleanUp()
+			{
+
+			}
+		}
+
+		public void StartBroadcasting()
+		{
+			broadcastControl = ThreadControl.Start(
+				new BroadcastThread { server = this });
+
+			broadcastReceiveControl = ThreadControl.Start(
+				new BroadcastReceiveThread { server = this });
+		}
+
+		public void StopBroadcasting()
+		{
+			broadcastControl.Stop();
+			broadcastReceiveControl.Stop();
+		}
+
+		public void StartGame()
+		{	
+			Log($"[{Name}]: Start Game");
+			gameUpdateThreadControl = ThreadControl.Start(
+				new GameUpdateThread { server = this});
+
+			Log($"[{Name}]: Start receiving player updates");
+			gameUpdateReceiveThreadControl = ThreadControl.Start(
+				new ReceiveUpdateFromPlayersThread{server =this});
+		}
+
+		public void StopGame()
+		{
+			Log($"[{Name}]: Stop Game");
+			gameUpdateThreadControl.Stop();
+
+			Log($"[{Name}]: Stop receiving player updates");
+			gameUpdateReceiveThreadControl.Stop();
+		}
+
+		public int PlayerCount => players.Count;
+		public string [] PlayersNames => players.Select(player => player.name).ToArray();
+	 	
+	 	public void Close()
+		{
+			broadcastClient?.Close();
+			responseClient?.Close();
+		}
+
+		private class GameUpdateThread : IControlledThread
+		{
+			public Server server;
+
+			public void Run()
+			{
+				IPEndPoint endPoint = new IPEndPoint(Constants.multicastAddress, Constants.multicastPort);
+				server.broadcastClient.JoinMulticastGroup(Constants.multicastAddress);
+				while(true)
+				{
+					// var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerGameUpdate, "Game Update");
+					float [] testContents = { 6.3f, 1.2f, 5.6f, 6.2f, 4.5f, 7.9f };
+					var testContentData = new byte[testContents.Length * sizeof(float)];
+					Buffer.BlockCopy(testContents, 0, testContentData, 0, testContentData.Length);
+
+					var data = ProtocolFormat.MakeCommand(
+									NetworkCommand.ServerGameUpdate, 
+									testContentData);
+					server.broadcastClient.Send(data, data.Length, endPoint);
+
+					Thread.Sleep(server.gameUpdateThreadDelayMs);
+				}
+			}
+
+			public void CleanUp()
+			{
+				server.broadcastClient.DropMulticastGroup(Constants.multicastAddress);
+			}
+		}
+
+		private class ReceiveUpdateFromPlayersThread : IControlledThread
+		{
+			public Server server;
+
+			public void Run()
+			{
+				server.Log($"[{server.Name}]: Run '{nameof(ReceiveUpdateFromPlayersThread)}'");
+				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+				while(true)
+				{
+					byte [] data = server.responseClient.Receive(ref receiveEndPoint);
+					int count = BitConverter.ToInt32(data, 0);
+					if (count > 0)
+					{
+						float x = BitConverter.ToSingle(data, 4);
+						float y = BitConverter.ToSingle(data, 8);
+						float z = BitConverter.ToSingle(data, 12);
+
+						server.Log($"Received {count} vectors, first = ({x},{y},{z})");
 					}
 					else
 					{
-						var playerName = arguments;
-						players.Add(new PlayerInfo 
-						{
-							endPoint 			= endPoint,
-							name 				= playerName,
-							lastConnectionTime 	= DateTime.Now
-						});
-						Log($"Added player {playerName}");
+						server.Log($"Received {count} vectors");
 					}
 
-					break;
-				
+				}
+			}
+
+			public void CleanUp()
+			{
+				server.Log($"[{server.Name}]: Stop '{nameof(ReceiveUpdateFromPlayersThread)}'");
 			}
 		}
-	
-		udpClient.BeginReceive(ReceiveCallback, state);
 	}
-
-	public void StartBroadcasting()
-	{
-		stopPlayerJoining = false;
-		broadcastControl = ThreadControl.Start(BroadcastThread);
-
-		UdpState state = new UdpState
-		{
-			client = udpClient,
-			endPoint = new IPEndPoint(IPAddress.Any, 0)
-		};
-
-		udpClient.BeginReceive(ReceiveCallback, state);
-	}
-
-	public void StopBroadcasting()
-	{
-		stopPlayerJoining = true;
-		broadcastControl.Stop();
-	}
-
-	public void StartGame()
-	{
-		gameUpdateThreadControl = ThreadControl.Start(GameUpdateThread);
-	}
-
-	public void StopGame()
-	{
-		gameUpdateThreadControl.Stop();
-	}
-
-	public int PlayerCount => players.Count;
-	public string [] PlayersNames => players.Select(player => player.name).ToArray();
- 	
- 	public void Close()
-	{
-		udpClient.Close();
-	}
-
-	private void GameUpdateThread(ThreadControl control)
-	{
-		IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(multicastAddress), MulticastPort);
-		udpClient.JoinMulticastGroup(IPAddress.Parse(multicastAddress));
-		while(control.IsAlive)
-		{
-			var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerMulticastTest, "I am multicaster");
-			udpClient.Send(data, data.Length, endPoint);
-			Log(Decode(data));
-
-			Thread.Sleep(gameUpdateThreadDelayMs);
-		}
-		udpClient.DropMulticastGroup(IPAddress.Parse(multicastAddress));
-	}
-
-	// public static string GetLocalIPAddress()
-	// {
-	//     var host = Dns.GetHostEntry(Dns.GetHostName());
-	//     foreach (var ip in host.AddressList)
-	//     {
-	//         if (ip.AddressFamily == AddressFamily.InterNetwork)
-	//         {
-	//             return ip.ToString();
-	//         }
-	//     }
-	//     throw new Exception("No network adapters with an IPv4 address in the system!");
-	// }
-
 }

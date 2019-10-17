@@ -22,5 +22,15 @@ public class NetworkTester2Editor : Editor
 		{
 			(target as NetworkTester2).StopListen();
 		}
+
+		if (GUILayout.Button("Start Update"))
+		{
+			(target as NetworkTester2).StartUpdate();
+		}
+
+		if (GUILayout.Button("Stop Update"))
+		{
+			(target as NetworkTester2).StopUpdate();
+		}
 	}
 }

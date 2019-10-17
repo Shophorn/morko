@@ -77,7 +77,7 @@ class Program
 		bool doLoop = true;
 		while(doLoop)
 		{
-			WriteLine("Enter action ('help' for help");
+			WriteLine("Enter action ('help' for help)");
 			string input = GetInput();
 			string args = null;
 
