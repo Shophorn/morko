@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Morko.Network;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -37,21 +38,22 @@ namespace Morko
 		private float accelerationRun => currentSettings.accelerationRun;
 		private float decelerationWalk => currentSettings.decelerationWalk;
 		private float decelerationRun => currentSettings.decelerationRun;
+		private float dashDuration => currentSettings.dashDuration;
+		private float dashDistance => currentSettings.dashDistance;
+		private float dashCooldown => currentSettings.dashCooldown;
 		
 		private float currentMovementSpeed = 0f;
 		private Vector3 moveDirection;
 		private Vector3 lastPosition;
 		private Vector3 oldDirection = Vector3.zero;
 		private bool ran = false;
+		private long lastMillis = 0;
 
 		public void changeState(bool toMorko)
 		{
-			if (toMorko)
-				isMorko = true;
-			else
-				isMorko = false;
+			isMorko = toMorko;
 		}
-
+		
 		public static LocalController Create(Character character, PlayerSettings normalSettings, PlayerSettings morkoSettings)
 		{
 			var result = new LocalController();
@@ -75,6 +77,7 @@ namespace Morko
 		public AvatarPackage Update()
 		{
 			lastPosition = character.gameObject.transform.position;
+			character.transform.position = new Vector3(character.transform.position.x, 0f, character.transform.position.z);
 			
 			moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 			
@@ -202,13 +205,45 @@ namespace Morko
 			
 			// Move
 			character.characterController.Move(moveDirection * finalSpeed * Time.deltaTime);
-
+			
+			HandleDash();
+			
 			// Update package data
 			package.position = character.gameObject.transform.position;
 			package.rotation = character.gameObject.transform.rotation;
 			package.velocity = (character.transform.position - lastPosition) / Time.deltaTime;
 			
 			return package;
+		}
+
+		private void HandleDash()
+		{
+			Vector3 currentPosition = character.transform.position;
+			Vector3 targetPosition = currentPosition + character.transform.forward * dashDistance;
+			
+			bool scare = Input.GetKey(KeyCode.Space);
+			if (!isMorko && !scare) return;
+
+			long currentMillis = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+			bool pastCooldown = currentMillis - lastMillis >= dashCooldown * 1000;
+				
+			if (!pastCooldown)
+				return;
+			
+			var time = 0f;
+			while(time < 1)
+			{
+				time += Time.deltaTime / dashDuration;
+				character.transform.position = Vector3.Lerp(currentPosition, targetPosition, time);
+				
+				// If collision with other player
+					// changeState(false);
+					// Change other player to morko
+			}
+			
+			lastMillis = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+			
+			currentMovementSpeed = 0f;
 		}
 	}
 }

@@ -23,3 +23,6 @@ MonoBehaviour:
   decelerationTime: 0.5
   accelerationRunTime: 1.5
   decelerationRunTime: 1
+  dashDistance: 3
+  dashDuration: 1.5
+  dashCooldown: 2
