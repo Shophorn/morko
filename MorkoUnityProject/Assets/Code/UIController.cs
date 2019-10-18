@@ -15,13 +15,29 @@ public class HostInfo
 	public string serverName;
 }
 
-public class UIController : MonoBehaviour
+/* Note(Leo): For clarity, public interface and MonoBehaviour internals
+are separated. Users only must depend on this public side. */
+public partial class UIController
 {
 	public event Action<JoinInfo> OnRequestJoin;
 	public event Action<HostInfo> OnStartHosting;
 	public event Action OnEnterJoinWindow;
 	public event Action OnExitJoinWindow;
+	public event Action OnStartGame;
+	public event Action OnAbortGame; 
 
+	public void SetServerList(ServerInfo [] infos)
+	{
+		/*
+		Todo(Joonas): Implement....
+		Note(Leo): remember to keep track of selected server, as index may change
+		*/
+		Debug.Log("Server info updated");
+	}
+}
+
+public partial class UIController : MonoBehaviour
+{
 	[SerializeField] private WindowLoadingSystem windowSystem;
 	[SerializeField] private JoinRoomWindow joinRoomWindow;
 	[SerializeField] private HostRoomContainer hostRoomContainer;
@@ -37,6 +53,7 @@ public class UIController : MonoBehaviour
 			var info = new JoinInfo
 			{
 				playerName = joinRoomWindow.PlayerName,
+				selectedServerIndex = joinRoomWindow.SelectedServerId
 			};
 			OnRequestJoin?.Invoke(info);
 			OnExitJoinWindow?.Invoke();
@@ -61,15 +78,5 @@ public class UIController : MonoBehaviour
 			OnExitJoinWindow?.Invoke();
 		});
 
-	}
-
-	public void SetServerList(ServerInfo [] infos)
-	{
-		// TODO(Joonas): Implement....
-
-		/*
-		Note(Leo): remember to keep track of selected server, as index may change
-		*/
-		Debug.Log("Server info updated");
 	}
 }

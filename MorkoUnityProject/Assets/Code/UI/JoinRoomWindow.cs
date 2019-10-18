@@ -14,6 +14,7 @@ namespace Morko
 
 		public Text nameText;
 		public string PlayerName => nameText.text;
+		public int SelectedServerId => roomToBeJoined;
 
 		public Button requestJoinButton;
 		public Button cancelButton;

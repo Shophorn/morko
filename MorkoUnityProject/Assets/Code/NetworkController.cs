@@ -1,64 +1,66 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿// using System;
+// using System.Runtime.InteropServices;
 
-using UnityEngine;
+// using UnityEngine;
 
-using Morko.Network;
+// using Morko.Network;
 
-public class NetworkController : MonoBehaviour
-{
-	public ServerConnection server;
-	public ClientConnection client;
+// public class NetworkController : MonoBehaviour
+// {
+// 	public ServerController serverConnection;
+// 	public Server server = null;
+// 	public ClientController client;
 
-	public event Action OnServersUpdated;
-
-
-
-	private void Awake()
-	{
-		client.OnServersUpdated += () => 
-		{
-			Debug.Log("Hello from event!!!!!!!!!!!1");
-			OnServersUpdated();
-		};
-	}
+// 	public event Action OnServersUpdated;
 
 
-	public ServerInfo [] GetServerList ()
-	{
-		return new ServerInfo [0];
-	}
+
+// 	private void Awake()
+// 	{
+// 		client.OnServersUpdated += () => 
+// 		{
+// 			Debug.Log("Hello from event!!!!!!!!!!!1");
+// 			OnServersUpdated();
+// 		};
+// 	}
 
 
-	// public event Action<bool> ServerConfirmJoinRequest;
+// 	public ServerInfo [] GetServerList ()
+// 	{
+// 		return new ServerInfo [0];
+// 	}
 
-	public void CreateServer(HostInfo info)
-	{
-		server.serverInfo = new ServerStartInfo
-		{
-			serverName = info.serverName,
-			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
-			logFunction = Debug.Log,
-		};
-		server.CreateServer();
 
-		Debug.Log($"Create server {info.serverName}");
-	}
+// 	// public event Action<bool> ServerConfirmJoinRequest;
 
-	public void RequestJoin(JoinInfo info)
-	{
-		client.JoinSelectedServer();
-	}
+// 	public void CreateServer(HostInfo info)
+// 	{
+// 		var createInfo = new ServerCreateInfo
+// 		{
+// 			serverName = info.serverName,
+// 			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
+// 			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
+// 			logFunction = Debug.Log,
+// 		};
+// 		server = Server.Create(createInfo);
 
-	public void StartListenBroadcast()
-	{
-		client.StartListen();
-		Debug.Log("Start listen broadcast");
-	}
+// 		Debug.Log($"Create serverConnection {info.serverName}");
+// 	}
 
-	public void StopListenBroadcast()
-	{
-		client.StopListen();
-		Debug.Log("Stop listen broadcast");
-	}
-}
+// 	public void RequestJoin(JoinInfo info)
+// 	{
+// 		client.JoinSelectedServer();
+// 	}
+
+// 	public void StartListenBroadcast()
+// 	{
+// 		client.StartListen();
+// 		Debug.Log("Start listen broadcast");
+// 	}
+
+// 	public void StopListenBroadcast()
+// 	{
+// 		client.StopListen();
+// 		Debug.Log("Stop listen broadcast");
+// 	}
+// }

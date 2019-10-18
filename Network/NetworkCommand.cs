@@ -64,8 +64,7 @@ namespace Morko.Network
 		public NetworkCommand Command => NetworkCommand.ServerStartGame;
 
 		public int playerCount;
-
-		public GameStartInfo gameStartInfo; 
+		public int mapId;
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -91,13 +90,6 @@ namespace Morko.Network
 
 		public int playerId;
 	}
-}
-
-// Todo(Leo): These should belong to the concrete game side
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct GameStartInfo
-{
-	public int mapId;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

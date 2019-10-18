@@ -1,21 +1,15 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ServerConnection))]
-public class ServerConnectionEditor : Editor
+[CustomEditor(typeof(ServerController))]
+public class ServerControllerEditor : Editor
 {
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
-		var tester = target as ServerConnection;
-
+		var tester = target as ServerController;
 
 		EditorGUILayout.LabelField($"Status: {tester.Status}");
-
-		if (GUILayout.Button("Create Server"))
-		{
-			tester.CreateServer();
-		}
 
 		if (GUILayout.Button("Start Broadcast"))
 		{
@@ -32,9 +26,9 @@ public class ServerConnectionEditor : Editor
 			tester.StartGame();
 		}
 
-		if (GUILayout.Button("Stop Game"))
+		if (GUILayout.Button("Abort Game"))
 		{
-			tester.StopGame();
+			tester.AbortGame();
 		}
 	}
 }

@@ -248,6 +248,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 7661154684270449589, guid: 3f70f05ad0b102d429e44807b4e81479,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 63513864}
+    - target: {fileID: 7661154684270449589, guid: 3f70f05ad0b102d429e44807b4e81479,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 1269688899}
     - target: {fileID: 6984303727377068622, guid: 3f70f05ad0b102d429e44807b4e81479,
         type: 3}
       propertyPath: hostRooms
@@ -366,16 +376,6 @@ PrefabInstance:
     - target: {fileID: 7661154684076214816, guid: 3f70f05ad0b102d429e44807b4e81479,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 1269688899}
-    - target: {fileID: 7661154684270449589, guid: 3f70f05ad0b102d429e44807b4e81479,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 63513864}
-    - target: {fileID: 7661154684270449589, guid: 3f70f05ad0b102d429e44807b4e81479,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1269688899}
     - target: {fileID: 7661154684715433453, guid: 3f70f05ad0b102d429e44807b4e81479,
@@ -499,8 +499,6 @@ GameObject:
   - component: {fileID: 942324878}
   - component: {fileID: 942324877}
   - component: {fileID: 942324880}
-  - component: {fileID: 942324882}
-  - component: {fileID: 942324881}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -538,7 +536,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiController: {fileID: 942324877}
-  netController: {fileID: 942324880}
+  serverController: {fileID: 0}
+  clientController: {fileID: 942324880}
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0
@@ -562,44 +561,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 942324876}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 893dddbf32f7b0546a08583c45ef7eb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  server: {fileID: 942324882}
-  client: {fileID: 942324881}
---- !u!114 &942324881
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 942324876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ec5e0f9a4b1779448720339952559e3, type: 3}
+  m_Script: {fileID: 11500000, guid: 8fc851065273bcd4e99186062d50835f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   netUpdateIntervalMs: 50
   connectionRetryTimeMs: 500
   playerName: Default Player
   selectedServerIndex: 0
-  servers: []
---- !u!114 &942324882
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 942324876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a6b9e27c43d49d4d91950b0aa5c75fc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  serverInfo:
-    serverName: Default Server
-    clientUpdatePackageSize: 0
-  players: []
 --- !u!114 &1014610375 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7661154684238174476, guid: 3f70f05ad0b102d429e44807b4e81479,

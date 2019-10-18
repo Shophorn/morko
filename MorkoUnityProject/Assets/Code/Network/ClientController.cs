@@ -1,6 +1,7 @@
 using System; 
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -18,15 +19,23 @@ using static Morko.Network.Constants;
 [Serializable]
 public class ServerInfo
 {
-	public IPEndPoint endPoint;
 	public string name;
+	public int mapIndex;
+	public int maxPlayers;
+	public int gameDuration;
+}
+
+[Serializable]
+public class ServerConnectionInfo
+{
+	public ServerInfo server;	
+	public IPEndPoint endPoint;
 	public DateTime lastConnectionTime;  
 }
 
-public struct UdpState
+public class GameStartInfo
 {
-	public UdpClient client;
-	public IPEndPoint endPoint;
+	public int netPlayerCount;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -36,7 +45,7 @@ public struct PlayerGameUpdatePackage
 	public Vector3 position;
 }
 
-public class ClientConnection : MonoBehaviour
+public class ClientController : MonoBehaviour
 {
 	[Header("Network Cofiguration")]
 	public int netUpdateIntervalMs = 50;
@@ -55,9 +64,9 @@ public class ClientConnection : MonoBehaviour
 
 	[HideInInspector] public int selectedServerIndex;
 
-	[HideInInspector] public List<ServerInfo> servers = new List<ServerInfo>();
-	private ServerInfo requestedServer;
-	private ServerInfo joinedServer;
+	public List<ServerConnectionInfo> servers { get; }= new List<ServerConnectionInfo>();
+	private ServerConnectionInfo requestedServer;
+	private ServerConnectionInfo joinedServer;
 	
 	public GameObject AvatarPrefab { get; set; }
 	private Transform senderTransform;
@@ -74,8 +83,17 @@ public class ClientConnection : MonoBehaviour
 	private bool doNetworkUpdate = false;
 	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
 
-	public event Action OnServersUpdated;
+	public event Action OnServerListChanged;
 
+	public event Action OnServerStartGame;
+	public event Action OnServerAbortGame;
+	public event Action OnServerFinishGame;
+
+	public ServerInfo [] GetServers()
+	{
+		var result = servers.Select(connection => connection.server).ToArray();
+		return result;	
+	}
 
 	// Note(Leo): Debug class only
 	// [Serializable]
@@ -96,7 +114,6 @@ public class ClientConnection : MonoBehaviour
 
 	private void Start()
 	{
-
 		if (AutoStart)
 		{
 			StartListen();
@@ -143,7 +160,7 @@ public class ClientConnection : MonoBehaviour
 
 	private class ReceiveThread : IThreadRunner
 	{
-		public ClientConnection connection;
+		public ClientController connection;
 
 		public void Run ()
 		{
@@ -172,21 +189,23 @@ public class ClientConnection : MonoBehaviour
 						else
 						{
 							var arguments = contents.ToStructure<ServerIntroduceArgs>();
-							connection.servers.Add(new ServerInfo
+							connection.servers.Add(new ServerConnectionInfo
 							{
+								server 				= new ServerInfo
+													{ 
+														name = arguments.name
+													},
 								endPoint 			= receiveEndPoint,
-								name 				= arguments.name,
 								lastConnectionTime 	= DateTime.Now
 							});
 
 							if (connection.selectedServerIndex < 0)
 							{
 								connection.selectedServerIndex = 0;
-								connection.OnValidate();
 							}
 						}
 
-						connection.OnServersUpdated?.Invoke();
+						connection.OnServerListChanged?.Invoke();
 					} break;
 
 					case NetworkCommand.ServerStartGame:
@@ -296,8 +315,6 @@ public class ClientConnection : MonoBehaviour
 			endPoint 	= joinedServer.endPoint
 		});
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
-
-		// doNetworkUpdate = true;
 	}
 
 	public void StopUpdate()
@@ -305,7 +322,6 @@ public class ClientConnection : MonoBehaviour
 		receiveUpdateThread.Stop();
 		doNetworkUpdate = false;
 	}
-
 
 	private void Update()
 	{
@@ -317,7 +333,7 @@ public class ClientConnection : MonoBehaviour
 			{
 				servers.RemoveAt(serverIndex);
 				serverIndex--;
-				OnServersUpdated?.Invoke();
+				OnServerListChanged?.Invoke();
 			}
 		}
 
@@ -357,33 +373,9 @@ public class ClientConnection : MonoBehaviour
 		udpClient?.Close();
 	}
 
-	private void OnValidate()
-	{
-		// Note(Leo): These are for debugging only
-		// string printout = "";
-		// printout += $"sizeof(ServerIntroduceArgs) = {Marshal.SizeOf(default(ServerIntroduceArgs))}\n";
-		// printout += $"sizeof(ServerConfirmJoinArgs) = {Marshal.SizeOf(default(ServerConfirmJoinArgs))}\n";
-		// printout += $"sizeof(ServerStartGameArgs) = {Marshal.SizeOf(default(ServerStartGameArgs))}\n";
-		// printout += $"sizeof(PlayerRequestJoinArgs) = {Marshal.SizeOf(default(PlayerRequestJoinArgs))}\n";
-		// Debug.Log(printout);
-
-		// if (servers.Count == 0)
-		// {
-		// 	selectedServerIndex = -1;
-		// 	selectedServerName = "-";
-		// }
-		// else
-		// {
-		// 	selectedServerIndex = Mathf.Clamp(selectedServerIndex, 0, servers.Count - 1);
-		// 	selectedServerName = servers[selectedServerIndex].name;
-		// }
-	}
-
 	public void JoinSelectedServer()
 	{
 		requestedServer = servers[selectedServerIndex];
-
-		// serverEndpoint = EndPointDisplay.FromEndPoint(requestedServer.endPoint);
 
 		var arguments 	= new ClientRequestJoinArgs{ playerName = playerName };
 		var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);

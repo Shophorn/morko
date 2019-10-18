@@ -3,14 +3,14 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ClientConnection))]
-public class ClientConnectionEditor : Editor
+[CustomEditor(typeof(ClientController))]
+public class ClientControllerEditor : Editor
 {
 	public override void OnInspectorGUI ()
 	{
 		DrawDefaultInspector();
 
-		var connection = target as ClientConnection;
+		var connection = target as ClientController;
 
 
 		GUILayout.Label("Player Info", EditorStyles.boldLabel);
@@ -31,7 +31,7 @@ public class ClientConnectionEditor : Editor
 						"No Servers Available" :
 						"Servers Available ");
 
-		var serverNames = connection.servers.Select(server => server.name).ToArray();
+		var serverNames = connection.servers.Select(server => server.server.name).ToArray();
 		connection.selectedServerIndex = EditorGUILayout.Popup("Servers", connection.selectedServerIndex, serverNames);
 
 
@@ -39,27 +39,27 @@ public class ClientConnectionEditor : Editor
 
 		if (GUILayout.Button("Join Selected Server"))
 		{
-			(target as ClientConnection).JoinSelectedServer();
+			(target as ClientController).JoinSelectedServer();
 		}
 
 		if (GUILayout.Button("Start Listen"))
 		{
-			(target as ClientConnection).StartListen();
+			(target as ClientController).StartListen();
 		}
 
 		if (GUILayout.Button("Stop Listen"))
 		{
-			(target as ClientConnection).StopListen();
+			(target as ClientController).StopListen();
 		}
 
 		if (GUILayout.Button("Start Update"))
 		{
-			(target as ClientConnection).StartUpdate();
+			(target as ClientController).StartUpdate();
 		}
 
 		if (GUILayout.Button("Stop Update"))
 		{
-			(target as ClientConnection).StopUpdate();
+			(target as ClientController).StopUpdate();
 		}
 	}
 }

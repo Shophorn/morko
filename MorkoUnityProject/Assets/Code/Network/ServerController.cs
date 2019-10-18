@@ -3,35 +3,18 @@ using UnityEngine;
 
 using Morko.Network;
 
-public class ServerConnection : MonoBehaviour
+public class ServerController : MonoBehaviour
 {
 	public enum StatusType {Idle, Broadcasting, RunningGame};
 	public StatusType Status { get; private set; }
 
-	public ServerStartInfo serverInfo = new ServerStartInfo();
 	private Server server;
 
 	public string [] players;
 
-	public bool AutoStart { get; set; }
-
-	private void Start()
+	public void CreateServer(ServerCreateInfo createInfo)
 	{
-		serverInfo.serverName = ServerNameGenerator.GetRandom();
-
-		if (AutoStart)
-		{
-			CreateServer();
-			StartBroadcast();
-		}
-	}
-
-	public void CreateServer()
-	{
-		serverInfo.logFunction = Debug.Log;
-		serverInfo.clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage));
-
-		server = Server.Create(serverInfo);
+		server = Server.Create(createInfo);
 		server.OnPlayerAdded += () => players = server.PlayersNames;
 	}
 
@@ -53,16 +36,16 @@ public class ServerConnection : MonoBehaviour
 		Status = StatusType.RunningGame;
 	}
 
-	public void StopGame()
+	public void AbortGame()
 	{
-		server.StopGame();
+		server.AbortGame();
 		Status = StatusType.Idle;
 	}
 
 	public void OnDisable()
 	{
 		server?.StopBroadcasting();
-		server?.StopGame();
+		server?.AbortGame();
 		server?.Close();
 	}
 

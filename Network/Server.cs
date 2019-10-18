@@ -36,7 +36,7 @@ namespace Morko.Network
 	}
 
 
-	internal class ClientConnectionInfo
+	internal class ClientControllerInfo
 	{
 		public string name;
 		public IPEndPoint endPoint;
@@ -86,10 +86,11 @@ namespace Morko.Network
 	}
 
 	[Serializable]
-	public class ServerStartInfo
+	public class ServerCreateInfo
 	{
 		public string serverName = "Default Server";
 		public int clientUpdatePackageSize;
+		public Type clientUpdatePackageType;
 		public Action<string> logFunction;
 	}
 
@@ -217,7 +218,7 @@ namespace Morko.Network
 		private UdpClient broadcastClient;
 		private UdpClient responseClient;
 
-		private List<ClientConnectionInfo> players;
+		private List<ClientControllerInfo> players;
 		private int clientUpdatePackageSize;
 
 		public event Action OnPlayerAdded;
@@ -227,7 +228,7 @@ namespace Morko.Network
 		// Note(Leo): this disables the use of constructor outside class
 		private Server() {}
 
-		public static Server Create(ServerStartInfo info)
+		public static Server Create(ServerCreateInfo info)
 		{
 
 			var server = new Server
@@ -238,7 +239,7 @@ namespace Morko.Network
 
 				broadcastClient 		= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
-				players 				= new List<ClientConnectionInfo>(),
+				players 				= new List<ClientControllerInfo>(),
 			};
 
 			server.Log($"Created '{server.name}'");
@@ -298,7 +299,7 @@ namespace Morko.Network
 								{
 									var arguments = contents.ToStructure<ClientRequestJoinArgs>();
 									int playerIndex = server.players.Count;
-									server.players.Add(new ClientConnectionInfo 
+									server.players.Add(new ClientControllerInfo 
 									{
 										endPoint 			= receiveEndPoint,
 										name 				= arguments.playerName,
@@ -351,7 +352,7 @@ namespace Morko.Network
 			gameUpdateReceiveThreadControl.Start(new ReceiveUpdateFromPlayersThread { server = this });
 		}
 
-		public void StopGame()
+		public void AbortGame()
 		{
 			// TODO(Leo): Remove questionmarksP????
 			Log($"[{name}]: Stop Game");
