@@ -11,6 +11,7 @@ public class ProtoGameCreator : MonoBehaviour
     public PlayerSettings normalSettings;
     public PlayerSettings morkoSettings;
     private LocalController localController;
+    public CharacterInstantiator characterInstantiator;
 
     //<body><b>SINGLETON PATTERN ON VÄLIAIKAINEN</b></body>
     private static ProtoGameCreator instance;
@@ -26,6 +27,11 @@ public class ProtoGameCreator : MonoBehaviour
         if (debug)
         {
             StartScene();
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            characterInstantiator.InstantiateCharacter(i, new Vector3(0, 0, i * 5 + 5));
         }
     }
     //TÄTÄ KUTSUTAAN LOADERISSA JOTTA HAHMOT INSTANSIOITUVAT OIKEAAN SCENEEN
