@@ -13,6 +13,8 @@ namespace Morko.Network
 	{
 		public const int broadcastPort = 11000;
 		public static readonly IPAddress broadcastAddress = IPAddress.Broadcast; // 255.255.255.255
+		// // Note(Leo): Only for testing
+		// public static readonly IPAddress broadcastAddress = IPAddress.Parse("192.168.43.255");
 
 		// Note(Leo): https://en.wikipedia.org/wiki/Multicast_address
 		public const int multicastPort = 21001;

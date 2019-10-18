@@ -1,14 +1,16 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ServerTester))]
-public class ServerTesterEditor : Editor
+[CustomEditor(typeof(ServerConnection))]
+public class ServerConnectionEditor : Editor
 {
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
+		var tester = target as ServerConnection;
 
-		var tester = target as ServerTester;
+
+		EditorGUILayout.LabelField($"Status: {tester.Status}");
 
 		if (GUILayout.Button("Create Server"))
 		{
