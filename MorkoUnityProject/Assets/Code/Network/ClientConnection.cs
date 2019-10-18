@@ -74,6 +74,9 @@ public class ClientConnection : MonoBehaviour
 	private bool doNetworkUpdate = false;
 	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
 
+	public event Action OnServersUpdated;
+
+
 	// Note(Leo): Debug class only
 	// [Serializable]
 	// public struct EndPointDisplay
@@ -182,6 +185,8 @@ public class ClientConnection : MonoBehaviour
 								connection.OnValidate();
 							}
 						}
+
+						connection.OnServersUpdated?.Invoke();
 					} break;
 
 					case NetworkCommand.ServerStartGame:
@@ -307,10 +312,12 @@ public class ClientConnection : MonoBehaviour
 		DateTime thresholdTime = DateTime.Now.AddSeconds(-connectionRetryTime);
 		for(int serverIndex = 0; serverIndex < servers.Count; serverIndex++)
 		{
+			Debug.Log($"servers at {serverIndex}: {servers[serverIndex]}");
 			if (servers[serverIndex].lastConnectionTime < thresholdTime)
 			{
 				servers.RemoveAt(serverIndex);
 				serverIndex--;
+				OnServersUpdated?.Invoke();
 			}
 		}
 
@@ -335,9 +342,7 @@ public class ClientConnection : MonoBehaviour
 
 	public void StartListen()
 	{
-		Debug.Log("Start listening broadcast");
 		udpClient = new UdpClient(broadcastPort);
-
 		detectServersThread.Start(new ReceiveThread {connection = this});
 	}
 
