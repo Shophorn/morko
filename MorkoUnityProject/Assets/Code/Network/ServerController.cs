@@ -18,6 +18,13 @@ public class ServerController : MonoBehaviour
 		server.OnPlayerAdded += () => players = server.PlayersNames;
 	}
 
+	public void CloseServer()
+	{
+		server.StopBroadcasting();
+		server.AbortGame();
+		server.Close();
+	}
+
 	public void StartBroadcast()
 	{
 		server.StartBroadcasting();

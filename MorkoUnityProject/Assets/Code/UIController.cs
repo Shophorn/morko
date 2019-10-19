@@ -16,6 +16,8 @@ public partial class UIController
 {
 	public event Action<JoinInfo> OnRequestJoin;
 	public event Action<ServerInfo> OnStartHosting;
+	public event Action OnStopHosting;
+
 	public event Action OnEnterJoinWindow;
 	public event Action OnExitJoinWindow;
 	public event Action OnStartGame;
@@ -28,6 +30,13 @@ public partial class UIController
 		Note(Leo): remember to keep track of selected server, as index may change
 		*/
 		Debug.Log("Server info updated");
+
+		string printout = "";
+		foreach (var item in infos)
+		{
+			printout += $"\t{item.name}\n";
+		}
+		Debug.Log(printout);
 	}
 }
 

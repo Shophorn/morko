@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
 	public ServerController serverController;
 	public ClientController clientController;
 
+	private bool isHosting = false;
 	private bool isJoining = false;
 
 	public void Awake()
@@ -23,17 +24,22 @@ public class GameManager : MonoBehaviour
 		};
 
 		uiController.OnStartHosting += StartServer;
+		uiController.OnStopHosting += StopServer;
 
 		uiController.OnEnterJoinWindow += StartJoin;
 		uiController.OnExitJoinWindow += StopJoin;
-
-		// ---------------------------------------------------------
-
-
 	}
 
 	private void StartServer(ServerInfo info)
 	{
+		if (isHosting)
+		{
+			Debug.LogError("Trying to start server while already hosting");
+			return;
+		}
+
+		isHosting = true;
+
 		serverController = gameObject.AddComponent<ServerController>();
 		var createInfo = new ServerCreateInfo
 		{
@@ -47,6 +53,20 @@ public class GameManager : MonoBehaviour
 
 		uiController.OnStartGame += serverController.StartGame;
 		uiController.OnAbortGame += serverController.AbortGame;
+	}
+
+	private void StopServer()
+	{
+		if (isHosting == false)
+		{
+			Debug.LogError("Trying to stop server while not hosting");
+			return;
+		}
+
+		isHosting = false;
+		serverController.CloseServer();
+		Destroy(serverController);
+		serverController = null;
 	}
 
 	private void StartGame()
