@@ -8,7 +8,9 @@ files = [
 	"Logger.cs",
 	"ProtocolFormat.cs",
 	"NetworkCommand.cs",
-	"Constants.cs"
+	"Constants.cs",
+	"BinaryConverter.cs",
+	"NetworkName.cs"
 ]
 
 build_exe = "--exe" in sys.argv

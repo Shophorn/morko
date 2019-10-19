@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
 	public ServerController serverController;
 	public ClientController clientController;
 
+	private bool isJoining = false;
+
 	public void Awake()
 	{
 		uiController.OnRequestJoin += (info) =>
@@ -22,22 +24,20 @@ public class GameManager : MonoBehaviour
 
 		uiController.OnStartHosting += StartServer;
 
-		uiController.OnEnterJoinWindow += clientController.StartListen;
-		uiController.OnExitJoinWindow += clientController.StopListen;
+		uiController.OnEnterJoinWindow += StartJoin;
+		uiController.OnExitJoinWindow += StopJoin;
 
 		// ---------------------------------------------------------
 
-		clientController.OnServerListChanged += 
-			() => uiController.SetServerList(clientController.GetServers());
-		clientController.OnServerStartGame += StartGame;
+
 	}
 
-	private void StartServer(HostInfo info)
+	private void StartServer(ServerInfo info)
 	{
 		serverController = gameObject.AddComponent<ServerController>();
 		var createInfo = new ServerCreateInfo
 		{
-			serverName = info.serverName,
+			serverName = info.name,
 			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
 			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
 			logFunction = Debug.Log
@@ -54,5 +54,35 @@ public class GameManager : MonoBehaviour
 		// Load characters
 		// Load map
 		Debug.Log("Client says server starts the game :)");
+	}
+
+	private void StartJoin()
+	{
+		if (isJoining)
+		{
+			Debug.LogError("Trying to start joining when already joining.");
+			return;
+		}
+
+		isJoining = true;
+
+		clientController.StartListen();
+		clientController.OnServerListChanged 	+= uiController.SetServerList;
+		clientController.OnServerStartGame 		+= StartGame;
+	}
+
+	private void StopJoin()
+	{
+		if (isJoining == false)
+		{
+			Debug.LogError("Trying to stop joining when not joining.");
+			return;
+		}
+
+		isJoining = false;
+
+		clientController.StopListen();
+		clientController.OnServerListChanged 	-= uiController.SetServerList;
+		clientController.OnServerStartGame 		-= StartGame;
 	}
 }

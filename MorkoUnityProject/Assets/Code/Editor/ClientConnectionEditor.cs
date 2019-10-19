@@ -31,7 +31,7 @@ public class ClientControllerEditor : Editor
 						"No Servers Available" :
 						"Servers Available ");
 
-		var serverNames = connection.servers.Select(server => server.server.name).ToArray();
+		var serverNames = connection.servers.Select(server => server.serverInfo.name).ToArray();
 		connection.selectedServerIndex = EditorGUILayout.Popup("Servers", connection.selectedServerIndex, serverNames);
 
 

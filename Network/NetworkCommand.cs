@@ -44,7 +44,9 @@ namespace Morko.Network
 		public NetworkCommand Command => NetworkCommand.ServerIntroduce;
 
 		public NetworkName name;
-		public int mapId;
+		public int mapIndex;
+		public int maxPlayers;
+		public int gameDurationSeconds;
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]

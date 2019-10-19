@@ -22,13 +22,13 @@ public class ServerInfo
 	public string name;
 	public int mapIndex;
 	public int maxPlayers;
-	public int gameDuration;
+	public int gameDurationSeconds;
 }
 
 [Serializable]
 public class ServerConnectionInfo
 {
-	public ServerInfo server;	
+	public ServerInfo serverInfo;	
 	public IPEndPoint endPoint;
 	public DateTime lastConnectionTime;  
 }
@@ -83,15 +83,15 @@ public class ClientController : MonoBehaviour
 	private bool doNetworkUpdate = false;
 	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
 
-	public event Action OnServerListChanged;
+	public event Action<ServerInfo[]> OnServerListChanged;
 
 	public event Action OnServerStartGame;
 	public event Action OnServerAbortGame;
 	public event Action OnServerFinishGame;
 
-	public ServerInfo [] GetServers()
+	private ServerInfo [] GetServers()
 	{
-		var result = servers.Select(connection => connection.server).ToArray();
+		var result = servers.Select(connection => connection.serverInfo).ToArray();
 		return result;	
 	}
 
@@ -191,10 +191,10 @@ public class ClientController : MonoBehaviour
 							var arguments = contents.ToStructure<ServerIntroduceArgs>();
 							connection.servers.Add(new ServerConnectionInfo
 							{
-								server 				= new ServerInfo
-													{ 
-														name = arguments.name
-													},
+								serverInfo = new ServerInfo
+								{ 
+									name = arguments.name
+								},
 								endPoint 			= receiveEndPoint,
 								lastConnectionTime 	= DateTime.Now
 							});
@@ -205,7 +205,7 @@ public class ClientController : MonoBehaviour
 							}
 						}
 
-						connection.OnServerListChanged?.Invoke();
+						connection.OnServerListChanged?.Invoke(connection.GetServers());
 					} break;
 
 					case NetworkCommand.ServerStartGame:
@@ -333,7 +333,7 @@ public class ClientController : MonoBehaviour
 			{
 				servers.RemoveAt(serverIndex);
 				serverIndex--;
-				OnServerListChanged?.Invoke();
+				OnServerListChanged?.Invoke(GetServers());
 			}
 		}
 

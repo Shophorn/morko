@@ -22,69 +22,16 @@ using System.Text;
 using Morko.Network;
 using Morko.Threading;
 
+internal class ClientInfo
+{
+	public string name;
+	public IPEndPoint endPoint;
+	public DateTime lastConnectionTime;
+	public byte [] lastReceivedPackage;
+}
+
 namespace Morko.Network
 {
-	public static class Repeat
-	{
-		public static void For(int count, Action operation)
-		{
-			for (int i = 0; i < count; i++)
-			{
-				operation.Invoke();
-			}
-		}
-	}
-
-
-	internal class ClientControllerInfo
-	{
-		public string name;
-		public IPEndPoint endPoint;
-		public DateTime lastConnectionTime;
-		public byte [] lastReceivedPackage;
-	}
-
-	/* Document(Leo): This is fixed a fixed size string to be used
-	in network structures, where we would like to have consistency for
-	easier and speedier content parsing. */
-	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct NetworkName
-	{
-		private const int maxLength = 32;
-		private unsafe fixed byte data [maxLength];
-		private int length;
-
-		public unsafe static implicit operator string(NetworkName name)
-		{
-			byte [] byteArray = new byte[name.length];
-			fixed(byte * dstBytes = &byteArray[0])
-			{
-				Buffer.MemoryCopy(name.data, dstBytes, name.length, name.length);
-			}
-			return Encoding.ASCII.GetString(byteArray);
-		}
-
-		public unsafe static implicit operator NetworkName (string text)
-		{
-			NetworkName result = new NetworkName();
-			byte [] byteArray = Encoding.ASCII.GetBytes(text);
-			result.length = byteArray.Length < maxLength	?
-							byteArray.Length :
-							maxLength;
-	
-			fixed(byte * srcBytes = &byteArray[0])
-			{
-				Buffer.MemoryCopy(srcBytes, result.data, result.length, result.length);
-			}
-			return result;
-		}
-
-		public override string ToString()
-		{
-			return (string)this;	
-		}
-	}
-
 	[Serializable]
 	public class ServerCreateInfo
 	{
@@ -92,115 +39,6 @@ namespace Morko.Network
 		public int clientUpdatePackageSize;
 		public Type clientUpdatePackageType;
 		public Action<string> logFunction;
-	}
-
-	public static class BinaryConverter
-	{
-		public static byte [] ToBinary<T>(this T value) where T : struct
-		{
-			int size = Marshal.SizeOf(value);
-			var result = new byte [size];
-
-			unsafe
-			{
-				fixed(byte * resultPtr = result)
-				{
-					Marshal.StructureToPtr(value, (IntPtr)resultPtr, false);
-				}
-			}
-			return result;
-		}
-
-		public static byte[] ToBinary<T>(this T [] array) where T : struct
-		{
-			int itemCount = array.Length;
-			if (itemCount == 0)
-				return Array.Empty<byte>();
-
-			int itemSize = Marshal.SizeOf(array[0]);
-			int totalSize = itemSize * itemCount;
-
-			var result = new byte[totalSize];
-
-			unsafe
-			{
-				fixed (byte * resultPtr = result)
-				{
-					for (int itemId = 0; itemId < itemCount; itemId++)
-					{
-						IntPtr target = (IntPtr)(resultPtr + itemSize * itemId);
-						Marshal.StructureToPtr(	array[itemId], target, false);
-					}
-				}
-			}
-
-			return result;
-		}
-
-		public static T ToStructure<T> (this byte[] data, int offset = 0) where T : struct
-		{
-			int structureSize = Marshal.SizeOf(default(T));
-			if (data.Length < structureSize)
-			{
-				throw new ArgumentException($"Data amount is too little for {typeof(T)}. Required size is {structureSize}, actual size is {data.Length}");
-			}
-
-			T result;
-			unsafe
-			{
-				fixed(byte * source = data)
-				{
-					result = Marshal.PtrToStructure<T>((IntPtr)(source + offset));
-				}
-			}
-			return result;
-		}
-
-		public static T ToStructure<T>(this byte [] data, out byte [] leftovers) where T : struct
-		{
-			T result = data.ToStructure<T>();
-
-			int structureSize 	= Marshal.SizeOf(default(T));
-			int leftoverSize 	= data.Length - structureSize;
-			leftovers 			= new byte[leftoverSize];
-
-			Buffer.BlockCopy(data, structureSize, leftovers, 0, leftoverSize);
-
-			return result;
-		}
-
-		public static T[] ToArray<T> (this byte [] data, int count) where T : struct
-		{
-			if (count == 0)
-				return Array.Empty<T>();
-
-			var result = new T [count];
-
-			int itemSize = Marshal.SizeOf(result[0]);
-
-			int offset = 0;
-
-			for (int itemId = 0; itemId < count; itemId++)
-			{
-				result [itemId] = data.ToStructure<T>(offset);
-				offset += itemSize;
-			}
-
-			return result;
-		}
-
-		// public static T ToStructure<T>(this byte [] data, int startIndex, out int nextIndex) where T : struct
-		// {
-		// 	T result = data.ToStructure<T>();
-
-		// 	int structureSize 	= Marshal.SizeOf(default(T));
-		// 	int leftoverSize 	= data.Length - structureSize;
-		// 	leftovers 			= new byte[leftoverSize];
-
-		// 	Buffer.BlockCopy(data, structureSize, leftovers, 0, leftoverSize);
-
-		// 	return result;
-		// }
 	}
 
 	public class Server
@@ -218,7 +56,7 @@ namespace Morko.Network
 		private UdpClient broadcastClient;
 		private UdpClient responseClient;
 
-		private List<ClientControllerInfo> players;
+		private List<ClientInfo> players;
 		private int clientUpdatePackageSize;
 
 		public event Action OnPlayerAdded;
@@ -230,7 +68,6 @@ namespace Morko.Network
 
 		public static Server Create(ServerCreateInfo info)
 		{
-
 			var server = new Server
 			{
 				name 					= info.serverName,
@@ -239,7 +76,7 @@ namespace Morko.Network
 
 				broadcastClient 		= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
-				players 				= new List<ClientControllerInfo>(),
+				players 				= new List<ClientInfo>(),
 			};
 
 			server.Log($"Created '{server.name}'");
@@ -258,7 +95,7 @@ namespace Morko.Network
 				var arguments = new ServerIntroduceArgs
 				{
 					name = server.name,
-					mapId = 52
+					mapIndex = 52
 				};
 				var data = ProtocolFormat.MakeCommand(arguments);
 				while(true)
@@ -299,7 +136,7 @@ namespace Morko.Network
 								{
 									var arguments = contents.ToStructure<ClientRequestJoinArgs>();
 									int playerIndex = server.players.Count;
-									server.players.Add(new ClientControllerInfo 
+									server.players.Add(new ClientInfo 
 									{
 										endPoint 			= receiveEndPoint,
 										name 				= arguments.playerName,
@@ -407,16 +244,8 @@ namespace Morko.Network
 									new ServerStartGameArgs { playerCount = server.players.Count },
 									package);
 					
-					// Repeat.For(10, () => server.broadcastClient.Send(data, data.Length, endPoint));
 					server.broadcastClient.Send(data, data.Length, endPoint);
 				}
-
-				string printout = "Start updating players:\n";
-				foreach (var player in server.players)
-				{
-					printout += $"\t{player.endPoint}\n";
-				}
-				server.Log(printout);
 
 				while(true)
 				{
@@ -428,36 +257,6 @@ namespace Morko.Network
 
 						server.broadcastClient.Send(data, data.Length, endPoint);
 					}
-
-
-					// int playerCount = server.players.Count;
-					// var playerUpdatePackages = new byte [playerCount * clientUpdatePackageSize];
-
-					// for (int playerId = 0; playerId < server.players.Count; playerId++)
-					// {
-					// 	int offset = playerId * clientUpdatePackageSize;
-					// 	Buffer.BlockCopy(	server.players[playerId].lastReceivedPackage, 0,
-					// 						playerUpdatePackages, offset,
-					// 						clientUpdatePackageSize);
-					// }
-					// byte [] data = ProtocolFormat.MakeCommand(
-					// 					new ServerGameUpdateArgs )
-
-					// server.broadcastClient.Send()
-
-					// for(int playerId = 0; playerId < server.players.Count; playerId++)
-					// {
-					// 	foreach (var sender in server.players)
-					// 	{
-					// 		byte [] data = ProtocolFormat.MakeCommand(
-					// 							new ServerGameUpdateArgs {playerId = playerId},
-					// 							sender.lastReceivedPackage);
-					// 		server.broadcastClient.Send(data, data.Length, endPoint);
-					// 	}
-					// }
-
-
-
 
 					Thread.Sleep(server.gameUpdateThreadDelayMs);
 				}

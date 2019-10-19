@@ -10,17 +10,12 @@ public class JoinInfo
 	public int selectedServerIndex;
 }
 
-public class HostInfo
-{
-	public string serverName;
-}
-
 /* Note(Leo): For clarity, public interface and MonoBehaviour internals
 are separated. Users only must depend on this public side. */
 public partial class UIController
 {
 	public event Action<JoinInfo> OnRequestJoin;
-	public event Action<HostInfo> OnStartHosting;
+	public event Action<ServerInfo> OnStartHosting;
 	public event Action OnEnterJoinWindow;
 	public event Action OnExitJoinWindow;
 	public event Action OnStartGame;
@@ -43,7 +38,6 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private HostRoomContainer hostRoomContainer;
 
 	[SerializeField] private Button mainMenuJoinWindowButton;
-	// TODO(Leo): Not most optimal solution
 	[SerializeField] private Button joinViewCancelButton;
 
 	private void Start()
@@ -61,9 +55,12 @@ public partial class UIController : MonoBehaviour
 
 		hostRoomContainer.hostButton.onClick.AddListener(() =>
 		{
-			var info = new HostInfo
+			var info = new ServerInfo
 			{
-				serverName = hostRoomContainer.ServerName
+				name 				= hostRoomContainer.ServerName,
+				mapIndex 			= 0,
+				maxPlayers 			= 4,
+				gameDurationSeconds = 300, 	
 			};
 			OnStartHosting(info);
 		});
