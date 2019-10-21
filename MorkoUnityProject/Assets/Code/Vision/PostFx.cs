@@ -32,7 +32,7 @@ public class PostFx : MonoBehaviour
         //Graphics.Blit(maskColorFull, destination, visionEffectMaterial2);
     }
  
-    private void Awake()
+    private void Start()
     {
         Debug.Log("START POST FX");
 
