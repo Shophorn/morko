@@ -23,6 +23,18 @@ public partial class UIController
 	public event Action OnStartGame;
 	public event Action OnAbortGame; 
 
+	public void Show()
+	{
+		mainGameObject.SetActive(true);
+		cameraObject.SetActive(true);
+	}
+
+	public void Hide()
+	{
+		mainGameObject.SetActive(false);
+		cameraObject.SetActive(false);
+	}
+
 	public void SetServerList(ServerInfo [] infos)
 	{
 		/*
@@ -48,6 +60,9 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private Button mainMenuJoinWindowButton;
 	[SerializeField] private Button joinViewCancelButton;
+
+	[SerializeField] private GameObject mainGameObject;
+	[SerializeField] private GameObject cameraObject;
 
 	private void Start()
 	{

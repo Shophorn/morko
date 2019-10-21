@@ -26,12 +26,15 @@ public class PostFx : MonoBehaviour
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        Debug.Log("RENDER IMAGE");
+
         Graphics.Blit(source, destination, visionEffectMaterial);
         //Graphics.Blit(maskColorFull, destination, visionEffectMaterial2);
     }
  
-    private void Start()
+    private void Awake()
     {
+        Debug.Log("START POST FX");
 
         visionEffectMaterial.EnableKeyword("_OriginColor");
         visionEffectMaterial.EnableKeyword("_OriginDepth");

@@ -34,32 +34,34 @@ public class ClientControllerEditor : Editor
 		var serverNames = connection.servers.Select(server => server.serverInfo.name).ToArray();
 		connection.selectedServerIndex = EditorGUILayout.Popup("Servers", connection.selectedServerIndex, serverNames);
 
-
-
-
-		if (GUILayout.Button("Join Selected Server"))
+		if (GUILayout.Button("TEST ServerStartGame"))
 		{
-			(target as ClientController).JoinSelectedServer();
+			(target as ClientController).TESTCallOnServerStartGame();
 		}
 
-		if (GUILayout.Button("Start Listen"))
-		{
-			(target as ClientController).StartListen();
-		}
+		// if (GUILayout.Button("Join Selected Server"))
+		// {
+		// 	(target as ClientController).JoinSelectedServer();
+		// }
 
-		if (GUILayout.Button("Stop Listen"))
-		{
-			(target as ClientController).StopListen();
-		}
+		// if (GUILayout.Button("Start Listen"))
+		// {
+		// 	(target as ClientController).StartListenBroadcast();
+		// }
 
-		if (GUILayout.Button("Start Update"))
-		{
-			(target as ClientController).StartUpdate();
-		}
+		// if (GUILayout.Button("Stop Listen"))
+		// {
+		// 	(target as ClientController).StopListenBroadcast();
+		// }
 
-		if (GUILayout.Button("Stop Update"))
-		{
-			(target as ClientController).StopUpdate();
-		}
+		// if (GUILayout.Button("Start Update"))
+		// {
+		// 	(target as ClientController).StartUpdate();
+		// }
+
+		// if (GUILayout.Button("Stop Update"))
+		// {
+		// 	(target as ClientController).StopUpdate();
+		// }
 	}
 }

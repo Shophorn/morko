@@ -33,9 +33,15 @@ public class ServerConnectionInfo
 	public DateTime lastConnectionTime;  
 }
 
+public class PlayerInfo
+{
+
+}
+
 public class GameStartInfo
 {
-	public int netPlayerCount;
+	public int mapIndex;
+	public PlayerStartInfo [] netPlayers;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -83,16 +89,26 @@ public class ClientController : MonoBehaviour
 	private bool doNetworkUpdate = false;
 	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
 
-	public event Action<ServerInfo[]> OnServerListChanged;
 
-	public event Action OnServerStartGame;
+	// Event section
+	public event Action<ServerInfo[]> OnServerListChanged;
+	public event Action<GameStartInfo> OnServerStartGame;
+
 	public event Action OnServerAbortGame;
 	public event Action OnServerFinishGame;
+
+	public event Action OnJoinedServer;
+	public event Action OnQuitServer;
 
 	private ServerInfo [] GetServers()
 	{
 		var result = servers.Select(connection => connection.serverInfo).ToArray();
 		return result;	
+	}
+
+	public void TESTCallOnServerStartGame()
+	{
+		OnServerStartGame?.Invoke(new GameStartInfo());
 	}
 
 	// Note(Leo): Debug class only
@@ -112,13 +128,13 @@ public class ClientController : MonoBehaviour
 	// 	}
 	// }
 
-	private void Start()
-	{
-		if (AutoStart)
-		{
-			StartListen();
-		}
-	}
+	// private void Start()
+	// {
+	// 	if (AutoStart)
+	// 	{
+	// 		StartListenBroadcast();
+	// 	}
+	// }
 
 	public void CreateGameInstance(PlayerStartInfo [] playerStartInfos)
 	{
@@ -257,6 +273,7 @@ public class ClientController : MonoBehaviour
 							Debug.Log("Server declined request");
 						}
 
+						connection.OnJoinedServer?.Invoke();
 						connection.requestedServer = null;
 					} break;
 				}
@@ -356,13 +373,13 @@ public class ClientController : MonoBehaviour
 		}
 	}
 
-	public void StartListen()
+	public void StartListenBroadcast()
 	{
 		udpClient = new UdpClient(broadcastPort);
 		detectServersThread.Start(new ReceiveThread {connection = this});
 	}
 
-	public void StopListen()
+	public void StopListenBroadcast()
 	{
 		detectServersThread.Stop();
 		udpClient?.Close();

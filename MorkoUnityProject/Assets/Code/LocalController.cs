@@ -7,6 +7,14 @@ namespace Morko
 {
 	public class LocalController
 	{
+		/* Todo(Leo): controller only uses camera for one ray, so it should be
+		modified to only depend on more limited interface. */
+		public void TEMPORARYSetCamera(Camera camera)
+		{	
+			this.camera = camera;
+		}
+
+
 		private Character character;
 		private bool isMorko = false;
 		private AvatarPackage package;
