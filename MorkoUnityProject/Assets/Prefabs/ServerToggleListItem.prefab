@@ -232,7 +232,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!114 &114865294298606164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -267,6 +267,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 0
   label: {fileID: 3117969507358726841}
+  toggle: {fileID: 3160083575080690326}
   toggleGroup: {fileID: 0}
   joinWindow: {fileID: 0}
   infoDisplay: {fileID: 0}

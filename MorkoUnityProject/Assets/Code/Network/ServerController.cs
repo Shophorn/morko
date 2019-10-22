@@ -1,3 +1,4 @@
+using System.Net;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -39,12 +40,14 @@ public class ServerController : MonoBehaviour
 
 	public void StartGame()
 	{
+		Debug.Log("[SERVER] start game");
 		server.StartGame();
 		Status = StatusType.RunningGame;
 	}
 
 	public void AbortGame()
 	{
+		Debug.Log("[SERVER] abort game");
 		server.AbortGame();
 		Status = StatusType.Idle;
 	}
@@ -54,6 +57,11 @@ public class ServerController : MonoBehaviour
 		server?.StopBroadcasting();
 		server?.AbortGame();
 		server?.Close();
+	}
+
+	public void AddHostingPlayer(string name, IPEndPoint endPoint)
+	{
+		server.AddHostingPlayer(name, endPoint);
 	}
 
 }

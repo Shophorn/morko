@@ -94,7 +94,7 @@ namespace Morko.Network
 				var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, Constants.broadcastPort);
 				var arguments = new ServerIntroduceArgs
 				{
-					name = server.name,
+					serverName = server.name,
 					mapIndex = 52
 				};
 				var data = ProtocolFormat.MakeCommand(arguments);
@@ -136,6 +136,10 @@ namespace Morko.Network
 								{
 									var arguments = contents.ToStructure<ClientRequestJoinArgs>();
 									int playerIndex = server.players.Count;
+									if (arguments.isHostingPlayer)
+									{
+										server.Log("Hosting player joined");
+									}
 									server.players.Add(new ClientInfo 
 									{
 										endPoint 			= receiveEndPoint,
@@ -176,6 +180,17 @@ namespace Morko.Network
 			// TODO(Leo): Remove questionmarksP????
 			broadcastControl?.Stop();
 			broadcastReceiveControl?.Stop();
+		}
+
+		public void AddHostingPlayer(string name, IPEndPoint endPoint)
+		{
+			Log($"Added hosting player: {name} ({endPoint})");
+			players.Add(new ClientInfo
+			{
+				endPoint 			= endPoint,
+				name 				= name,
+				lastConnectionTime 	= DateTime.Now
+			});
 		}
 
 		public void StartGame()
@@ -245,6 +260,8 @@ namespace Morko.Network
 									package);
 					
 					server.broadcastClient.Send(data, data.Length, endPoint);
+
+					server.Log("[SERVER] Sent start info to players");
 				}
 
 				while(true)

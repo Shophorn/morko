@@ -13,8 +13,9 @@ public class GameManager : MonoBehaviour
 	public ServerController serverController;
 	public ClientController clientController;
 
-	private bool isRunningServer = false;
-	private bool isListeningBroadcasts = false;
+	private bool isRunningServer 		= false;
+	private bool isListeningBroadcasts 	= false;
+	private bool isConnectedToServer 	= false;
 
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
@@ -44,8 +45,8 @@ public class GameManager : MonoBehaviour
 		uiController.OnStartHosting += StartServer;
 		uiController.OnStopHosting += StopServer;
 
-		uiController.OnEnterJoinWindow += StartListenBroadcast;
-		uiController.OnExitJoinWindow += StopListenBroadcast;
+		uiController.OnEnterJoinView += StartListenBroadcast;
+		uiController.OnExitJoinView += StopListenBroadcast;
 
 		uiController.OnQuit += ApplicationQuit;
 	}
@@ -63,7 +64,7 @@ public class GameManager : MonoBehaviour
 		serverController = gameObject.AddComponent<ServerController>();
 		var createInfo = new ServerCreateInfo
 		{
-			serverName = info.name,
+			serverName = info.serverName,
 			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
 			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
 			logFunction = Debug.Log
@@ -71,8 +72,20 @@ public class GameManager : MonoBehaviour
 		serverController.CreateServer(createInfo);
 		serverController.StartBroadcast();
 
-		uiController.OnStartGame += serverController.StartGame;
-		uiController.OnAbortGame += serverController.AbortGame;
+		 // Todo(Leo): Join itself to server
+		clientController.CreateHostingPlayerConnection();
+		serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
+
+		uiController.OnHostStartGame += HostStartGame;
+		uiController.OnHostAbortGame += serverController.AbortGame;
+
+		clientController.OnServerStartGame += SyncStartGame;
+	}
+
+	private void HostStartGame()
+	{
+		clientController.StartUpdateAsHostingPlayer();
+		serverController.StartGame();
 	}
 
 	private void StopServer()
@@ -83,16 +96,22 @@ public class GameManager : MonoBehaviour
 			return;
 		}
 
+		uiController.OnHostStartGame += serverController.StartGame;
+		uiController.OnHostAbortGame += serverController.AbortGame;
+
 		isRunningServer = false;
 		serverController.CloseServer();
 		Destroy(serverController);
 		serverController = null;
+
 	}
+
+	private void SyncStartGame(GameStartInfo startInfo)
+		=> MainThreadWorker.AddJob(() => StartGame(startInfo));
 
 	private void StartGame(GameStartInfo startInfo)
 	{
 		Debug.Log("Client says server starts the game :)");
-
 
 		uiController.Hide();
 		SceneManager.LoadScene("Map01", LoadSceneMode.Additive);
@@ -119,7 +138,7 @@ public class GameManager : MonoBehaviour
 		// Load characters
 		// Load map
 
-		// Todo(Leo): Definetly not like this
+		// Todo(Leo): Most definetly not like this
 		StartCoroutine(UpdateLocalCharacter(localController));
 	}
 

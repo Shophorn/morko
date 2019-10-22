@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,22 +17,65 @@ public class JoinInfo
 
 public partial class UIController : MonoBehaviour
 {
-	[Header("Main View Elements")]
-	[SerializeField] private Button mainMenuHostWindowButton;
-	[SerializeField] private Button mainMenuJoinWindowButton;
-	[SerializeField] private Button mainMenuCreditsButton;
-	[SerializeField] private Button mainMenuOptionsButton;
-	[SerializeField] private Button mainMenuQuitButton;
+	[Serializable] 
+	private struct MainView
+	{
+		public Button hostViewButton;
+		public Button joinViewButton;
+		public Button creditsButton;
+		public Button optionsButton;
+		public Button quitButton;
+	}
+	[SerializeField] private MainView mainView;
 
-	[Header("Host View Elements")]
-	[SerializeField] private Button hostWindowCancelButton;
-	[SerializeField] private Button hostWindowCreateRoomButton;
-	[SerializeField] private Text hostViewPlayerNameField;
-	[SerializeField] private Text hostViewServerNameField;
-	[SerializeField] private DiscreteInputField hostViewPlayerCountField;
-	[SerializeField] private DiscreteInputField hostViewGameDurationField;
+	[Serializable]
+	private struct HostView
+	{
+		public const string defaultServerName = "Default Server";
+		public const string defaultPlayerName = "Hosting Player";
+
+		public Button cancelButton;
+		public Button createRoomButton;
+		public InputField playerNameField;
+		public InputField serverNameField;
+		public DiscreteInputField playerCountField;
+		public DiscreteInputField gameDurationField;
+	}
+	[SerializeField] private HostView hostView;
+
+	[Serializable]
+	private struct HostLobbyView
+	{
+		public InputField playerNameField;
+		public Button startGameButton;
+		public Button cancelButton;
+	}
+	[SerializeField] private HostLobbyView hostLobbyView;
+
+	[Serializable]
+	private struct JoinView
+	{
+		public ToggleGroup 			availableServersToggleGroup;
+		public Transform 			availableServersToggleParent;
+		public ServerToggleListItem availableServersTogglePrefab;
+		public int 					selectedServerIndex;
+
+		public Text hostingPlayerNameText;
+		public Text mapNameText;
+		public Text joinedPlayersCountText;
+		public Text gameDurationText;
+
+		public InputField playerNameField;
+
+		public Button requestJoinButton;
+		public Button cancelButton;
+
+	}
+	[SerializeField] private JoinView joinView;
 
 	[Header("Uncategorized")]
+	[SerializeField] private GameObject mainGameObject;
+
 	[SerializeField] private GameObject mainMenuWindow;
 	[SerializeField] private GameObject joinServerWindow;
 	[SerializeField] private GameObject serverCreationWindow;
@@ -50,13 +94,6 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private Text playerAmount;
 	[SerializeField] private Text roundLength;
 
-
-	[SerializeField] private Button joinViewCancelButton;
-	[SerializeField] private Button hostLobbyWindowCancelButton;
-
-
-	[SerializeField] private Button joinWindowRequestJoinButton;
-	[SerializeField] private Button joinWindowCancelButton;
 	[SerializeField] private Button playerLobbyWindowCancelButton;
 
 	[SerializeField] private Button optionsWindowCancelButton;
@@ -70,7 +107,6 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private ScrollContent characterScrollContentPlayer;
 
 	[SerializeField] private Text playerName;
-	[SerializeField] private int selectedServerId;
 
 	private void BackToMainMenu()
 	{
@@ -143,81 +179,77 @@ public partial class UIController : MonoBehaviour
 		mainMenuWindow.SetActive(true);
 	}
 
-	private string PlayerName => playerName.text;
-	private int SelectedServerID => selectedServerId;
-
 	private void Start()
 	{
 		mainMenuWindow.SetActive(true);
 
-		joinWindowRequestJoinButton.onClick.AddListener (() => 
-		{
-			var info = new JoinInfo
-			{
-				playerName = PlayerName,
-				selectedServerIndex = SelectedServerID
-			};
-			//OnRequestJoin?.Invoke(info);
-			//OnExitJoinWindow?.Invoke();
-		});
+		/// MAIN VIEW
+		mainView.hostViewButton.onClick.AddListener(() => MoveToServerCreationWindow());
+		mainView.joinViewButton.onClick.AddListener(
+			() => {
+				MoveToServerJoiningWindow();
+				OnEnterJoinView?.Invoke();
+			});
+		mainView.optionsButton.onClick.AddListener(() => MoveToOptionsWindow());
+		mainView.creditsButton.onClick.AddListener(() => MoveToCreditsWindow());
+		mainView.quitButton.onClick.AddListener(() => OnQuit?.Invoke());
 
-		hostWindowCreateRoomButton.onClick.AddListener(() =>
+
+		/// HOST VIEW
+		hostView.createRoomButton.onClick.AddListener(() =>
 		{
 			var info = new ServerInfo
 			{
-				name 				= hostViewServerNameField.text,
+				serverName			= hostView.serverNameField.text,
 				mapIndex 			= 0,
-				maxPlayers 			= hostViewPlayerCountField.IntValue,
-				gameDurationSeconds = hostViewGameDurationField.IntValue, 	
+				maxPlayers 			= hostView.playerCountField.IntValue,
+				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
-			CallEvent(OnStartHosting, info, nameof(OnStartHosting));
-
-			//OnStartHosting(info);
+			OnStartHosting?.Invoke(info);
 			MoveToHostLobbyWindow();
 		});
+		hostView.cancelButton.onClick.AddListener(BackToMainMenu);
+		hostView.playerNameField.text = HostView.defaultPlayerName;
+		hostView.serverNameField.text = HostView.defaultServerName;
 
-		hostLobbyWindowCancelButton.onClick.AddListener(() =>
+
+		/// HOST LOBBY VIEW
+		hostLobbyView.startGameButton.onClick.AddListener(() =>
 		{
-			//OnStopHosting();
+			OnHostStartGame?.Invoke();
+		});
+
+		hostLobbyView.cancelButton.onClick.AddListener(() =>
+		{
+			OnHostAbortGame?.Invoke();
 			BackToMainMenu();
 		});
 
-		mainMenuJoinWindowButton.onClick.AddListener(() => 
+		/// JOIN VIEW
+		joinView.requestJoinButton.onClick.AddListener (() => 
 		{
-			MoveToServerJoiningWindow();
-			//OnEnterJoinWindow?.Invoke();
+			var info = new JoinInfo
+			{
+				playerName = joinView.playerNameField.text,
+				selectedServerIndex = joinView.selectedServerIndex
+			};
+			OnRequestJoin?.Invoke(info);
 		});
 
-		joinViewCancelButton.onClick.AddListener(() =>
+		joinView.cancelButton.onClick.AddListener(() =>
 		{
 			BackToMainMenu();
-			//OnExitJoinWindow?.Invoke();
+			OnExitJoinView?.Invoke();
 		});
 
-		mainMenuHostWindowButton.onClick.AddListener(() =>
-		{
-			MoveToServerCreationWindow();
-		});
 
-		hostWindowCancelButton.onClick.AddListener(() =>
-		{
-			BackToMainMenu();
-		});
+
 
 		playerLobbyWindowCancelButton.onClick.AddListener(() =>
 		{
 			BackToMainMenu();
 		});
 
-		mainMenuOptionsButton.onClick.AddListener(() =>
-		{
-			MoveToOptionsWindow();
-		});
-
-		mainMenuCreditsButton.onClick.AddListener(() =>
-		{
-			MoveToCreditsWindow();
-		});
 
 		optionsWindowCancelButton.onClick.AddListener(() =>
 		{
@@ -229,30 +261,5 @@ public partial class UIController : MonoBehaviour
 			BackToMainMenu();
 		});
 
-		mainMenuQuitButton.onClick.AddListener(() => CallEvent(OnQuit, nameof(OnQuit)));
-	}
-
-	private void CallEvent(Action action, string name)
-	{
-		if (action == null)
-		{
-			Debug.LogError($"Trying to call event '{name}', but it is null.");
-		}
-		else
-		{
-			action.Invoke();
-		}
-	}
-
-	private void CallEvent<T>(Action<T> action, T argument, string name)
-	{
-		if (action == null)
-		{
-			Debug.LogError($"Trying to call event '{name}', but it is null.");
-		}
-		else
-		{
-			action.Invoke(argument);
-		}	
 	}
 }
