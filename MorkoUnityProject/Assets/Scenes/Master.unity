@@ -615,7 +615,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &421722679
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1305,6 +1305,11 @@ MonoBehaviour:
     availableServersTogglePrefab: {fileID: 114836259103543732, guid: 91fb2e58c72948249a3df2f696e75e33,
       type: 3}
     selectedServerIndex: -1
+    hostingPlayerNameText: {fileID: 337083724088884057}
+    mapNameText: {fileID: 1757921142990623306}
+    joinedPlayersCountText: {fileID: 964006030635608671}
+    gameDurationText: {fileID: 7725679618990368367}
+    playerNameField: {fileID: 4394025697392063654}
     requestJoinButton: {fileID: 7719506723003602161}
     cancelButton: {fileID: 1450761817555302041}
   mainGameObject: {fileID: 7661154683663489970}
@@ -1333,7 +1338,6 @@ MonoBehaviour:
   characterScrollContentHost: {fileID: 7331647166258484149}
   characterScrollContentPlayer: {fileID: 5794803171085065256}
   playerName: {fileID: 5244491222053330152}
-  selectedServerId: 0
 --- !u!114 &942324878
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3393,7 +3397,7 @@ GameObject:
   - component: {fileID: 4313395537465349956}
   - component: {fileID: 1757921142990623306}
   m_Layer: 5
-  m_Name: Level Name
+  m_Name: MapNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7106,7 +7110,7 @@ GameObject:
   - component: {fileID: 63184671412444419}
   - component: {fileID: 7725679618990368367}
   m_Layer: 5
-  m_Name: Round length
+  m_Name: GameDurationText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7177,7 +7181,7 @@ GameObject:
   - component: {fileID: 1000368350875849187}
   - component: {fileID: 337083724088884057}
   m_Layer: 5
-  m_Name: Host Name
+  m_Name: HostingPlayerNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9596,7 +9600,7 @@ GameObject:
   - component: {fileID: 7185699792629077695}
   - component: {fileID: 964006030635608671}
   m_Layer: 5
-  m_Name: Players joined
+  m_Name: JoinedPlayersCountText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
