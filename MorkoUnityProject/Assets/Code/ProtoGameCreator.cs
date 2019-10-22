@@ -38,6 +38,7 @@ public class ProtoGameCreator : MonoBehaviour
     {
         var character = Instantiate(characterPrefab, new Vector3(0, 0, 0), Quaternion.identity);
         localController = LocalController.Create(character, normalSettings, morkoSettings);
+        character.lc = localController;
     }
 
     private void Update()
