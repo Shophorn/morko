@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
@@ -15,8 +16,22 @@ public class JoinInfo
 
 public partial class UIController : MonoBehaviour
 {
-	UIController_public uIController_public;
+	[Header("Main View Elements")]
+	[SerializeField] private Button mainMenuHostWindowButton;
+	[SerializeField] private Button mainMenuJoinWindowButton;
+	[SerializeField] private Button mainMenuCreditsButton;
+	[SerializeField] private Button mainMenuOptionsButton;
+	[SerializeField] private Button mainMenuQuitButton;
 
+	[Header("Host View Elements")]
+	[SerializeField] private Button hostWindowCancelButton;
+	[SerializeField] private Button hostWindowCreateRoomButton;
+	[SerializeField] private Text hostViewPlayerNameField;
+	[SerializeField] private Text hostViewServerNameField;
+	[SerializeField] private DiscreteInputField hostViewPlayerCountField;
+	[SerializeField] private DiscreteInputField hostViewGameDurationField;
+
+	[Header("Uncategorized")]
 	[SerializeField] private GameObject mainMenuWindow;
 	[SerializeField] private GameObject joinServerWindow;
 	[SerializeField] private GameObject serverCreationWindow;
@@ -26,32 +41,24 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private GameObject creditsWindow;
 	[SerializeField] private GameObject loadingWindow;
 
-	[SerializeField] private Text serverName;
 
 	[SerializeField] private ServerToggleListItem toggle;
 	[SerializeField] private ToggleGroup toggleGroup;
 	[SerializeField] private GameObject toggleContainer;
 	[SerializeField] private RoomInfoPanel roomInfo;
-	[SerializeField] private Text hostName;
 	[SerializeField] private Text levelName;
 	[SerializeField] private Text playerAmount;
 	[SerializeField] private Text roundLength;
 
-	[SerializeField] private Button mainMenuHostWindowButton;
-	[SerializeField] private Button hostWindowCancelButton;
 
-	[SerializeField] private Button mainMenuJoinWindowButton;
 	[SerializeField] private Button joinViewCancelButton;
-
-	[SerializeField] private Button hostWindowCreateRoomButton;
 	[SerializeField] private Button hostLobbyWindowCancelButton;
+
 
 	[SerializeField] private Button joinWindowRequestJoinButton;
 	[SerializeField] private Button joinWindowCancelButton;
 	[SerializeField] private Button playerLobbyWindowCancelButton;
 
-	[SerializeField] private Button mainMenuOptionsButton;
-	[SerializeField] private Button mainMenuCreditsButton;
 	[SerializeField] private Button optionsWindowCancelButton;
 	[SerializeField] private Button creditsWindowCancelButton;
 
@@ -136,12 +143,13 @@ public partial class UIController : MonoBehaviour
 		mainMenuWindow.SetActive(true);
 	}
 
-	public string PlayerName => playerName.text;
-	public int SelectedServerID => selectedServerId;
-	public string ServerName => serverName.text;
+	private string PlayerName => playerName.text;
+	private int SelectedServerID => selectedServerId;
 
 	private void Start()
 	{
+		mainMenuWindow.SetActive(true);
+
 		joinWindowRequestJoinButton.onClick.AddListener (() => 
 		{
 			var info = new JoinInfo
@@ -157,18 +165,19 @@ public partial class UIController : MonoBehaviour
 		{
 			var info = new ServerInfo
 			{
-				name 				= ServerName,
+				name 				= hostViewServerNameField.text,
 				mapIndex 			= 0,
-				maxPlayers 			= 4,
-				gameDurationSeconds = 300, 	
+				maxPlayers 			= hostViewPlayerCountField.IntValue,
+				gameDurationSeconds = hostViewGameDurationField.IntValue, 	
 			};
+			CallEvent(OnStartHosting, info, nameof(OnStartHosting));
+
 			//OnStartHosting(info);
 			MoveToHostLobbyWindow();
 		});
 
 		hostLobbyWindowCancelButton.onClick.AddListener(() =>
 		{
-			Debug.Log("Stopped hosting");
 			//OnStopHosting();
 			BackToMainMenu();
 		});
@@ -219,5 +228,31 @@ public partial class UIController : MonoBehaviour
 		{
 			BackToMainMenu();
 		});
+
+		mainMenuQuitButton.onClick.AddListener(() => CallEvent(OnQuit, nameof(OnQuit)));
+	}
+
+	private void CallEvent(Action action, string name)
+	{
+		if (action == null)
+		{
+			Debug.LogError($"Trying to call event '{name}', but it is null.");
+		}
+		else
+		{
+			action.Invoke();
+		}
+	}
+
+	private void CallEvent<T>(Action<T> action, T argument, string name)
+	{
+		if (action == null)
+		{
+			Debug.LogError($"Trying to call event '{name}', but it is null.");
+		}
+		else
+		{
+			action.Invoke(argument);
+		}	
 	}
 }

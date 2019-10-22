@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 using Morko;
 using Morko.Network;
 
 /* Note(Leo): For clarity, public interface and MonoBehaviour internals
 are separated. Users only must depend on this public side. */
-public partial class UIController_public
+public partial class UIController
 {
 	public event Action<JoinInfo> OnRequestJoin;
 	public event Action<ServerInfo> OnStartHosting;
@@ -25,6 +26,18 @@ public partial class UIController_public
 	public event Action OnExitJoinWindow;
 	public event Action OnStartGame;
 	public event Action OnAbortGame;
+
+	public event Action OnQuit;
+
+	public void Show()
+	{
+
+	}
+
+	public void Hide()
+	{
+		 
+	}
 
 	public void SetServerList(ServerInfo [] infos)
 	{

@@ -46,6 +46,8 @@ public class GameManager : MonoBehaviour
 
 		uiController.OnEnterJoinWindow += StartListenBroadcast;
 		uiController.OnExitJoinWindow += StopListenBroadcast;
+
+		uiController.OnQuit += ApplicationQuit;
 	}
 
 	private void StartServer(ServerInfo info)
@@ -158,5 +160,14 @@ public class GameManager : MonoBehaviour
 		clientController.StopListenBroadcast();
 		clientController.OnServerListChanged 	-= uiController.SetServerList;
 		clientController.OnServerStartGame 		-= StartGame;
+	}
+
+	private void ApplicationQuit()
+	{
+		#if UNITY_EDITOR
+			UnityEditor.EditorApplication.isPlaying = false;
+		#else
+			Application.Quit();
+		#endif
 	}
 }
