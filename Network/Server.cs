@@ -16,14 +16,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 
 using Morko.Network;
+using Morko.Threading;
 
-// using static System.Console;
-// using static Morko.Logging.Logger;
-
-internal class PlayerInfo
+internal class ClientInfo
 {
 	public string name;
 	public IPEndPoint endPoint;
@@ -31,73 +30,34 @@ internal class PlayerInfo
 	public byte [] lastReceivedPackage;
 }
 
-internal interface IControlledThread
-{
-	void Run();
-	void CleanUp();
-}
-
-internal class ThreadControl
-{
-	private Thread thread;
-	private ThreadControl(){}
-
-	// Todo(Leo): Make some assertions that we do not start this more than once
-
-	public static ThreadControl Start(IControlledThread threadRunner)
-	{
-		/* Note(Leo): We start thread with an infinite loop and/or
-		blocking io/network/other function calls. Calling Thread.Abort
-		causes ThreadAbortException to be thrown from thread and by
-		catching it we are able to exit gracefully. */
-		var control = new ThreadControl();
-		control.thread = new Thread (() => 
-		{
-			try { threadRunner.Run(); }
-			catch (ThreadAbortException) { threadRunner.CleanUp(); }	
-		});
-		// Todo(Leo): Check if this is something we want
-		// control.thread.IsBackground = true;
-		control.thread.Start();
-		return control;
-	}
-
-	public void Stop()
-	{
-		thread.Abort();
-	}
-}
-
 namespace Morko.Network
 {
 	[Serializable]
-	public class ServerStartInfo
+	public class ServerCreateInfo
 	{
-		public string serverName;
+		public string serverName = "Default Server";
+		public int clientUpdatePackageSize;
+		public Type clientUpdatePackageType;
 		public Action<string> logFunction;
 	}
 
-	[Serializable]
 	public class Server
 	{
-		static byte [] Encode(string text) => System.Text.Encoding.ASCII.GetBytes(text);
-		static string Decode(byte [] data) => System.Text.Encoding.ASCII.GetString(data);
+		private string name;
 
-		public string 	Name 			{ get; private set; }
+		private int broadcastDelayMs = 100;
+		private int gameUpdateThreadDelayMs = 20;
 
-		private int broadcastDelayMs = 500;
-		private int gameUpdateThreadDelayMs = 500;
-
-		private ThreadControl broadcastControl;
-		private ThreadControl broadcastReceiveControl;
-
-		private ThreadControl gameUpdateThreadControl;
-		private ThreadControl gameUpdateReceiveThreadControl;
+		private readonly ThreadControl broadcastControl = new ThreadControl ();
+		private readonly ThreadControl broadcastReceiveControl = new ThreadControl ();
+		private readonly ThreadControl gameUpdateThreadControl = new ThreadControl ();
+		private readonly ThreadControl gameUpdateReceiveThreadControl = new ThreadControl ();
 
 		private UdpClient broadcastClient;
 		private UdpClient responseClient;
 
-		private List<PlayerInfo> players;
+		private List<ClientInfo> players;
+		private int clientUpdatePackageSize;
 
 		public event Action OnPlayerAdded;
 
@@ -106,32 +66,40 @@ namespace Morko.Network
 		// Note(Leo): this disables the use of constructor outside class
 		private Server() {}
 
-		public static Server Create(ServerStartInfo info)
+		public static Server Create(ServerCreateInfo info)
 		{
 			var server = new Server
 			{
-				Name 			= info.serverName,
-				broadcastClient = new UdpClient(0),
-				responseClient 	= new UdpClient(Constants.serverReceivePort),
-				players 		= new List<PlayerInfo>(),
-				Log 			= info.logFunction ??  Morko.Logging.Logger.Log
+				name 					= info.serverName,
+				clientUpdatePackageSize = info.clientUpdatePackageSize,
+				Log 					= info.logFunction ??  Morko.Logging.Logger.Log,
+
+				broadcastClient 		= new UdpClient(0),
+				responseClient 			= new UdpClient(Constants.serverReceivePort),
+				players 				= new List<ClientInfo>(),
 			};
 
-			server.Log($"Created '{server.Name}");
+			server.Log($"Created '{server.name}'");
+
 			return server;
 		}
 
-		private class BroadcastThread : IControlledThread
+		private class BroadcastThread : IThreadRunner
 		{
 			public Server server;
 
 			public void Run()
 			{
-				server.Log($"[{server.Name}]: Start broadcasting");
+				server.Log($"[{server.name}]: Start broadcasting");
 				var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, Constants.broadcastPort);
+				var arguments = new ServerIntroduceArgs
+				{
+					name = server.name,
+					mapIndex = 52
+				};
+				var data = ProtocolFormat.MakeCommand(arguments);
 				while(true)
 				{
-					var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerIntroduce, server.Name);
 					server.broadcastClient.Send(data, data.Length, broadcastEndPoint);
 					Thread.Sleep(server.broadcastDelayMs);
 				}
@@ -139,11 +107,11 @@ namespace Morko.Network
 
 			public void CleanUp()
 			{
-				server.Log($"[{server.Name}]: Stop broadcasting");
+				server.Log($"[{server.name}]: Stop broadcasting");
 			}
 		}
 
-		private class BroadcastReceiveThread : IControlledThread
+		private class BroadcastReceiveThread : IThreadRunner
 		{
 			public Server server;
 
@@ -154,11 +122,11 @@ namespace Morko.Network
 				{
 					var data = server.responseClient.Receive(ref receiveEndPoint);
 
-					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out string arguments))
+					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] contents))
 					{
 						switch (command)
 						{
-							case NetworkCommand.PlayerJoin:
+							case NetworkCommand.ClientRequestJoin:
 								var existingPlayer = server.players.Find(player => IPEndPoint.Equals(player.endPoint, receiveEndPoint));
 								if (existingPlayer != null)
 								{
@@ -166,19 +134,26 @@ namespace Morko.Network
 								}
 								else
 								{
-									var playerName = arguments;
+									var arguments = contents.ToStructure<ClientRequestJoinArgs>();
 									int playerIndex = server.players.Count;
-									server.players.Add(new PlayerInfo 
+									server.players.Add(new ClientInfo 
 									{
 										endPoint 			= receiveEndPoint,
-										name 				= playerName,
+										name 				= arguments.playerName,
 										lastConnectionTime 	= DateTime.Now
 									});
-									server.Log($"Added player {playerName}");
+									server.Log($"Added player {arguments.playerName} ({receiveEndPoint})");
 									server.OnPlayerAdded?.Invoke();
 
-									var response = ProtocolFormat.MakeCommand(NetworkCommand.ServerConfirmJoin, BitConverter.GetBytes(playerIndex));
-									server.responseClient.Send(response, response.Length, server.players[playerIndex].endPoint);
+									var response = ProtocolFormat.MakeCommand(
+														new ServerConfirmJoinArgs
+														{
+															playerId = playerIndex,
+															accepted = true
+														});
+
+									server.responseClient.Send(	response, response.Length,
+																server.players[playerIndex].endPoint);
 								}
 
 								break;
@@ -187,45 +162,41 @@ namespace Morko.Network
 				}
 			}
 
-			public void CleanUp()
-			{
-
-			}
+			public void CleanUp() {}
 		}
 
 		public void StartBroadcasting()
 		{
-			broadcastControl = ThreadControl.Start(
-				new BroadcastThread { server = this });
-
-			broadcastReceiveControl = ThreadControl.Start(
-				new BroadcastReceiveThread { server = this });
+			broadcastControl.Start(new BroadcastThread { server = this });
+			broadcastReceiveControl.Start(new BroadcastReceiveThread { server = this });
 		}
 
 		public void StopBroadcasting()
 		{
-			broadcastControl.Stop();
-			broadcastReceiveControl.Stop();
+			// TODO(Leo): Remove questionmarksP????
+			broadcastControl?.Stop();
+			broadcastReceiveControl?.Stop();
 		}
 
 		public void StartGame()
 		{	
-			Log($"[{Name}]: Start Game");
-			gameUpdateThreadControl = ThreadControl.Start(
-				new GameUpdateThread { server = this});
+			InitializePlayers();
 
-			Log($"[{Name}]: Start receiving player updates");
-			gameUpdateReceiveThreadControl = ThreadControl.Start(
-				new ReceiveUpdateFromPlayersThread{server =this});
+			Log($"[{name}]: Start Game");
+			gameUpdateThreadControl.Start(new GameUpdateThread { server = this });
+
+			Log($"[{name}]: Start receiving player updates");
+			gameUpdateReceiveThreadControl.Start(new ReceiveUpdateFromPlayersThread { server = this });
 		}
 
-		public void StopGame()
+		public void AbortGame()
 		{
-			Log($"[{Name}]: Stop Game");
-			gameUpdateThreadControl.Stop();
+			// TODO(Leo): Remove questionmarksP????
+			Log($"[{name}]: Stop Game");
+			gameUpdateThreadControl?.Stop();
 
-			Log($"[{Name}]: Stop receiving player updates");
-			gameUpdateReceiveThreadControl.Stop();
+			Log($"[{name}]: Stop receiving player updates");
+			gameUpdateReceiveThreadControl?.Stop();
 		}
 
 		public int PlayerCount => players.Count;
@@ -237,7 +208,15 @@ namespace Morko.Network
 			responseClient?.Close();
 		}
 
-		private class GameUpdateThread : IControlledThread
+		private void InitializePlayers()
+		{
+			foreach (var player in players)
+			{
+				player.lastReceivedPackage = new byte[clientUpdatePackageSize];
+			}
+		}
+
+		private class GameUpdateThread : IThreadRunner
 		{
 			public Server server;
 
@@ -245,17 +224,39 @@ namespace Morko.Network
 			{
 				IPEndPoint endPoint = new IPEndPoint(Constants.multicastAddress, Constants.multicastPort);
 				server.broadcastClient.JoinMulticastGroup(Constants.multicastAddress);
-				while(true)
+
+				int playerCount = server.players.Count;
+				// Send gameStartInfo
 				{
-					// var data = ProtocolFormat.MakeCommand(NetworkCommand.ServerGameUpdate, "Game Update");
-					float [] testContents = { 6.3f, 1.2f, 5.6f, 6.2f, 4.5f, 7.9f };
-					var testContentData = new byte[testContents.Length * sizeof(float)];
-					Buffer.BlockCopy(testContents, 0, testContentData, 0, testContentData.Length);
+					var playerStartInfos = new PlayerStartInfo [playerCount];
+					for(int playerId = 0; playerId < playerCount; playerId++)
+					{
+						playerStartInfos[playerId] = new PlayerStartInfo
+						{
+							name = server.players[playerId].name,
+							playerId = playerId,
+							avatarId = 0
+						};
+					}
+					var package = playerStartInfos.ToBinary();
 
 					var data = ProtocolFormat.MakeCommand(
-									NetworkCommand.ServerGameUpdate, 
-									testContentData);
+									new ServerStartGameArgs { playerCount = server.players.Count },
+									package);
+					
 					server.broadcastClient.Send(data, data.Length, endPoint);
+				}
+
+				while(true)
+				{
+					for (int playerId = 0; playerId < playerCount; playerId++)
+					{
+						var data = ProtocolFormat.MakeCommand(
+										new ServerGameUpdateArgs {playerId = playerId},
+										server.players[playerId].lastReceivedPackage);
+
+						server.broadcastClient.Send(data, data.Length, endPoint);
+					}
 
 					Thread.Sleep(server.gameUpdateThreadDelayMs);
 				}
@@ -267,37 +268,36 @@ namespace Morko.Network
 			}
 		}
 
-		private class ReceiveUpdateFromPlayersThread : IControlledThread
+		private class ReceiveUpdateFromPlayersThread : IThreadRunner
 		{
 			public Server server;
 
 			public void Run()
 			{
-				server.Log($"[{server.Name}]: Run '{nameof(ReceiveUpdateFromPlayersThread)}'");
+				server.Log($"[{server.name}]: Run '{nameof(ReceiveUpdateFromPlayersThread)}'");
 				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
 				while(true)
 				{
 					byte [] data = server.responseClient.Receive(ref receiveEndPoint);
-					int count = BitConverter.ToInt32(data, 0);
-					if (count > 0)
-					{
-						float x = BitConverter.ToSingle(data, 4);
-						float y = BitConverter.ToSingle(data, 8);
-						float z = BitConverter.ToSingle(data, 12);
 
-						server.Log($"Received {count} vectors, first = ({x},{y},{z})");
-					}
-					else
+					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] contents))
 					{
-						server.Log($"Received {count} vectors");
-					}
+						switch (command)
+						{
+						case NetworkCommand.ClientGameUpdate:
+							var arguments = contents.ToStructure<ClientGameUpdateArgs>(out byte [] package);
+							server.Log($"Received update from '{server.players[arguments.playerId].name}'");
+							server.players[arguments.playerId].lastReceivedPackage = package;
 
+							break;
+						}
+					}
 				}
 			}
 
 			public void CleanUp()
 			{
-				server.Log($"[{server.Name}]: Stop '{nameof(ReceiveUpdateFromPlayersThread)}'");
+				server.Log($"[{server.name}]: Stop '{nameof(ReceiveUpdateFromPlayersThread)}'");
 			}
 		}
 	}
