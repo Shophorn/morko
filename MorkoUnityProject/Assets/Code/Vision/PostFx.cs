@@ -24,8 +24,6 @@ public class PostFx : MonoBehaviour
     RenderTexture originColor;
     RenderTexture originDepth;
 
-    public bool restart = false;
-
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         Debug.Log("RENDER IMAGE");
@@ -34,17 +32,16 @@ public class PostFx : MonoBehaviour
         //Graphics.Blit(maskColorFull, destination, visionEffectMaterial2);
     }
 
-    private void Update()
+
+    private void Start()
     {
-        if(restart)
-        {
-            Start2();
-            restart = false;
-        }
+        StartCoroutine(Initialize());
     }
 
-    private void Start2()
+    IEnumerator Initialize()
     {
+        yield return new WaitForEndOfFrame();
+
         Debug.Log("START POST FX");
 
         visionEffectMaterial.EnableKeyword("_OriginColor");
