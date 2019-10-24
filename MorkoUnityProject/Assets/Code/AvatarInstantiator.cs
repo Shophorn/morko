@@ -10,7 +10,10 @@ public static class AvatarInstantiator
         var results = new GameObject[count];
 
         for (int avatarIndex = 0; avatarIndex < count; avatarIndex++)
-            results[avatarIndex] = MonoBehaviour.Instantiate(prefabs[avatarIndex]);
+        {
+        	int modelIndex = avatarModelIds[avatarIndex];
+            results[avatarIndex] = MonoBehaviour.Instantiate(prefabs[modelIndex]);
+        }
         
         return results;
     }

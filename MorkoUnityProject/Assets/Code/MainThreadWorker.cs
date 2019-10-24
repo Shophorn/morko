@@ -19,8 +19,7 @@ public class MainThreadWorker : MonoBehaviour
 
 	private void Awake()
 	{
-		if (instance == null)
-			instance = this;
+		this.MakeMonoBehaviourSingleton();
 	}
 
 	private void Update()
@@ -33,6 +32,12 @@ public class MainThreadWorker : MonoBehaviour
 
 	public static void AddJob(Action action)
 	{
+		if (instance == null)
+		{
+			Debug.LogError("MainThreadWorker must be present and active in scene");
+			return;
+		}
+		
 		instance.jobs.Enqueue(action);
 	}
 }

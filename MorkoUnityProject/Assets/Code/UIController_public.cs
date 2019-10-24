@@ -8,11 +8,17 @@ using UnityEngine.UI;
 using Morko;
 using Morko.Network;
 
+public interface IClientControls
+{
+// 	void BeginJoin();
+// 	void EndJoin();
+// 	void RequestJoin(JoinInfo joinInfo);
+}
+
 /* Note(Leo): For clarity, public interface and MonoBehaviour internals
 are separated. Users only must depend on this public side. */
 public partial class UIController
 {
-	public event Action<JoinInfo> OnRequestJoin;
 	public event Action OnEnterJoinView;
 	public event Action OnExitJoinView;
 
@@ -44,18 +50,13 @@ public partial class UIController
 		mainGameObject.SetActive(false);	
 	}
 
-	public void SetServerList(ServerInfo [] infos)
-	{
-		MainThreadWorker.AddJob(() => SetServerListMainThread(infos));
-	}
-
 	private string MapNameFromIndex(int mapIndex)
 	{
 		// Todo(Leo): Obviously this is not correct, please fix
 		return ServerNameGenerator.GetRandom();
 	}
 
-	private void SetServerListMainThread(ServerInfo [] infos)
+	public void SetServerList(ServerInfo [] infos)
 	{
 		/* Todo(Leo): keep track of selected server, as index is likely to change
 	 	For example, get current selected servers name, and in the end find if it 
@@ -83,7 +84,9 @@ public partial class UIController
 			toggleInstance.label.text = infos[selectedIndex].serverName;
 			toggleInstance.toggle.group = joinView.availableServersToggleGroup;
 
-			void SetSelectedIndex ()
+			/* Note(Leo): Unity documentation on Toggle.onValueChanged was unclear
+			about what does the bool argument represent, so it is ignored here. */
+			void SetSelectedIndex (bool ignored)
 			{
 				if (toggleInstance.toggle.isOn)
 				{
@@ -96,7 +99,7 @@ public partial class UIController
 				}
 			}
 
-			toggleInstance.toggle.onValueChanged.AddListener((ignored) => SetSelectedIndex());
+			toggleInstance.toggle.onValueChanged.AddListener(SetSelectedIndex);
 		}
 	}
 }

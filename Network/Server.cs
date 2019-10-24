@@ -261,7 +261,7 @@ namespace Morko.Network
 					
 					server.broadcastClient.Send(data, data.Length, endPoint);
 
-					server.Log("[SERVER] Sent start info to players");
+					server.Log($"[SERVER] Sent start info to {playerCount} players");
 				}
 
 				while(true)

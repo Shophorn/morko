@@ -9,6 +9,12 @@ using UnityEngine.SceneManagement;
 using Morko;
 using Morko.Network;
 
+public interface IClientUIControllable
+{
+	void OnClientReady();
+	void OnRequestJoin(JoinInfo joinInfo);
+}
+
 public class JoinInfo
 {
 	public string playerName;
@@ -17,6 +23,8 @@ public class JoinInfo
 
 public partial class UIController : MonoBehaviour
 {
+	private IClientUIControllable clientControls;
+
 	[Serializable] 
 	private struct MainView
 	{
@@ -72,6 +80,14 @@ public partial class UIController : MonoBehaviour
 
 	}
 	[SerializeField] private JoinView joinView;
+
+	[Serializable]
+	private struct ClientLobbyView
+	{
+		public Button readyButton;
+		public Button cancelButton;
+	}
+	[SerializeField] private ClientLobbyView clientLobbyView;
 
 	[Header("Uncategorized")]
 	[SerializeField] private GameObject mainGameObject;
@@ -148,7 +164,7 @@ public partial class UIController : MonoBehaviour
 		mainMenuWindow.SetActive(false);
 		joinServerWindow.SetActive(false);
 	}
-	private void MoveToPlayerLobbyWindow()
+	private void MoveToClientLobbyWindow()
 	{
 		serverCreationWindow.SetActive(false);
 		hostLobbyWindow.SetActive(false);
@@ -181,6 +197,8 @@ public partial class UIController : MonoBehaviour
 
 	private void Start()
 	{
+		clientControls = GetComponent<IClientUIControllable>();
+
 		mainMenuWindow.SetActive(true);
 
 		/// MAIN VIEW
@@ -233,7 +251,8 @@ public partial class UIController : MonoBehaviour
 				playerName = joinView.playerNameField.text,
 				selectedServerIndex = joinView.selectedServerIndex
 			};
-			OnRequestJoin?.Invoke(info);
+			MoveToClientLobbyWindow();
+			clientControls.OnRequestJoin(info);
 		});
 
 		joinView.cancelButton.onClick.AddListener(() =>
@@ -242,7 +261,11 @@ public partial class UIController : MonoBehaviour
 			OnExitJoinView?.Invoke();
 		});
 
-
+		/// CLIENT LOBBY VIEW
+		clientLobbyView.readyButton.onClick.AddListener(() => 
+		{
+			clientControls.OnClientReady();
+		});
 
 
 		playerLobbyWindowCancelButton.onClick.AddListener(() =>

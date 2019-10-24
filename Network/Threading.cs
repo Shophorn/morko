@@ -100,13 +100,13 @@ namespace Morko.Threading
 		}
 	}
 
-	public class Synchronized<T>
+	public class Atomic<T>
 	{
 		private T _value;
 		private object threadLock = new object ();
 
-		public Synchronized() 			=> _value = default(T);
-		public Synchronized(T value) 	=> _value = value;
+		public Atomic() 			=> _value = default(T);
+		public Atomic(T value) 	=> _value = value;
 
 		public T Read()
 		{

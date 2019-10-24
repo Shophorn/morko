@@ -16,6 +16,12 @@ using Morko.Threading;
 // Todo(Leo): probably a bad idea to use statically
 using static Morko.Network.Constants;
 
+public interface IClientNetControllable
+{
+	void OnServerStartGame(GameStartInfo gameStartInfo);
+	void OnServerListChanged(ServerInfo [] servers);
+}
+
 [Serializable]
 public class ServerInfo
 {
@@ -36,7 +42,8 @@ public class ServerConnectionInfo
 public class GameStartInfo
 {
 	public int mapIndex;
-	public PlayerStartInfo [] netPlayers;
+	public PlayerStartInfo localPlayer;
+	public PlayerStartInfo [] remotePlayers;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -48,7 +55,7 @@ public struct PlayerGameUpdatePackage
 
 public class ClientController : MonoBehaviour
 {
-	[Header("Network Cofiguration")]
+	[Header("Network Configuration")]
 	public int netUpdateIntervalMs = 50;
 	public int connectionRetryTimeMs = 500;
 
@@ -56,7 +63,6 @@ public class ClientController : MonoBehaviour
 	private float nextNetUpdateTime;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-
 	public bool AutoStart { get; set; }
 
 	[Header("Player info")]
@@ -72,7 +78,7 @@ public class ClientController : MonoBehaviour
 	public GameObject AvatarPrefab { get; set; }
 	private Transform senderTransform;
 	private Dictionary<int, Transform> receiverTransforms;
-	private Dictionary<int, Synchronized<Vector3>> receivedPositions;
+	private Dictionary<int, Atomic<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
 	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
@@ -85,24 +91,40 @@ public class ClientController : MonoBehaviour
 	private bool doNetworkUpdate = false;
 
 	// Event section
-	public event Action<ServerInfo[]> OnServerListChanged;
-	public event Action<GameStartInfo> OnServerStartGame;
-
 	public event Action OnServerAbortGame;
 	public event Action OnServerFinishGame;
 
 	public event Action OnJoinedServer;
 	public event Action OnQuitServer;
 
+	IClientNetControllable netControls;
+
+	private void Awake()
+	{
+		netControls = GetComponent<IClientNetControllable>();
+	}
+
+	public void SetSender(Transform transform)
+	{
+		senderTransform = transform;
+	}
+
+	public void InitializeReceivers()
+	{
+		receiverTransforms = new Dictionary<int, Transform>();
+		receivedPositions = new Dictionary<int, Atomic<Vector3>>();
+	}
+
+	public void SetReceiver(int index, Transform transform)
+	{
+		receiverTransforms.Add(index, transform);
+		receivedPositions.Add(index, new Atomic<Vector3>());
+	}
+
 	private ServerInfo [] GetServers()
 	{
 		var result = servers.Select(connection => connection.serverInfo).ToArray();
 		return result;	
-	}
-
-	public void TESTCallOnServerStartGame()
-	{
-		OnServerStartGame?.Invoke(new GameStartInfo());
 	}
 
 	public void CreateGameInstance(PlayerStartInfo [] playerStartInfos)
@@ -122,7 +144,7 @@ public class ClientController : MonoBehaviour
 		// Todo(Leo): Load proper level etc.
 
 		receiverTransforms = new Dictionary<int, Transform>();
-		receivedPositions = new Dictionary<int, Synchronized<Vector3>>();
+		receivedPositions = new Dictionary<int, Atomic<Vector3>>();
 
 		// int netPlayerCount = playerStartInfos.Length - 1;
 		foreach (var item in playerStartInfos)
@@ -135,7 +157,7 @@ public class ClientController : MonoBehaviour
 										Instantiate(AvatarPrefab, startPosition, Quaternion.identity).transform);
 
 				receivedPositions.Add(	item.playerId,
-										new Synchronized<Vector3>(startPosition));
+										new Atomic<Vector3>(startPosition));
 			}
 		}
 
@@ -189,7 +211,7 @@ public class ClientController : MonoBehaviour
 								connection.selectedServerIndex = 0;
 							}
 	
-							connection.OnServerListChanged?.Invoke(connection.GetServers());
+							connection.netControls.OnServerListChanged(connection.GetServers());
 						}
 
 					} break;
@@ -201,21 +223,26 @@ public class ClientController : MonoBehaviour
 						var arguments = contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
 						int playerCount = arguments.playerCount;
 						var playerStartInfos = packageData.ToArray<PlayerStartInfo>(playerCount);
-						
+
 						Debug.Log("Server called to start game, arguments parsed");
-						// MainThreadWorker.AddJob(() => connection.CreateGameInstance(playerStartInfos));
 
 						var gameStartInfo = new GameStartInfo
 						{
-
+							mapIndex = 0,
+							localPlayer = playerStartInfos
+												.Where(info => info.playerId == connection.ClientId)
+												.First(),
+							remotePlayers = playerStartInfos
+												.Where(info => info.playerId != connection.ClientId)
+												.ToArray()
 						};
-						connection.OnServerStartGame?.Invoke(gameStartInfo);
+						connection.netControls.OnServerStartGame(gameStartInfo);
 					} break;
 
 					case NetworkCommand.ServerGameUpdate:
 					{
 						var arguments = contents.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
-						Debug.Log($"Received update from servers, id {arguments.playerId}");
+						Debug.Log($"Received update from servers, id {arguments.playerId} {((arguments.playerId == connection.ClientId) ? "(skipping own update)" : "")}");
 
 						if (connection.receivedPositions != null)
 						{
@@ -223,6 +250,7 @@ public class ClientController : MonoBehaviour
 							{
 								var package = packageData.ToStructure<PlayerGameUpdatePackage>();
 								connection.receivedPositions[arguments.playerId].Write(package.position);
+								Debug.Log(package.position);
 							}
 						}
 						else
@@ -343,7 +371,7 @@ public class ClientController : MonoBehaviour
 			{
 				servers.RemoveAt(serverIndex);
 				serverIndex--;
-				OnServerListChanged?.Invoke(GetServers());
+				netControls.OnServerListChanged(GetServers());
 			}
 		}
 

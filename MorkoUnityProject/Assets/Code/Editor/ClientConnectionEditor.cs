@@ -34,10 +34,10 @@ public class ClientControllerEditor : Editor
 		var serverNames = connection.servers.Select(server => server.serverInfo.serverName).ToArray();
 		connection.selectedServerIndex = EditorGUILayout.Popup("Servers", connection.selectedServerIndex, serverNames);
 
-		if (GUILayout.Button("TEST ServerStartGame"))
-		{
-			(target as ClientController).TESTCallOnServerStartGame();
-		}
+		// if (GUILayout.Button("TEST ServerStartGame"))
+		// {
+		// 	(target as ClientController).TESTCallOnServerStartGame();
+		// }
 
 		// if (GUILayout.Button("Join Selected Server"))
 		// {
