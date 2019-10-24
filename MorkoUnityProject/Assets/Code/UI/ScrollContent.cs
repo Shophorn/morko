@@ -7,26 +7,20 @@ namespace Morko
 	public class ScrollContent : MonoBehaviour
 	{
 		#region Public Properties
-
-		public ListItem listElement;
+		public ListItem listItem;
 		public ListItem[] listElements;
-		private GameObject listGrid;
+		public GameObject listGrid;
 
-		public InfiniteScroll selectionList;
+		public InfiniteScroll[] selectionLists;
 
 		public ListItem currentItem;
+		public float itemWidth;
 
-		public Sprite[] levelImages;
-		public Sprite[] characterImages;
+		//public Sprite[] levelImages;
 
-		public int amountOfCharacters;
-
-		public GameObject gridCenter;
-
-		private int numberOfScenes;
+		//private int numberOfScenes;
 		public string[] levelNames;
 		public string[] characterNames;
-
 
 		/// <summary>
 		/// How far apart each item is in the scroll view.
@@ -98,82 +92,96 @@ namespace Morko
 
 		#endregion
 
-		private void Start()
+		private void OnEnable()
 		{
-			listGrid = GameObject.Find("ScrollContent");
-			if (CompareTag("Host Window"))
-				CreateLevelList();
-			else
-				CreateCharacterList();
+			itemWidth = listItem.gameObject.GetComponent<RectTransform>().rect.width;
+
+			int selectionType = 0;
+			foreach(var item in selectionLists)
+			{
+				if(item.isActiveAndEnabled)
+				{
+					selectionType = (int)item.type;
+				}
+			}
+			
+			Debug.Log("Selection list type = "+selectionType);
+			CreateSelectionList(selectionType);
 
 			rectTransform = GetComponent<RectTransform>();
+			rectTransform.sizeDelta = new Vector2(listElements.Length * (rectTransform.rect.width + itemSpacing), 100);
 
 			width = rectTransform.rect.width;
 			height = rectTransform.rect.height;
 
-			//Margins not in use currently
-			//// Subtract the margin from both sides.
-			//width = rectTransform.rect.width - (2 * horizontalMargin);
-
-			//// Subtract the margin from the top and bottom.
-			//height = rectTransform.rect.height - (2 * verticalMargin);
-
-
-			//horizontal = !vertical;
-			//if (vertical)
-			//	InitializeContentVertical();
-			//else
-			//	InitializeContentHorizontal();
-
+			Debug.Log("Width: " + width);
 			InitializeContentHorizontal();
 
-			selectionList.listElements = listElements;
+			selectionLists[selectionType].listElements = listElements;
+		}
+		private void OnDisable()
+		{
+			rectTransform.sizeDelta = new Vector2(100,100);
+			transform.localPosition = Vector3.zero;
+			ClearSelectionList();
 		}
 
-		private void CreateLevelList()
+		private void CreateSelectionList(int selectionType)
 		{
-			numberOfScenes = SceneManager.sceneCountInBuildSettings;
-			listElements = new ListItem[numberOfScenes - 1];
-			levelNames = new string[numberOfScenes - 1];
-
-			for (int i = 0; i < numberOfScenes - 1; i++)
+			switch(selectionType)
 			{
-				string path = SceneUtility.GetScenePathByBuildIndex(i + 1);
-				string levelName = System.IO.Path.GetFileNameWithoutExtension(path);
-				levelNames[i] = levelName;
+				case 0://Map
+					listElements = new ListItem[levelNames.Length];
+					break;
+				case 1://Character
+					listElements = new ListItem[characterNames.Length];
+					break;
+				default:
+					Debug.Log("Something went wrong");
+					break;
 			}
 
-			if (listGrid != null)
+			for (int i = 0; i < listElements.Length; i++)
 			{
-				for (int i = 0; i < numberOfScenes - 1; i++)
+				listElements[i] = Instantiate(listItem, new Vector3(transform.position.x, transform.position.y, 0), Quaternion.identity);
+				SetListElementType(listElements[i], selectionType);
+				listElements[i].listItemId = i;
+
+				if(selectionType == 0)
 				{
-					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
-					listElements[i].id = i;
 					listElements[i].listItemName = levelNames[i];
 					listElements[i].transform.Find("Name").GetComponent<Text>().text = levelNames[i];
-					listElements[i].transform.Find("Image").GetComponent<Image>().sprite = levelImages[i];
-					listElements[i].transform.parent = listGrid.transform;
 				}
-				currentItem = listElements[0];
+				else
+				{
+					listElements[i].listItemName = characterNames[i];
+					listElements[i].transform.Find("Name").GetComponent<Text>().text = characterNames[i];
+				}
+				listElements[i].transform.parent = transform;
+			}
+			currentItem = listElements[0];
+		}
+
+		private void ClearSelectionList()
+		{
+			for(int i = 0; i < transform.childCount; i++)
+			{
+				Destroy(transform.GetChild(i).gameObject);
 			}
 		}
 
-		private void CreateCharacterList()
+		private void SetListElementType(ListItem item, int i)
 		{
-			listElements = new ListItem[amountOfCharacters];
-
-			if (listGrid != null)
+			switch(i)
 			{
-				for (int i = 0; i < amountOfCharacters; i++)
-				{
-					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
-					listElements[i].id = i;
-					listElements[i].listItemName = characterNames[i];
-					listElements[i].transform.Find("Name").GetComponent<Text>().text = characterNames[i];
-					listElements[i].transform.Find("Image").GetComponent<Image>().sprite = characterImages[i];
-					listElements[i].transform.parent = listGrid.transform;
-				}
-				currentItem = listElements[0];
+				case 0://Map
+					item.transform.GetChild(i+1).gameObject.SetActive(false);
+					item.transform.GetChild(i+2).gameObject.SetActive(true);
+					break;
+				case 1: //Character
+					item.transform.GetChild(i).gameObject.SetActive(true);
+					item.transform.GetChild(i+1).gameObject.SetActive(false);
+					break;
 			}
 		}
 
@@ -182,12 +190,12 @@ namespace Morko
 		/// </summary>
 		private void InitializeContentHorizontal()
 		{
-			float originX = 0 - (width * 0.25f);
-			float posOffset = width * 0.25f;
-			for (int i = 0; i < numberOfScenes - 1; i++)
+			float originX = 0 - (width);
+			float posOffset = width * 0.566666666667f;
+			for (int i = 0; i < listElements.Length; i++)
 			{
 				Vector3 childPos = listElements[i].transform.localPosition;
-				childPos.x = originX + posOffset + i * (width + itemSpacing);
+				childPos.x = originX + posOffset + i * (itemWidth+itemSpacing+12.25f);
 				listElements[i].transform.localPosition = childPos;
 			}
 		}
@@ -199,12 +207,30 @@ namespace Morko
 		{
 			float originY = 0 - (height * 0.5f);
 			float posOffset = height * 0.5f;
-			for (int i = 0; i < numberOfScenes - 1; i++)
+			for (int i = 0; i < listElements.Length; i++)
 			{
 				Vector2 childPos = listElements[i].transform.localPosition;
 				childPos.y = originY + posOffset + i * (height + itemSpacing);
 				listElements[i].transform.localPosition = childPos;
 			}
+		}
+
+		public void SnapToCenter()
+		{
+			ListItem shortest = null;
+			float shortestDistance = 1000;
+			foreach (var item in listElements)
+			{
+				float distance = Vector3.Distance(item.transform.position, listGrid.transform.position);
+				if(distance < shortestDistance)
+				{
+					shortestDistance = distance;
+					shortest = item;
+				}
+			}
+
+			transform.Translate(-shortest.transform.position);
+			currentItem = shortest;
 		}
 	}
 }
