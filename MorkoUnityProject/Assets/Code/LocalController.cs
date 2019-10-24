@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Numerics;
 using UnityEngine;
 using Morko.Network;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
+using Vector2 = UnityEngine.Vector2;
 
 namespace Morko
 {
@@ -55,6 +57,7 @@ namespace Morko
 		private Vector3 lastPosition;
 		private Vector3 oldDirection = Vector3.zero;
 		private bool ran = false;
+		private bool disableMovement = false;
 		private long lastMillis = 0;
 		
 		public void ChangeStateTo(bool morko)
@@ -64,7 +67,28 @@ namespace Morko
 		public void ChangeState()
 		{
 			isMorko = !isMorko;
+			
+			if (isMorko)
+			{
+				// Change to morko anims, stuns, mask on, etc
+				ToMorko();
+			}
+			else
+			{
+				// Change to human, mask off
+				ToNormal();
+			}
 		}
+
+		private void ToMorko()
+		{
+			character.EnableDisableMovementScript();
+		}
+		private static void ToNormal()
+		{
+			
+		}
+		
 		
 		public static LocalController Create(Character character, PlayerSettings normalSettings, PlayerSettings morkoSettings)
 		{
@@ -86,9 +110,12 @@ namespace Morko
 
 		public AvatarPackage Update()
 		{
-			
-			HandleMovement();
-			HandleDash();
+			Vector3 moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
+			bool running = (Input.GetButton("Sprint") || Input.GetKey(KeyCode.LeftShift)) && currentMovementSpeed >= walkSpeed ? true : false;
+			bool scare = Input.GetKeyDown(KeyCode.Space);
+
+			Move(moveDirection, running);
+			HandleDash(scare);
 			
 			// Update package data
 			package.position = character.gameObject.transform.position;
@@ -98,14 +125,13 @@ namespace Morko
 			return package;
 		}
 		
-		private void HandleDash()
+		private void HandleDash(bool scare)
 		{
+			if (!isMorko || !scare) return;
+
 			Vector3 currentPosition = character.transform.position;
 			Vector3 targetPosition = currentPosition + character.transform.forward * dashDistance;
 			
-			bool scare = Input.GetKey(KeyCode.Space);
-			if (!isMorko && !scare) return;
-
 			long currentMillis = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 			bool pastCooldown = currentMillis - lastMillis >= dashCooldown * 1000;
 				
@@ -130,12 +156,10 @@ namespace Morko
 		}
 
 		// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
-		private void HandleMovement()
+		private void Move(Vector3 moveDirection, bool running)
 		{
 			lastPosition = character.gameObject.transform.position;
 			character.transform.position = new Vector3(character.transform.position.x, 0f, character.transform.position.z);
-			
-			moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 			
 			float joystickRotateX = Input.GetAxis("RotateX");
 			float joystickRotateY = Input.GetAxis("RotateY");
@@ -181,9 +205,9 @@ namespace Morko
 			bool accelerateWalk = joystickMaxed == true && currentMovementSpeed < walkSpeed;
 			bool decelerateWalk = (moveDirection == Vector3.zero || joystickMaxed == false) && currentMovementSpeed <= walkSpeed && currentMovementSpeed > 0f;
 			bool maxWalkSpeed = joystickMaxed == true && currentMovementSpeed >= walkSpeed && ran == false;
-			bool accelerateRun = (Input.GetButton("Sprint") || Input.GetKey(KeyCode.LeftShift) == true) && joystickMaxed && currentMovementSpeed >= walkSpeed;
-			bool decelerateRun = Input.GetButton("Sprint") == false && Input.GetKey(KeyCode.LeftShift) == false && currentMovementSpeed > walkSpeed && ran;
-			bool maxRunSpeed = (Input.GetButton("Sprint") || Input.GetKey(KeyCode.LeftShift) == true) && joystickMaxed && currentMovementSpeed >= runSpeed;
+			bool accelerateRun = running;
+			bool decelerateRun = running == false && currentMovementSpeed > walkSpeed && ran;
+			bool maxRunSpeed = running && currentMovementSpeed >= runSpeed;
 			
 			if (sneak)
 				currentMovementSpeed = sneakSpeed;
@@ -264,7 +288,10 @@ namespace Morko
 
 			// Move
 			character.characterController.Move(velocity * Time.deltaTime);
-
+			
+			var vectorVelocity = character.characterController.velocity;
+			//currentMovementSpeed = Mathf.Clamp(new Vector2(vectorVelocity.x, vectorVelocity.z).magnitude, 0f, currentMovementSpeed);
+			
 			if (character.characterController.isGrounded)
 				velocityY = 0f;
 		}
