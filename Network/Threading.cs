@@ -30,6 +30,10 @@ namespace Morko.Threading
 			{
 				try { threadRunner.Run(); }
 				catch (ThreadAbortException) { threadRunner.CleanUp(); }
+				catch (Exception e)
+				{
+					System.IO.File.AppendAllText("w:/metropolia/morko/threadlog.log", $"{DateTime.Now}: {e}\n");
+				}
 			});
 			_thread.Start();
 		}

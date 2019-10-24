@@ -15,6 +15,25 @@ public interface IClientControls
 // 	void RequestJoin(JoinInfo joinInfo);
 }
 
+public interface IClientUIControllable
+{
+	void OnClientReady();
+	void OnRequestJoin(JoinInfo joinInfo);
+}
+
+public interface IServerUIControllable
+{
+	void CreateServer(ServerInfo serverInfo);
+	void DestroyServer();
+}
+
+public class JoinInfo
+{
+	public string playerName;
+	public int selectedServerIndex;
+}
+
+
 /* Note(Leo): For clarity, public interface and MonoBehaviour internals
 are separated. Users only must depend on this public side. */
 public partial class UIController
@@ -22,8 +41,8 @@ public partial class UIController
 	public event Action OnEnterJoinView;
 	public event Action OnExitJoinView;
 
-	public event Action<ServerInfo> OnStartHosting;
-	public event Action OnStopHosting;
+	// public event Action<ServerInfo> OnStartHosting;
+	// public event Action OnStopHosting;
 
 	// Note(Leo): These are called when hosting player starts or stops game
 	public event Action OnHostStartGame;

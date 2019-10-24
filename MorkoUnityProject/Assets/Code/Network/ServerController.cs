@@ -59,9 +59,9 @@ public class ServerController : MonoBehaviour
 		server?.Close();
 	}
 
-	public void AddHostingPlayer(string name, IPEndPoint endPoint)
+	public int AddHostingPlayer(string name, IPEndPoint endPoint)
 	{
-		server.AddHostingPlayer(name, endPoint);
+		return server.AddHostingPlayer(name, endPoint);
 	}
 
 }

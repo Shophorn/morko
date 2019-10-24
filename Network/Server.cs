@@ -46,14 +46,14 @@ namespace Morko.Network
 		private string name;
 
 		private int broadcastDelayMs = 100;
-		private int gameUpdateThreadDelayMs = 20;
+		private int gameUpdateThreadDelayMs = 100;
 
 		private readonly ThreadControl broadcastControl = new ThreadControl ();
 		private readonly ThreadControl broadcastReceiveControl = new ThreadControl ();
 		private readonly ThreadControl gameUpdateThreadControl = new ThreadControl ();
 		private readonly ThreadControl gameUpdateReceiveThreadControl = new ThreadControl ();
 
-		private UdpClient broadcastClient;
+		private UdpClient senderClient;
 		private UdpClient responseClient;
 
 		private List<ClientInfo> players;
@@ -74,13 +74,12 @@ namespace Morko.Network
 				clientUpdatePackageSize = info.clientUpdatePackageSize,
 				Log 					= info.logFunction ??  Morko.Logging.Logger.Log,
 
-				broadcastClient 		= new UdpClient(0),
+				senderClient 			= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
 				players 				= new List<ClientInfo>(),
 			};
 
-			server.Log($"Created '{server.name}'");
-
+			server.senderClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 			return server;
 		}
 
@@ -90,25 +89,21 @@ namespace Morko.Network
 
 			public void Run()
 			{
-				server.Log($"[{server.name}]: Start broadcasting");
 				var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, Constants.broadcastPort);
 				var arguments = new ServerIntroduceArgs
 				{
 					serverName = server.name,
-					mapIndex = 52
+					mapIndex = 0
 				};
 				var data = ProtocolFormat.MakeCommand(arguments);
 				while(true)
 				{
-					server.broadcastClient.Send(data, data.Length, broadcastEndPoint);
+					server.senderClient.Send(data, data.Length, broadcastEndPoint);
 					Thread.Sleep(server.broadcastDelayMs);
 				}
 			}
 
-			public void CleanUp()
-			{
-				server.Log($"[{server.name}]: Stop broadcasting");
-			}
+			public void CleanUp() {}
 		}
 
 		private class BroadcastReceiveThread : IThreadRunner
@@ -182,35 +177,30 @@ namespace Morko.Network
 			broadcastReceiveControl?.Stop();
 		}
 
-		public void AddHostingPlayer(string name, IPEndPoint endPoint)
+		public int AddHostingPlayer(string name, IPEndPoint endPoint)
 		{
-			Log($"Added hosting player: {name} ({endPoint})");
+			int playerId = players.Count;
 			players.Add(new ClientInfo
 			{
 				endPoint 			= endPoint,
 				name 				= name,
 				lastConnectionTime 	= DateTime.Now
 			});
+			return playerId;
 		}
 
 		public void StartGame()
 		{	
 			InitializePlayers();
 
-			Log($"[{name}]: Start Game");
 			gameUpdateThreadControl.Start(new GameUpdateThread { server = this });
-
-			Log($"[{name}]: Start receiving player updates");
 			gameUpdateReceiveThreadControl.Start(new ReceiveUpdateFromPlayersThread { server = this });
 		}
 
 		public void AbortGame()
 		{
 			// TODO(Leo): Remove questionmarksP????
-			Log($"[{name}]: Stop Game");
 			gameUpdateThreadControl?.Stop();
-
-			Log($"[{name}]: Stop receiving player updates");
 			gameUpdateReceiveThreadControl?.Stop();
 		}
 
@@ -219,7 +209,7 @@ namespace Morko.Network
 	 	
 	 	public void Close()
 		{
-			broadcastClient?.Close();
+			senderClient?.Close();
 			responseClient?.Close();
 		}
 
@@ -237,11 +227,15 @@ namespace Morko.Network
 
 			public void Run()
 			{
-				IPEndPoint endPoint = new IPEndPoint(Constants.multicastAddress, Constants.multicastPort);
-				server.broadcastClient.JoinMulticastGroup(Constants.multicastAddress);
+				server.Log("[SERVER]: Started update thread");
 
-				int playerCount = server.players.Count;
+
+				IPEndPoint endPoint = new IPEndPoint(Constants.multicastAddress, Constants.multicastPort);
+				server.senderClient.JoinMulticastGroup(Constants.multicastAddress);
+
 				// Send gameStartInfo
+				// Todo(Leo): this should not be done in this thread
+				int playerCount = server.players.Count;
 				{
 					var playerStartInfos = new PlayerStartInfo [playerCount];
 					for(int playerId = 0; playerId < playerCount; playerId++)
@@ -253,15 +247,13 @@ namespace Morko.Network
 							avatarId = 0
 						};
 					}
-					var package = playerStartInfos.ToBinary();
 
+					var package = playerStartInfos.ToBinary();
 					var data = ProtocolFormat.MakeCommand(
 									new ServerStartGameArgs { playerCount = server.players.Count },
 									package);
 					
-					server.broadcastClient.Send(data, data.Length, endPoint);
-
-					server.Log($"[SERVER] Sent start info to {playerCount} players");
+					server.senderClient.Send(data, data.Length, endPoint);
 				}
 
 				while(true)
@@ -272,7 +264,7 @@ namespace Morko.Network
 										new ServerGameUpdateArgs {playerId = playerId},
 										server.players[playerId].lastReceivedPackage);
 
-						server.broadcastClient.Send(data, data.Length, endPoint);
+						server.senderClient.Send(data, data.Length, endPoint);
 					}
 
 					Thread.Sleep(server.gameUpdateThreadDelayMs);
@@ -281,7 +273,7 @@ namespace Morko.Network
 
 			public void CleanUp()
 			{
-				server.broadcastClient.DropMulticastGroup(Constants.multicastAddress);
+				server.senderClient.DropMulticastGroup(Constants.multicastAddress);
 			}
 		}
 
@@ -291,11 +283,26 @@ namespace Morko.Network
 
 			public void Run()
 			{
-				server.Log($"[{server.name}]: Run '{nameof(ReceiveUpdateFromPlayersThread)}'");
 				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
+				// server.Log("[SERVER]: Started update receive thread succesfully");
+
 				while(true)
 				{
+					// server.Log($"[SERVER]: Before receive data");
+					// byte [] data = null;
+					// try{
+						// System.IO.File.AppendAllText("w:/metropolia/morko/serverlog.log", $"{DateTime.Now}: Hello from receiving end\n");
+					// } catch (SocketException e)
+					// {
+					// 	System.IO.File.AppendAllText("w:/metropolia/morko/serverlog.log", $"{DateTime.Now}: {e}\n");
+					// 	server.Log("[SERVER EXCEPTION]: Caught socket exception");
+					// }
+
+					// if (data == null)
+					// 	continue;
 					byte [] data = server.responseClient.Receive(ref receiveEndPoint);
+
+					server.Log($"[SERVER]: Received data from {receiveEndPoint}");
 
 					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] contents))
 					{
@@ -303,7 +310,7 @@ namespace Morko.Network
 						{
 						case NetworkCommand.ClientGameUpdate:
 							var arguments = contents.ToStructure<ClientGameUpdateArgs>(out byte [] package);
-							server.Log($"Received update from '{server.players[arguments.playerId].name}'");
+							server.Log($"[SERVER]: Received update from '{server.players[arguments.playerId].name}'");
 							server.players[arguments.playerId].lastReceivedPackage = package;
 
 							break;
@@ -312,10 +319,7 @@ namespace Morko.Network
 				}
 			}
 
-			public void CleanUp()
-			{
-				server.Log($"[{server.name}]: Stop '{nameof(ReceiveUpdateFromPlayersThread)}'");
-			}
+			public void CleanUp() {}
 		}
 	}
 }

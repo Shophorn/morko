@@ -67,7 +67,7 @@ public class ClientController : MonoBehaviour
 
 	[Header("Player info")]
 	[HideInInspector] public string playerName = "Default Player";
-	[HideInInspector] public int ClientId { get; private set; } = -1;
+	[HideInInspector] public int ClientId { get; set; } = -1;
 
 	[HideInInspector] public int selectedServerIndex;
 
@@ -121,48 +121,15 @@ public class ClientController : MonoBehaviour
 		receivedPositions.Add(index, new Atomic<Vector3>());
 	}
 
+	public void StartNetworkUpdate()
+	{
+		doNetworkUpdate = true;
+	}
+
 	private ServerInfo [] GetServers()
 	{
 		var result = servers.Select(connection => connection.serverInfo).ToArray();
 		return result;	
-	}
-
-	public void CreateGameInstance(PlayerStartInfo [] playerStartInfos)
-	{
-		if (playerStartInfos.Length == 0)
-		{
-			Debug.LogError("Cannot start a game with 0 players");
-			return;
-		}
-
-		Debug.Log($"Game session created, {playerStartInfos.Length} players");
-
-
-		senderTransform = Instantiate(AvatarPrefab, Vector3.zero, Quaternion.identity).transform;
-		senderTransform.gameObject.AddComponent<ControlsTest>();
-
-		// Todo(Leo): Load proper level etc.
-
-		receiverTransforms = new Dictionary<int, Transform>();
-		receivedPositions = new Dictionary<int, Atomic<Vector3>>();
-
-		// int netPlayerCount = playerStartInfos.Length - 1;
-		foreach (var item in playerStartInfos)
-		{
-			if (item.playerId != ClientId)
-			{
-				Vector3 startPosition = Vector3.zero;
-				
-				receiverTransforms.Add(	item.playerId,
-										Instantiate(AvatarPrefab, startPosition, Quaternion.identity).transform);
-
-				receivedPositions.Add(	item.playerId,
-										new Atomic<Vector3>(startPosition));
-			}
-		}
-
-		// Todo(Leo): Start update here 
-		doNetworkUpdate = true;
 	}
 
 	private class ReceiveThread : IThreadRunner
@@ -218,13 +185,11 @@ public class ClientController : MonoBehaviour
 
 					case NetworkCommand.ServerStartGame:
 					{
-						Debug.Log("Server called to start game");
+						var arguments 			= contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
+						int playerCount 		= arguments.playerCount;
+						var playerStartInfos 	= packageData.ToArray<PlayerStartInfo>(playerCount);
 
-						var arguments = contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
-						int playerCount = arguments.playerCount;
-						var playerStartInfos = packageData.ToArray<PlayerStartInfo>(playerCount);
-
-						Debug.Log("Server called to start game, arguments parsed");
+						Debug.Log($"Server called to start game, arguments parsed, my index = {connection.ClientId}");
 
 						var gameStartInfo = new GameStartInfo
 						{
@@ -255,7 +220,7 @@ public class ClientController : MonoBehaviour
 						}
 						else
 						{
-							Debug.Log("Receivers not yet created");
+							Debug.LogError("Receivers not yet created");
 						}
 					} break;
 
@@ -294,7 +259,7 @@ public class ClientController : MonoBehaviour
 
 		public void Run()
 		{
-			Debug.Log($"Start SendUpdateThread, endPoint = {endPoint}");
+			Debug.Log($"[CLIENT]: Start SendUpdateThread, endPoint = {endPoint}");
 			while(true)
 			{
 				var updateArgs = new ClientGameUpdateArgs
@@ -310,6 +275,7 @@ public class ClientController : MonoBehaviour
 
 				byte [] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
 
+				Debug.Log("[CLIENT]: Send data to server");
 				udpClient.Send(data, data.Length, endPoint);
 
 				Thread.Sleep(sendDelayMs);
@@ -339,12 +305,14 @@ public class ClientController : MonoBehaviour
 	{
 		var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
 		udpClient = new UdpClient(localEndPoint);
+		udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 		udpClient.JoinMulticastGroup(multicastAddress);
 	}
 
 	public void StartUpdateAsHostingPlayer()
 	{
-		var serverEndPoint = new IPEndPoint(CurrentEndPoint.Address, Constants.serverReceivePort);
+		// var serverEndPoint = new IPEndPoint(CurrentEndPoint.Address, Constants.serverReceivePort);
+		var serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), Constants.serverReceivePort);
 		sendUpdateThread.Start(new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,

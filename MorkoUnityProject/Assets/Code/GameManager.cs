@@ -11,7 +11,8 @@ using Morko.Network;
 
 public class GameManager : 	MonoBehaviour,
 							IClientUIControllable,
-							IClientNetControllable
+							IClientNetControllable,
+							IServerUIControllable
 {
 	public UIController uiController;
 	public ServerController serverController;
@@ -30,66 +31,16 @@ public class GameManager : 	MonoBehaviour,
 
 	public void Awake()
 	{
-		uiController.OnStartHosting += StartServer;
-		uiController.OnStopHosting += StopServer;
-
 		uiController.OnEnterJoinView += StartListenBroadcast;
 		uiController.OnExitJoinView += StopListenBroadcast;
 
 		uiController.OnQuit += ApplicationQuit;
 	}
 
-	private void StartServer(ServerInfo info)
-	{
-		if (isRunningServer)
-		{
-			Debug.LogError("Trying to start server while already hosting");
-			return;
-		}
-
-		isRunningServer = true;
-
-		serverController = gameObject.AddComponent<ServerController>();
-		var createInfo = new ServerCreateInfo
-		{
-			serverName = info.serverName,
-			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
-			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
-			logFunction = Debug.Log
-		};
-		serverController.CreateServer(createInfo);
-		serverController.StartBroadcast();
-
-		 // Todo(Leo): Join itself to server
-		clientController.CreateHostingPlayerConnection();
-		serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
-
-		uiController.OnHostStartGame += HostStartGame;
-		uiController.OnHostAbortGame += serverController.AbortGame;
-	}
-
 	private void HostStartGame()
 	{
 		clientController.StartUpdateAsHostingPlayer();
 		serverController.StartGame();
-	}
-
-	private void StopServer()
-	{
-		if (isRunningServer == false)
-		{
-			Debug.LogError("Trying to stop server while not hosting");
-			return;
-		}
-
-		uiController.OnHostStartGame += serverController.StartGame;
-		uiController.OnHostAbortGame += serverController.AbortGame;
-
-		isRunningServer = false;
-		serverController.CloseServer();
-		Destroy(serverController);
-		serverController = null;
-
 	}
 
 	void IClientUIControllable.OnClientReady()
@@ -120,6 +71,54 @@ public class GameManager : 	MonoBehaviour,
 	void IClientNetControllable.OnServerListChanged(ServerInfo [] servers)
 	{
 		MainThreadWorker.AddJob(() => uiController.SetServerList(servers));
+	}
+
+	void IServerUIControllable.CreateServer(ServerInfo serverInfo)
+	{
+		if (isRunningServer)
+		{
+			Debug.LogError("Trying to start server while already hosting");
+			return;
+		}
+
+		isRunningServer = true;
+
+		serverController = gameObject.AddComponent<ServerController>();
+		var createInfo = new ServerCreateInfo
+		{
+			serverName = serverInfo.serverName,
+			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
+			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
+			logFunction = Debug.Log
+		};
+		serverController.CreateServer(createInfo);
+		serverController.StartBroadcast();
+
+		 // Todo(Leo): Join itself to server
+		clientController.CreateHostingPlayerConnection();
+		int hostingPlayerId = serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
+		clientController.ClientId = hostingPlayerId;
+
+		uiController.OnHostStartGame += HostStartGame;
+		uiController.OnHostAbortGame += serverController.AbortGame;
+	}
+
+	void IServerUIControllable.DestroyServer()
+	{
+		if (isRunningServer == false)
+		{
+			Debug.LogError("Trying to stop server while not hosting");
+			return;
+		}
+
+		uiController.OnHostStartGame += serverController.StartGame;
+		uiController.OnHostAbortGame += serverController.AbortGame;
+
+		isRunningServer = false;
+		serverController.CloseServer();
+		Destroy(serverController);
+		serverController = null;
+
 	}
 
 	private void StartGame(GameStartInfo startInfo)
@@ -164,6 +163,8 @@ public class GameManager : 	MonoBehaviour,
 			clientController.SetReceiver(info.playerId, remoteAvatar.transform);
 			// Todo(Leo): RemoteAvatarContoller
 		}
+
+		clientController.StartNetworkUpdate();
 
 		// Todo(Leo): Most definetly not like this
 		StartCoroutine(UpdateLocalCharacter(localController));

@@ -9,21 +9,11 @@ using UnityEngine.SceneManagement;
 using Morko;
 using Morko.Network;
 
-public interface IClientUIControllable
-{
-	void OnClientReady();
-	void OnRequestJoin(JoinInfo joinInfo);
-}
-
-public class JoinInfo
-{
-	public string playerName;
-	public int selectedServerIndex;
-}
 
 public partial class UIController : MonoBehaviour
 {
 	private IClientUIControllable clientControls;
+	private IServerUIControllable serverControls;
 
 	[Serializable] 
 	private struct MainView
@@ -63,6 +53,8 @@ public partial class UIController : MonoBehaviour
 	[Serializable]
 	private struct JoinView
 	{
+		public const string defaultPlayerName = "Client Player";
+
 		public ToggleGroup 			availableServersToggleGroup;
 		public Transform 			availableServersToggleParent;
 		public ServerToggleListItem availableServersTogglePrefab;
@@ -198,6 +190,7 @@ public partial class UIController : MonoBehaviour
 	private void Start()
 	{
 		clientControls = GetComponent<IClientUIControllable>();
+		serverControls = GetComponent<IServerUIControllable>();
 
 		mainMenuWindow.SetActive(true);
 
@@ -223,7 +216,7 @@ public partial class UIController : MonoBehaviour
 				maxPlayers 			= hostView.playerCountField.IntValue,
 				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
-			OnStartHosting?.Invoke(info);
+			serverControls.CreateServer(info);
 			MoveToHostLobbyWindow();
 		});
 		hostView.cancelButton.onClick.AddListener(BackToMainMenu);
@@ -254,6 +247,7 @@ public partial class UIController : MonoBehaviour
 			MoveToClientLobbyWindow();
 			clientControls.OnRequestJoin(info);
 		});
+		joinView.playerNameField.text = JoinView.defaultPlayerName;
 
 		joinView.cancelButton.onClick.AddListener(() =>
 		{
