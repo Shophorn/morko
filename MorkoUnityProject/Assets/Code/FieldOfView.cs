@@ -120,7 +120,7 @@ public class FieldOfView : MonoBehaviour
     }
 
 
-    int mask = 1 << 8;
+    int mask = 1 << 13;
     ViewCastInfo ViewCast(float globalAngle)
     {
         Vector3 dir = DirFromAngle(globalAngle, true);
