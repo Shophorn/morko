@@ -82,11 +82,9 @@ namespace Morko
 
 		private void ToMorko()
 		{
-			character.EnableDisableMovementScript();
 		}
 		private static void ToNormal()
 		{
-			
 		}
 		
 		
@@ -161,8 +159,8 @@ namespace Morko
 			lastPosition = character.gameObject.transform.position;
 			character.transform.position = new Vector3(character.transform.position.x, 0f, character.transform.position.z);
 			
-			float joystickRotateX = Input.GetAxis("RotateX");
-			float joystickRotateY = Input.GetAxis("RotateY");
+			float joystickRotateX = Input.GetAxisRaw("RotateX");
+			float joystickRotateY = Input.GetAxisRaw("RotateY");
 
 			Vector3 currentMousePosition = Input.mousePosition;
 			Vector3 mouseDelta = currentMousePosition - lastMousePosition;
@@ -182,9 +180,12 @@ namespace Morko
 				character.transform.rotation = Quaternion.LookRotation(lookDirectionLevel);
 			}
 			
-			bool joystickForRotation = Mathf.Abs(joystickRotateX) > 0f || Mathf.Abs(joystickRotateY) > 0f;
-			bool onlyLeftJoystickUsed = moveDirection != Vector3.zero && joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseRotate == false;
-			bool mouseForRotation = joystickRotateX == 0 && joystickRotateY == 0 && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseRotate == true;
+			// TODO (Sampo): Named bools for conditions, remove 0 comparison, use deadzone-s
+			float joystickDeadzone = 0.2f;
+			bool hasMoved = (moveDirection.sqrMagnitude > joystickDeadzone);
+			bool joystickForRotation = (Mathf.Abs(joystickRotateX) > joystickDeadzone) || (Mathf.Abs(joystickRotateY) > joystickDeadzone);
+			bool onlyLeftJoystickUsed = hasMoved && (joystickRotateX == joystickDeadzone) && (joystickRotateY == joystickDeadzone) && (mouseDelta.x == joystickDeadzone) && (mouseDelta.y == joystickDeadzone) && (mouseRotate == false);
+			bool mouseForRotation = joystickRotateX < joystickDeadzone && joystickRotateY < joystickDeadzone && mouseDelta.x == 0 && mouseDelta.y == 0 && mouseRotate == true;
 			
 			if (joystickForRotation)
 			{
