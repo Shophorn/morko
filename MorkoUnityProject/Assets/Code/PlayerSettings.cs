@@ -34,5 +34,7 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(1f, 5f)] public float dashDistance = 2f;
     [Range(1f, 5f)] public float dashDuration = 1.5f;
     [Range(1f, 10f)] public float dashCooldown = 2f;
-
+    
+    [Header("TEST")]
+    public bool rotateTowardsMove = true;
 }
