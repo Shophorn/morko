@@ -298,7 +298,7 @@ namespace Morko
 				onlyLeftJoystickUsed = true;
 			
 
-			if (onlyLeftJoystickUsed && !mouseRotatedLast)
+			if (onlyLeftJoystickUsed && !mouseRotatedLast && currentSettings.rotateTowardsMove)
 			{
 				character.transform.rotation = Quaternion.LookRotation(moveDirection);
 			}
