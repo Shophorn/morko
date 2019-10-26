@@ -291,6 +291,8 @@ public class ClientController : MonoBehaviour
 		udpClient = new UdpClient(localEndPoint);
 		udpClient.JoinMulticastGroup(multicastAddress);
 
+		Debug.Log($"Joined server = {joinedServer}");
+
 		sendUpdateThread.Start(new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,

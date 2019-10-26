@@ -227,12 +227,12 @@ public partial class UIController : MonoBehaviour
 		/// HOST LOBBY VIEW
 		hostLobbyView.startGameButton.onClick.AddListener(() =>
 		{
-			OnHostStartGame?.Invoke();
+			serverControls.StartGame();
 		});
 
 		hostLobbyView.cancelButton.onClick.AddListener(() =>
 		{
-			OnHostAbortGame?.Invoke();
+			serverControls.AbortGame();
 			BackToMainMenu();
 		});
 

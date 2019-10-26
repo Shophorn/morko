@@ -29,18 +29,15 @@ public class GameManager : 	MonoBehaviour,
 	public PostFx gameCameraPrefab;
 	public GameObject visibilityEffectPrefab;
 
+	public int localAvatarLayer;
+	public int remoteAvatarLayer;
+
 	public void Awake()
 	{
 		uiController.OnEnterJoinView += StartListenBroadcast;
 		uiController.OnExitJoinView += StopListenBroadcast;
 
 		uiController.OnQuit += ApplicationQuit;
-	}
-
-	private void HostStartGame()
-	{
-		clientController.StartUpdateAsHostingPlayer();
-		serverController.StartGame();
 	}
 
 	void IClientUIControllable.OnClientReady()
@@ -65,6 +62,7 @@ public class GameManager : 	MonoBehaviour,
 
 	void IClientNetControllable.OnServerStartGame(GameStartInfo gameStartInfo)
 	{
+		Debug.Log("Game manager starting game");
 		MainThreadWorker.AddJob(() => StartGame(gameStartInfo));
 	}
 
@@ -98,9 +96,6 @@ public class GameManager : 	MonoBehaviour,
 		clientController.CreateHostingPlayerConnection();
 		int hostingPlayerId = serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
 		clientController.ClientId = hostingPlayerId;
-
-		uiController.OnHostStartGame += HostStartGame;
-		uiController.OnHostAbortGame += serverController.AbortGame;
 	}
 
 	void IServerUIControllable.DestroyServer()
@@ -111,14 +106,23 @@ public class GameManager : 	MonoBehaviour,
 			return;
 		}
 
-		uiController.OnHostStartGame += serverController.StartGame;
-		uiController.OnHostAbortGame += serverController.AbortGame;
-
 		isRunningServer = false;
 		serverController.CloseServer();
 		Destroy(serverController);
 		serverController = null;
 
+	}
+
+	void IServerUIControllable.StartGame()
+	{
+		Debug.Log("[GAMEMANAGER]: Starting game as hosting player");
+		clientController.StartUpdateAsHostingPlayer();
+		serverController.StartGame();
+	}
+
+	void IServerUIControllable.AbortGame()
+	{
+		serverController.AbortGame();
 	}
 
 	private void StartGame(GameStartInfo startInfo)
@@ -161,6 +165,10 @@ public class GameManager : 	MonoBehaviour,
 			var remotePlayer = AvatarInstantiator.Instantiate(new int [] { info.avatarId })[0];
 			var remoteAvatar = remotePlayer.GetComponent<Character>();
 			clientController.SetReceiver(info.playerId, remoteAvatar.transform);
+
+			// Todo(Leo): Only get renderer from avatar and set its layer
+			remoteAvatar.gameObject.SetLayerRecursively(remoteAvatarLayer);
+			
 			// Todo(Leo): RemoteAvatarContoller
 		}
 

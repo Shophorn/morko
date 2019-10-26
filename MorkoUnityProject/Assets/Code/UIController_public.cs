@@ -7,16 +7,12 @@ using UnityEngine.UI;
 
 using Morko;
 using Morko.Network;
-
-public interface IClientControls
-{
-// 	void BeginJoin();
-// 	void EndJoin();
-// 	void RequestJoin(JoinInfo joinInfo);
-}
-
 public interface IClientUIControllable
 {
+	// 	void BeginJoin();
+	// 	void EndJoin();
+	// 	void RequestJoin(JoinInfo joinInfo);
+
 	void OnClientReady();
 	void OnRequestJoin(JoinInfo joinInfo);
 }
@@ -25,6 +21,10 @@ public interface IServerUIControllable
 {
 	void CreateServer(ServerInfo serverInfo);
 	void DestroyServer();
+
+	// Note(Leo): These are called when hosting player starts or stops game
+	void StartGame();
+	void AbortGame();
 }
 
 public class JoinInfo
@@ -41,14 +41,6 @@ public partial class UIController
 	public event Action OnEnterJoinView;
 	public event Action OnExitJoinView;
 
-	// public event Action<ServerInfo> OnStartHosting;
-	// public event Action OnStopHosting;
-
-	// Note(Leo): These are called when hosting player starts or stops game
-	public event Action OnHostStartGame;
-	public event Action OnHostAbortGame;
-
-	public event Action OnEnterHostWindow;
 	public event Action OnExitHostWindow;
 	public event Action OnEnterHostLobbyWindow;
 	public event Action OnExitHostLobbyWindow;

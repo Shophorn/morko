@@ -24,9 +24,11 @@
 # This is only needed for net code development
 MorkoUnityProjectCopyForNetDev/
 
-# Python tools. Note that build.py that builds network is not ignored
+# Python and batch tools. Note that build.py that builds network is not ignored
 */__pycache__/
 *.py
+*.bat
 
 # logs
 *.log
+*/log.txt

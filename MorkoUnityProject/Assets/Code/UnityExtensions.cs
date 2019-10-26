@@ -25,4 +25,19 @@ public static class UnityExtensions
 			MonoBehaviour.Destroy(instance);
 		}
 	}
+
+	public static void SetLayerRecursively(this GameObject gameObject, int layer)
+	{
+		if (gameObject == null)
+		{
+			Debug.LogError("Cannot set layer of 'null' GameObject");
+		}
+
+		gameObject.layer = layer;
+
+		foreach (Transform child in gameObject.transform)
+		{
+			child.gameObject.SetLayerRecursively(layer);
+		}
+	}
 }
