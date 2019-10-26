@@ -99,82 +99,60 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private Button optionsWindowCancelButton;
 	[SerializeField] private Button creditsWindowCancelButton;
 
-	[SerializeField] private InfiniteScroll mapSelectionList;
-	[SerializeField] private InfiniteScroll characterSelectionListHost;
-	[SerializeField] private InfiniteScroll characterSelectionListPlayer;
-	[SerializeField] private ScrollContent mapScrollContent;
-	[SerializeField] private ScrollContent characterScrollContentHost;
-	[SerializeField] private ScrollContent characterScrollContentPlayer;
-
 	[SerializeField] private Text playerName;
+	[SerializeField] private GameObject listItemContainer;
 
-	private void BackToMainMenu()
+	private void DisableAll()
 	{
+		listItemContainer.SetActive(false);
 		serverCreationWindow.SetActive(false);
 		joinServerWindow.SetActive(false);
 		hostLobbyWindow.SetActive(false);
 		playerLobbyWindow.SetActive(false);
 		optionsWindow.SetActive(false);
 		creditsWindow.SetActive(false);
+		mainMenuWindow.SetActive(false);
+	}
+
+	private void BackToMainMenu()
+	{
+		DisableAll();
 		mainMenuWindow.SetActive(true);
 	}
 	private void MoveToServerCreationWindow()
 	{
-		joinServerWindow.SetActive(false);
-		hostLobbyWindow.SetActive(false);
-		playerLobbyWindow.SetActive(false);
-		optionsWindow.SetActive(false);
-		creditsWindow.SetActive(false);
+		DisableAll();
 		mainMenuWindow.SetActive(true);
 		serverCreationWindow.SetActive(true);
+		listItemContainer.SetActive(true);
 	}
 	private void MoveToServerJoiningWindow()
 	{
-		serverCreationWindow.SetActive(false);
-		hostLobbyWindow.SetActive(false);
-		playerLobbyWindow.SetActive(false);
-		optionsWindow.SetActive(false);
-		creditsWindow.SetActive(false);
+		DisableAll();
 		mainMenuWindow.SetActive(true);
 		joinServerWindow.SetActive(true);
 	}
 	private void MoveToHostLobbyWindow()
 	{
-		serverCreationWindow.SetActive(false);
+		DisableAll();
 		hostLobbyWindow.SetActive(true);
-		playerLobbyWindow.SetActive(false);
-		optionsWindow.SetActive(false);
-		creditsWindow.SetActive(false);
-		mainMenuWindow.SetActive(false);
-		joinServerWindow.SetActive(false);
+		listItemContainer.SetActive(true);
 	}
 	private void MoveToPlayerLobbyWindow()
 	{
-		serverCreationWindow.SetActive(false);
-		hostLobbyWindow.SetActive(false);
+		DisableAll();
 		playerLobbyWindow.SetActive(true);
-		optionsWindow.SetActive(false);
-		creditsWindow.SetActive(false);
-		mainMenuWindow.SetActive(false);
-		joinServerWindow.SetActive(false);
+		listItemContainer.SetActive(true);
 	}
 	private void MoveToOptionsWindow()
 	{
-		joinServerWindow.SetActive(false);
-		serverCreationWindow.SetActive(false);
-		hostLobbyWindow.SetActive(false);
-		playerLobbyWindow.SetActive(false);
-		creditsWindow.SetActive(false);
+		DisableAll();
 		optionsWindow.SetActive(true);
 		mainMenuWindow.SetActive(true);
 	}
 	private void MoveToCreditsWindow()
 	{
-		joinServerWindow.SetActive(false);
-		serverCreationWindow.SetActive(false);
-		hostLobbyWindow.SetActive(false);
-		playerLobbyWindow.SetActive(false);
-		optionsWindow.SetActive(false);
+		DisableAll();
 		creditsWindow.SetActive(true);
 		mainMenuWindow.SetActive(true);
 	}
