@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
+using System.Collections;
 using UnityEngine.UI;
 
 namespace Morko
@@ -144,18 +144,19 @@ namespace Morko
 			for (int i = 0; i < listElements.Length; i++)
 			{
 				listElements[i] = Instantiate(listItem, new Vector3(transform.position.x, transform.position.y, 0), Quaternion.identity);
-				SetListElementType(listElements[i], selectionType);
+				PopulateListItem(listElements[i], selectionType, i);
+				//SetListElementType(listElements[i], selectionType);
 				listElements[i].listItemId = i;
 
 				if(selectionType == 0)
 				{
 					listElements[i].listItemName = levelNames[i];
-					listElements[i].transform.Find("Name").GetComponent<Text>().text = levelNames[i];
+					listElements[i].transform.Find("NameLabel").GetComponent<Text>().text = levelNames[i];
 				}
 				else
 				{
 					listElements[i].listItemName = characterNames[i];
-					listElements[i].transform.Find("Name").GetComponent<Text>().text = characterNames[i];
+					listElements[i].transform.Find("NameLabel").GetComponent<Text>().text = characterNames[i];
 				}
 				listElements[i].transform.parent = transform;
 			}
@@ -167,6 +168,29 @@ namespace Morko
 			for(int i = 0; i < transform.childCount; i++)
 			{
 				Destroy(transform.GetChild(i).gameObject);
+			}
+		}
+
+		private void PopulateListItem(ListItem item, int selectionType, int index)
+		{
+			Debug.Log("Index: " + index);
+
+			switch(selectionType)
+			{
+				case 0://Maps
+					GameObject mapContent = Instantiate(item.maps[index],item.transform.position,Quaternion.identity);
+					mapContent.transform.Rotate(-90,0,0);
+					mapContent.transform.SetParent(item.transform);
+					mapContent.transform.localPosition = new Vector3(0, -0.1f,-0.2f);
+					mapContent.transform.localScale = new Vector3(10, 10, 10);
+					break;
+				case 1://Characters
+					GameObject characterContent = Instantiate(item.characters[index], item.transform.position, Quaternion.identity);
+					characterContent.transform.Rotate(-90, 0, 0);
+					characterContent.transform.SetParent(item.transform);
+					characterContent.transform.localPosition = new Vector3(0, -0.1f,-0.2f);
+					characterContent.transform.localScale = new Vector3(10, 10, 10);
+					break;
 			}
 		}
 
@@ -215,22 +239,29 @@ namespace Morko
 			}
 		}
 
-		public void SnapToCenter()
+		IEnumerator LerpTowardsCenter()
 		{
+			float time = 0;
 			ListItem shortest = null;
 			float shortestDistance = 1000;
+			float distance = 0;
 			foreach (var item in listElements)
 			{
-				float distance = Vector3.Distance(item.transform.position, listGrid.transform.position);
-				if(distance < shortestDistance)
+				distance = Vector3.Distance(item.transform.position, listGrid.transform.position);
+				if (distance < shortestDistance)
 				{
 					shortestDistance = distance;
 					shortest = item;
 				}
 			}
-
-			transform.Translate(-shortest.transform.position);
 			currentItem = shortest;
+
+			while (time < 1.0f)
+			{
+				time += Time.deltaTime;
+				transform.localPosition = new Vector3(Mathf.Lerp(transform.localPosition.x, transform.localPosition.x - shortest.transform.position.x, time), transform.localPosition.y, transform.localPosition.z);
+				yield return null;
+			}
 		}
 	}
 }

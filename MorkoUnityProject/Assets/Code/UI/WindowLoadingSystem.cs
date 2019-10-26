@@ -105,7 +105,7 @@ namespace Morko
 
 		public void StartGame()
 		{
-			StartCoroutine(LoadScene(scrollContent.currentItem.id + 1));
+			StartCoroutine(LoadScene(scrollContent.currentItem.listItemId + 1));
 			lobbyHost.SetActive(false);
 			lobbyPlayer.SetActive(false);
 		}
@@ -130,7 +130,7 @@ namespace Morko
 
 		public void ExitCurrentGame()
 		{
-			SceneManager.UnloadSceneAsync(scrollContent.currentItem.id + 1);
+			SceneManager.UnloadSceneAsync(scrollContent.currentItem.listItemId + 1);
 			SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(0));
 			BackToMainMenu();
 		}

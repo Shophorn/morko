@@ -79,10 +79,10 @@ namespace Morko
 			scrollContent.transform.localPosition = new Vector3(scrollContent.transform.localPosition.x + scrollFactor * scrollSpeed, 0, 0);
 
 
-			if (isScrolling && Mathf.Abs(scrollRect.velocity.x) < 3.0f)
+			if (isScrolling && Mathf.Abs(scrollRect.velocity.x) < 10.0f)
 			{
 				isScrolling = false;
-				scrollContent.SnapToCenter();
+				scrollContent.StartCoroutine("LerpTowardsCenter");
 			}
 			currentItem = scrollContent.currentItem;
 			
@@ -94,6 +94,7 @@ namespace Morko
 		/// <param name="eventData">The data related to the drag event.</param>
 		public void OnBeginDrag(PointerEventData eventData)
 		{
+			isScrolling = false;
 			lastDragPosition = eventData.position;
 		}
 
