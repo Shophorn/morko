@@ -7,8 +7,6 @@
 */Packages/
 */Builds/
 
-*/JetBrains.meta
-
 # We may need to rethink this, but it is now ignored becouse it has HintPath property
 # that is full path to a location in current computer where some required files are.
 # Apparently unity generates these anyway when reloading scripts.
@@ -25,3 +23,4 @@
 
 # This is only needed for net code development
 MorkoUnityProjectCopyForNetDev/
+MorkoUnityProject/Assets/Plugins/Editor/JetBrains.meta
