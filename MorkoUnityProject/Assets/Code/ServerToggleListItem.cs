@@ -5,30 +5,33 @@ namespace Morko
 {
 	public class ServerToggleListItem : MonoBehaviour
 	{
-		public int id;
 		public Text label;
-		public ToggleGroup toggleGroup;
-		public JoinRoomWindow joinWindow;
+		public Toggle toggle;
 
-		public RoomInfoPanel infoDisplay;
+		
+		// public int id;
+		// public ToggleGroup toggleGroup;
+		// public JoinRoomWindow joinWindow;
+
+		// public RoomInfoPanel infoDisplay;
 		
 
-		void Start()
-		{
-			toggleGroup = GameObject.Find("Togglegroup").GetComponent<ToggleGroup>();
-			GetComponent<Toggle>().group = toggleGroup;
-			infoDisplay = GameObject.Find("Info Panel").GetComponent<RoomInfoPanel>();
-			joinWindow = GameObject.Find("Join Window").GetComponent<JoinRoomWindow>();
-		}
+		// void Start()
+		// {
+		// 	toggleGroup = GameObject.Find("Togglegroup").GetComponent<ToggleGroup>();
+		// 	GetComponent<Toggle>().group = toggleGroup;
+		// 	infoDisplay = GameObject.Find("Info Panel").GetComponent<RoomInfoPanel>();
+		// 	joinWindow = GameObject.Find("Join Window").GetComponent<JoinRoomWindow>();
+		// }
 
-		public void DisplayItemInfo()
-		{
-			infoDisplay.DisplayRoomInfo(id);
-		}
+		// public void DisplayItemInfo()
+		// {
+		// 	infoDisplay.DisplayRoomInfo(id);
+		// }
 
-		public void JoinRoom()
-		{
-			joinWindow.roomToBeJoined = id;
-		}
+		// public void JoinRoom()
+		// {
+		// 	joinWindow.roomToBeJoined = id;
+		// }
 	}
 }

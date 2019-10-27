@@ -43,7 +43,7 @@ namespace Morko.Network
 	{
 		public NetworkCommand Command => NetworkCommand.ServerIntroduce;
 
-		public NetworkName name;
+		public NetworkName serverName;
 		public int mapIndex;
 		public int maxPlayers;
 		public int gameDurationSeconds;
@@ -75,6 +75,9 @@ namespace Morko.Network
 		public NetworkCommand Command => NetworkCommand.ClientRequestJoin;
 
 		public NetworkName playerName;
+
+		[MarshalAs(UnmanagedType.I1)]
+		public bool isHostingPlayer;
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]

@@ -24,3 +24,12 @@
 # This is only needed for net code development
 MorkoUnityProjectCopyForNetDev/
 MorkoUnityProject/Assets/Plugins/Editor/JetBrains.meta
+
+# Python and batch tools. Note that build.py that builds network is not ignored
+*/__pycache__/
+*.py
+*.bat
+
+# logs
+*.log
+*/log.txt

@@ -21,7 +21,7 @@ namespace Morko
 
 		private void OnEnable()
 		{
-			CreateRoomToggleList();
+			// CreateRoomToggleList();
 		}
 
 		private void OnDisable()

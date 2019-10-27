@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,6 +28,11 @@ public class DiscreteInputField : Selectable
 
 	public Format format;
 
+	protected override void Awake()
+	{
+		incrementButton.onClick.AddListener(Increment);
+		decrementButton.onClick.AddListener(Decrement);
+	}
 
 	private void Decrement()
 	{
@@ -49,17 +46,16 @@ public class DiscreteInputField : Selectable
 		RefreshValue();
 	}
 
-	private void OnEnable()
-	{
-		incrementButton.onClick.AddListener(Increment);
-		decrementButton.onClick.AddListener(Decrement);
-	}
+	/* Todo(Leo, Joonas): Maybe we could use this to use arrows for decrement and increment
+	Also use this.Select and OnSelect (on increment and decrement buttons) to select this
+	when using mouse to hover. See https://docs.unity3d.com/2017.4/Documentation/ScriptReference/UI.Selectable.html
+	for more details */
+	// public override Selectable FindSelectableOnLeft()
+	// {
+	// 	Decrement();
+	// 	return this as Selectable;		
+	// }
 
-	private void OnDisable()
-	{
-		incrementButton.onClick.RemoveListener(Increment);
-		decrementButton.onClick.RemoveListener(Decrement);
-	}
 
 	/* Note(Leo): This function validates value and sets current
 	value on display obeying format rules. */
@@ -82,9 +78,7 @@ public class DiscreteInputField : Selectable
 				break;
 
 			case Format.Time:
-				int minutes = IntValue / 60;
-				int seconds = IntValue % 60;
-				valueDisplay.text = $"{minutes.ToString("00")}:{seconds.ToString("00")}";
+				valueDisplay.text = TimeFormat.ToTimeFormat(IntValue);
 				break;
 
 			default:
@@ -93,12 +87,13 @@ public class DiscreteInputField : Selectable
 		}
 	}
 
-	private void Reset()
+	#if UNITY_EDITOR
+	protected override void Reset()
 	{
 		DetectComponents();
 	}
 
-	private void OnValidate()
+	protected override void OnValidate()
 	{
 		RefreshValue();
 	}
@@ -125,4 +120,5 @@ public class DiscreteInputField : Selectable
 			}
 		}
 	}
+	#endif
 }

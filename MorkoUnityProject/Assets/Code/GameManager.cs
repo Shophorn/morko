@@ -1,5 +1,7 @@
 using System;
+
 using System.Collections;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,14 +9,18 @@ using UnityEngine.SceneManagement;
 using Morko;
 using Morko.Network;
 
-public class GameManager : MonoBehaviour
+public class GameManager : 	MonoBehaviour,
+							IClientUIControllable,
+							IClientNetControllable,
+							IServerUIControllable
 {
 	public UIController uiController;
 	public ServerController serverController;
 	public ClientController clientController;
 
-	private bool isRunningServer = false;
-	private bool isListeningBroadcasts = false;
+	private bool isRunningServer 		= false;
+	private bool isListeningBroadcasts 	= false;
+	private bool isConnectedToServer 	= false;
 
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
@@ -23,34 +29,49 @@ public class GameManager : MonoBehaviour
 	public PostFx gameCameraPrefab;
 	public GameObject visibilityEffectPrefab;
 
+	public int localAvatarLayer;
+	public int remoteAvatarLayer;
+
 	public void Awake()
 	{
-		uiController.OnRequestJoin += (info) =>
-		{
-			if (info == null)
-			{
-				// Todo(Leo): this is debug path
-				StartGame(null);
-			}
-			else
-			{
-				clientController.selectedServerIndex = info.selectedServerIndex;
-				clientController.playerName = info.playerName;
-				Debug.Log($"Joined server as {info.playerName}, server index = {info.selectedServerIndex}");
-				clientController.JoinSelectedServer();
-			}
-		};
-
-		uiController.OnStartHosting += StartServer;
-		uiController.OnStopHosting += StopServer;
-
-		uiController.OnEnterJoinWindow += StartListenBroadcast;
-		uiController.OnExitJoinWindow += StopListenBroadcast;
+		uiController.OnEnterJoinView += StartListenBroadcast;
+		uiController.OnExitJoinView += StopListenBroadcast;
 
 		uiController.OnQuit += ApplicationQuit;
 	}
 
-	private void StartServer(ServerInfo info)
+	void IClientUIControllable.OnClientReady()
+	{
+		Debug.Log("Player is ready");
+		MainThreadWorker.AddJob(clientController.StartUpdate);
+	}
+
+	void IClientUIControllable.OnRequestJoin(JoinInfo joinInfo)
+	{
+		if (joinInfo == null)
+		{
+			Debug.LogError("No request join info provided");
+			return;
+		}
+
+		clientController.selectedServerIndex = joinInfo.selectedServerIndex;
+		clientController.playerName = joinInfo.playerName;
+		Debug.Log($"Joined server as {joinInfo.playerName}, server index = {joinInfo.selectedServerIndex}");
+		clientController.JoinSelectedServer();
+	}
+
+	void IClientNetControllable.OnServerStartGame(GameStartInfo gameStartInfo)
+	{
+		Debug.Log("Game manager starting game");
+		MainThreadWorker.AddJob(() => StartGame(gameStartInfo));
+	}
+
+	void IClientNetControllable.OnServerListChanged(ServerInfo [] servers)
+	{
+		MainThreadWorker.AddJob(() => uiController.SetServerList(servers));
+	}
+
+	void IServerUIControllable.CreateServer(ServerInfo serverInfo)
 	{
 		if (isRunningServer)
 		{
@@ -63,7 +84,7 @@ public class GameManager : MonoBehaviour
 		serverController = gameObject.AddComponent<ServerController>();
 		var createInfo = new ServerCreateInfo
 		{
-			serverName = info.name,
+			serverName = serverInfo.serverName,
 			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
 			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
 			logFunction = Debug.Log
@@ -71,11 +92,13 @@ public class GameManager : MonoBehaviour
 		serverController.CreateServer(createInfo);
 		serverController.StartBroadcast();
 
-		uiController.OnStartGame += serverController.StartGame;
-		uiController.OnAbortGame += serverController.AbortGame;
+		 // Todo(Leo): Join itself to server
+		clientController.CreateHostingPlayerConnection();
+		int hostingPlayerId = serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
+		clientController.ClientId = hostingPlayerId;
 	}
 
-	private void StopServer()
+	void IServerUIControllable.DestroyServer()
 	{
 		if (isRunningServer == false)
 		{
@@ -87,39 +110,71 @@ public class GameManager : MonoBehaviour
 		serverController.CloseServer();
 		Destroy(serverController);
 		serverController = null;
+
+	}
+
+	void IServerUIControllable.StartGame()
+	{
+		Debug.Log("[GAMEMANAGER]: Starting game as hosting player");
+		clientController.StartUpdateAsHostingPlayer();
+		serverController.StartGame();
+	}
+
+	void IServerUIControllable.AbortGame()
+	{
+		serverController.AbortGame();
 	}
 
 	private void StartGame(GameStartInfo startInfo)
 	{
 		Debug.Log("Client says server starts the game :)");
 
-
 		uiController.Hide();
 		SceneManager.LoadScene("Map01", LoadSceneMode.Additive);
 		// TODO(Leo): clientController.SendSceneLoadedMessage();
 
-		var localPlayer = AvatarInstantiator.Instantiate(new int [] {0})[0];
-		var avatar = localPlayer.GetComponent<Character>();
-		var localController = LocalController.Create(avatar, normalSettings, morkoSettings);
+		int localPlayerId = clientController.ClientId;
 
-		var visibilityObject = Instantiate(visibilityEffectPrefab);
-		visibilityObject.transform.SetParent(avatar.transform.root);
-		visibilityObject.transform.localPosition = Vector3.up * 0.5f;
-		visibilityObject.transform.rotation = Quaternion.identity;
+		var localPlayerInfo = startInfo.localPlayer;
+		var localPlayer 	= AvatarInstantiator.Instantiate(new int [] {localPlayerInfo.avatarId})[0];
+		var localAvatar 	= localPlayer.GetComponent<Character>();
+		var localController = LocalController.Create(localAvatar, normalSettings, morkoSettings);
+
+		clientController.SetSender(localAvatar.transform);
+
+		var visibilityObject = Instantiate(	visibilityEffectPrefab,
+											Vector3.up * 1.0f,
+											Quaternion.identity,
+											localAvatar.transform.root);
 
 		LocalCameraController cameraController = Instantiate(cameraControllerPrefab);
 		cameraController.target = localPlayer.transform;
 
-		PostFx gameCamera = Instantiate(gameCameraPrefab);
-		gameCamera.transform.SetParent(cameraController.transform);
-		gameCamera.transform.localPosition = Vector3.zero;
-		gameCamera.transform.rotation = Quaternion.identity;
+		PostFx gameCamera = Instantiate(	gameCameraPrefab,
+											Vector3.zero,
+											Quaternion.identity,
+											cameraController.transform);
+
 		localController.TEMPORARYSetCamera(gameCamera.camMain);
 
-		// Load characters
-		// Load map
+		clientController.InitializeReceivers();
+		int remotePlayerCount = startInfo.remotePlayers.Length;
+		for (int remotePlayerIndex = 0; remotePlayerIndex < remotePlayerCount; remotePlayerIndex++)
+		{
+			var info = startInfo.remotePlayers[remotePlayerIndex];
+			var remotePlayer = AvatarInstantiator.Instantiate(new int [] { info.avatarId })[0];
+			var remoteAvatar = remotePlayer.GetComponent<Character>();
+			clientController.SetReceiver(info.playerId, remoteAvatar.transform);
 
-		// Todo(Leo): Definetly not like this
+			// Todo(Leo): Only get renderer from avatar and set its layer
+			remoteAvatar.gameObject.SetLayerRecursively(remoteAvatarLayer);
+			
+			// Todo(Leo): RemoteAvatarContoller
+		}
+
+		clientController.StartNetworkUpdate();
+
+		// Todo(Leo): Most definetly not like this
 		StartCoroutine(UpdateLocalCharacter(localController));
 	}
 
@@ -131,7 +186,7 @@ public class GameManager : MonoBehaviour
 			yield return null;
 		}
 	}
-
+	
 	private void StartListenBroadcast()
 	{
 		if (isListeningBroadcasts)
@@ -141,10 +196,7 @@ public class GameManager : MonoBehaviour
 		}
 
 		isListeningBroadcasts = true;
-
 		clientController.StartListenBroadcast();
-		clientController.OnServerListChanged 	+= uiController.SetServerList;
-		clientController.OnServerStartGame 		+= StartGame;
 	}
 
 	private void StopListenBroadcast()
@@ -156,10 +208,7 @@ public class GameManager : MonoBehaviour
 		}
 
 		isListeningBroadcasts = false;
-
 		clientController.StopListenBroadcast();
-		clientController.OnServerListChanged 	-= uiController.SetServerList;
-		clientController.OnServerStartGame 		-= StartGame;
 	}
 
 	private void ApplicationQuit()

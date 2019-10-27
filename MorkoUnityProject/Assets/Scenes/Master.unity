@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -170,7 +170,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &106828332
 RectTransform:
@@ -632,8 +632,8 @@ RectTransform:
   - {fileID: 8127715343243216870}
   - {fileID: 5671196229815622859}
   - {fileID: 6913323677503812492}
-  - {fileID: 8465771803356880449}
   - {fileID: 343255302511604565}
+  - {fileID: 8465771803356880449}
   m_Father: {fileID: 7661154685187478223}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -658,7 +658,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &481212655
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1262,6 +1262,7 @@ GameObject:
   - component: {fileID: 942324878}
   - component: {fileID: 942324877}
   - component: {fileID: 942324880}
+  - component: {fileID: 942324881}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1281,17 +1282,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0f95059a0b3ad74cb65ee389fc3629d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainMenuHostWindowButton: {fileID: 7661154683254043305}
-  mainMenuJoinWindowButton: {fileID: 7661154685026673029}
-  mainMenuCreditsButton: {fileID: 669679998}
-  mainMenuOptionsButton: {fileID: 204256468}
-  mainMenuQuitButton: {fileID: 7661154684629534676}
-  hostWindowCancelButton: {fileID: 7661154684967306596}
-  hostWindowCreateRoomButton: {fileID: 7661154685058886460}
-  hostViewPlayerNameField: {fileID: 6989779992475297723}
-  hostViewServerNameField: {fileID: 8808846694546300034}
-  hostViewPlayerCountField: {fileID: 1529836049}
-  hostViewGameDurationField: {fileID: 1195079069}
+  mainView:
+    hostViewButton: {fileID: 7661154683254043305}
+    joinViewButton: {fileID: 7661154685026673029}
+    creditsButton: {fileID: 669679998}
+    optionsButton: {fileID: 204256468}
+    quitButton: {fileID: 7661154684629534676}
+  hostView:
+    cancelButton: {fileID: 7661154684967306596}
+    createRoomButton: {fileID: 7661154685058886460}
+    playerNameField: {fileID: 8412065752888684037}
+    serverNameField: {fileID: 3767476663472565279}
+    playerCountField: {fileID: 1529836049}
+    gameDurationField: {fileID: 1195079069}
+  hostLobbyView:
+    playerNameField: {fileID: 0}
+    startGameButton: {fileID: 4984093923553904915}
+    cancelButton: {fileID: 8641528569711785738}
+  joinView:
+    availableServersToggleGroup: {fileID: 5619947737518011497}
+    availableServersToggleParent: {fileID: 8995193833508820551}
+    availableServersTogglePrefab: {fileID: 114836259103543732, guid: 91fb2e58c72948249a3df2f696e75e33,
+      type: 3}
+    selectedServerIndex: -1
+    hostingPlayerNameText: {fileID: 337083724088884057}
+    mapNameText: {fileID: 1757921142990623306}
+    joinedPlayersCountText: {fileID: 964006030635608671}
+    gameDurationText: {fileID: 7725679618990368367}
+    playerNameField: {fileID: 4394025697392063654}
+    requestJoinButton: {fileID: 7719506723003602161}
+    cancelButton: {fileID: 1450761817555302041}
+  clientLobbyView:
+    readyButton: {fileID: 815620431732751025}
+    cancelButton: {fileID: 5070263255541826611}
+  mainGameObject: {fileID: 7661154683663489970}
   mainMenuWindow: {fileID: 7661154683538140036}
   joinServerWindow: {fileID: 421722676}
   serverCreationWindow: {fileID: 7661154684778053505}
@@ -1307,10 +1331,6 @@ MonoBehaviour:
   levelName: {fileID: 1757921142990623306}
   playerAmount: {fileID: 964006030635608671}
   roundLength: {fileID: 7725679618990368367}
-  joinViewCancelButton: {fileID: 1450761817555302041}
-  hostLobbyWindowCancelButton: {fileID: 8641528569711785738}
-  joinWindowRequestJoinButton: {fileID: 7719506723003602161}
-  joinWindowCancelButton: {fileID: 1450761817555302041}
   playerLobbyWindowCancelButton: {fileID: 5070263255541826611}
   optionsWindowCancelButton: {fileID: 1535808898}
   creditsWindowCancelButton: {fileID: 1140024884}
@@ -1321,7 +1341,6 @@ MonoBehaviour:
   characterScrollContentHost: {fileID: 7331647166258484149}
   characterScrollContentPlayer: {fileID: 5794803171085065256}
   playerName: {fileID: 5244491222053330152}
-  selectedServerId: 0
 --- !u!114 &942324878
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1337,11 +1356,16 @@ MonoBehaviour:
   uiController: {fileID: 942324877}
   serverController: {fileID: 0}
   clientController: {fileID: 942324880}
-  normalSettings: {fileID: 0}
-  morkoSettings: {fileID: 0}
-  cameraControllerPrefab: {fileID: 0}
-  gameCameraPrefab: {fileID: 0}
-  visibilityEffectPrefab: {fileID: 0}
+  normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
+  morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
+  cameraControllerPrefab: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
+    type: 3}
+  gameCameraPrefab: {fileID: 7851460785377152831, guid: a67acd97b0ada524cb1286887f512123,
+    type: 3}
+  visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
+    type: 3}
+  localAvatarLayer: 0
+  remoteAvatarLayer: 11
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0
@@ -1354,7 +1378,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &942324880
 MonoBehaviour:
@@ -1372,6 +1396,18 @@ MonoBehaviour:
   connectionRetryTimeMs: 500
   playerName: Default Player
   selectedServerIndex: 0
+--- !u!114 &942324881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942324876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 607197596728a834b923de9062e98081, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &952283472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2096,7 +2132,7 @@ GameObject:
   - component: {fileID: 1512451083}
   - component: {fileID: 1512451082}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: UICamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2375,75 +2411,6 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
---- !u!1 &1608466953
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1608466955}
-  - component: {fileID: 1608466954}
-  m_Layer: 0
-  m_Name: Directional Light
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &1608466954
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608466953}
-  m_Enabled: 1
-  serializedVersion: 8
-  m_Type: 1
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
-  m_Range: 10
-  m_SpotAngle: 30
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
---- !u!4 &1608466955
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608466953}
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!222 &1740821953
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2734,7 +2701,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1919530682
 GameObject:
@@ -3158,7 +3125,7 @@ RectTransform:
   m_Children:
   - {fileID: 1159760986496607334}
   m_Father: {fileID: 421722679}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3366,7 +3333,7 @@ GameObject:
   - component: {fileID: 4313395537465349956}
   - component: {fileID: 1757921142990623306}
   m_Layer: 5
-  m_Name: Level Name
+  m_Name: MapNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3404,7 +3371,7 @@ GameObject:
   - component: {fileID: 7997850751189252099}
   - component: {fileID: 7719506723003602161}
   m_Layer: 5
-  m_Name: Join Button
+  m_Name: RequestJoinButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4135,7 +4102,7 @@ GameObject:
   - component: {fileID: 2583824998465045887}
   - component: {fileID: 4394025697392063654}
   m_Layer: 5
-  m_Name: InputField
+  m_Name: PlayerNameField
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5132,7 +5099,7 @@ GameObject:
   - component: {fileID: 588655522117422206}
   - component: {fileID: 2523407825159274769}
   m_Layer: 5
-  m_Name: Text
+  m_Name: PlayerNameLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5167,7 +5134,7 @@ GameObject:
   - component: {fileID: 561200372086918146}
   - component: {fileID: 3504021131253069192}
   m_Layer: 5
-  m_Name: Joinable Rooms
+  m_Name: AvailableServers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5508,7 +5475,7 @@ GameObject:
   - component: {fileID: 2474245155825002776}
   - component: {fileID: 4984093923553904915}
   m_Layer: 5
-  m_Name: Start Game Button
+  m_Name: StartGameButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5527,7 +5494,7 @@ GameObject:
   - component: {fileID: 6208883016551123351}
   - component: {fileID: 1450761817555302041}
   m_Layer: 5
-  m_Name: Back To Menu Button
+  m_Name: CancelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6225,12 +6192,12 @@ MonoBehaviour:
   currentItem: {fileID: 0}
   levelImages: []
   characterImages:
-  - {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 10911, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10901, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10913, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10911, guid: 0000000000000000f000000000000000, type: 3}
   amountOfCharacters: 5
   gridCenter: {fileID: 4326401630397808766}
   levelNames: []
@@ -6496,7 +6463,7 @@ GameObject:
   - component: {fileID: 6913323677503812492}
   - component: {fileID: 1312790485}
   m_Layer: 5
-  m_Name: Info Panel
+  m_Name: SelectedServerInfo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7047,12 +7014,12 @@ MonoBehaviour:
   currentItem: {fileID: 0}
   levelImages: []
   characterImages:
-  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10901, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10907, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10913, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 3}
   amountOfCharacters: 5
   gridCenter: {fileID: 1679788636510551486}
   levelNames: []
@@ -7079,7 +7046,7 @@ GameObject:
   - component: {fileID: 63184671412444419}
   - component: {fileID: 7725679618990368367}
   m_Layer: 5
-  m_Name: Round length
+  m_Name: GameDurationText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7150,7 +7117,7 @@ GameObject:
   - component: {fileID: 1000368350875849187}
   - component: {fileID: 337083724088884057}
   m_Layer: 5
-  m_Name: Host Name
+  m_Name: HostingPlayerNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8889,29 +8856,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7997850751189252099}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1419833864}
-        m_MethodName: JoinRoom
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_MethodName: JoinRoom
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &7725679618990368367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8957,7 +8902,7 @@ GameObject:
   - component: {fileID: 8743921636046472992}
   - component: {fileID: 8641528569711785738}
   m_Layer: 5
-  m_Name: Cancel Button
+  m_Name: CancelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9379,7 +9324,7 @@ RectTransform:
   m_Children:
   - {fileID: 2813221881147885139}
   m_Father: {fileID: 421722679}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -9541,12 +9486,12 @@ MonoBehaviour:
   selectionList: {fileID: 641131189390721215}
   currentItem: {fileID: 0}
   levelImages:
-  - {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
-  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 10907, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10901, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10915, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10911, guid: 0000000000000000f000000000000000, type: 3}
+  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 3}
   characterImages: []
   amountOfCharacters: 0
   gridCenter: {fileID: 871969868}
@@ -9569,7 +9514,7 @@ GameObject:
   - component: {fileID: 7185699792629077695}
   - component: {fileID: 964006030635608671}
   m_Layer: 5
-  m_Name: Players joined
+  m_Name: JoinedPlayersCountText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

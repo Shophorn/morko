@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Host Window
+  - Lobby Window
   layers:
   - Default
   - TransparentFX
@@ -18,7 +20,7 @@ TagManager:
   - VisionMask
   - Morko
   - VisionMask2
-  - 
+  - Obstacle
   - 
   - 
   - 

@@ -107,7 +107,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BlurFilterSize: 4
-    - _BrightnessFactor: 0.874
+    - _BrightnessFactor: 0.592
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -120,7 +120,7 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _Modulo: 0.772
-    - _NearClipPlane: 0
+    - _NearClipPlane: -3.51
     - _OcclusionStrength: 1
     - _OutsideBlur: 0.0048
     - _Parallax: 0.02

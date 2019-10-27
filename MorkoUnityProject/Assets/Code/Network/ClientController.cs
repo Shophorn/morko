@@ -16,10 +16,16 @@ using Morko.Threading;
 // Todo(Leo): probably a bad idea to use statically
 using static Morko.Network.Constants;
 
+public interface IClientNetControllable
+{
+	void OnServerStartGame(GameStartInfo gameStartInfo);
+	void OnServerListChanged(ServerInfo [] servers);
+}
+
 [Serializable]
 public class ServerInfo
 {
-	public string name;
+	public string serverName;
 	public int mapIndex;
 	public int maxPlayers;
 	public int gameDurationSeconds;
@@ -33,15 +39,11 @@ public class ServerConnectionInfo
 	public DateTime lastConnectionTime;  
 }
 
-public class PlayerInfo
-{
-
-}
-
 public class GameStartInfo
 {
 	public int mapIndex;
-	public PlayerStartInfo [] netPlayers;
+	public PlayerStartInfo localPlayer;
+	public PlayerStartInfo [] remotePlayers;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -53,7 +55,7 @@ public struct PlayerGameUpdatePackage
 
 public class ClientController : MonoBehaviour
 {
-	[Header("Network Cofiguration")]
+	[Header("Network Configuration")]
 	public int netUpdateIntervalMs = 50;
 	public int connectionRetryTimeMs = 500;
 
@@ -61,12 +63,11 @@ public class ClientController : MonoBehaviour
 	private float nextNetUpdateTime;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-
 	public bool AutoStart { get; set; }
 
 	[Header("Player info")]
 	[HideInInspector] public string playerName = "Default Player";
-	[HideInInspector] public int ClientId { get; private set; } = -1;
+	[HideInInspector] public int ClientId { get; set; } = -1;
 
 	[HideInInspector] public int selectedServerIndex;
 
@@ -77,9 +78,10 @@ public class ClientController : MonoBehaviour
 	public GameObject AvatarPrefab { get; set; }
 	private Transform senderTransform;
 	private Dictionary<int, Transform> receiverTransforms;
-	private Dictionary<int, Synchronized<Vector3>> receivedPositions;
+	private Dictionary<int, Atomic<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
+	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
 
 	private readonly ThreadControl detectServersThread = new ThreadControl();
 	private readonly ThreadControl receiveUpdateThread = new ThreadControl();
@@ -87,91 +89,47 @@ public class ClientController : MonoBehaviour
 		= new ThreadControl<SendUpdateThread>();
 
 	private bool doNetworkUpdate = false;
-	private static readonly ConcurrentQueue<Action> mainThreadSyncQueue = new ConcurrentQueue<Action>();
-
 
 	// Event section
-	public event Action<ServerInfo[]> OnServerListChanged;
-	public event Action<GameStartInfo> OnServerStartGame;
-
 	public event Action OnServerAbortGame;
 	public event Action OnServerFinishGame;
 
 	public event Action OnJoinedServer;
 	public event Action OnQuitServer;
 
+	IClientNetControllable netControls;
+
+	private void Awake()
+	{
+		netControls = GetComponent<IClientNetControllable>();
+	}
+
+	public void SetSender(Transform transform)
+	{
+		senderTransform = transform;
+	}
+
+	public void InitializeReceivers()
+	{
+		receiverTransforms = new Dictionary<int, Transform>();
+		receivedPositions = new Dictionary<int, Atomic<Vector3>>();
+	}
+
+	public void SetReceiver(int index, Transform transform)
+	{
+		receiverTransforms.Add(index, transform);
+		receivedPositions.Add(index, new Atomic<Vector3>());
+	}
+
+	public void StartNetworkUpdate()
+	{
+		doNetworkUpdate = true;
+	}
+
 	private ServerInfo [] GetServers()
 	{
 		var result = servers.Select(connection => connection.serverInfo).ToArray();
 		return result;	
-	}
-
-	public void TESTCallOnServerStartGame()
-	{
-		OnServerStartGame?.Invoke(new GameStartInfo());
-	}
-
-	// Note(Leo): Debug class only
-	// [Serializable]
-	// public struct EndPointDisplay
-	// {	
-	// 	public string address;
-	// 	public int port;
-
-	// 	public static EndPointDisplay FromEndPoint(IPEndPoint endPoint)
-	// 	{
-	// 		return new EndPointDisplay
-	// 		{
-	// 			address = endPoint.Address.ToString(),
-	// 			port = endPoint.Port
-	// 		};
-	// 	}
-	// }
-
-	// private void Start()
-	// {
-	// 	if (AutoStart)
-	// 	{
-	// 		StartListenBroadcast();
-	// 	}
-	// }
-
-	public void CreateGameInstance(PlayerStartInfo [] playerStartInfos)
-	{
-		if (playerStartInfos.Length == 0)
-		{
-			Debug.LogError("Cannot start a game with 0 players");
-			return;
-		}
-
-		Debug.Log($"Game session created, {playerStartInfos.Length} players");
-
-
-		senderTransform = Instantiate(AvatarPrefab, Vector3.zero, Quaternion.identity).transform;
-		senderTransform.gameObject.AddComponent<ControlsTest>();
-
-		// Todo(Leo): Load proper level etc.
-
-		receiverTransforms = new Dictionary<int, Transform>();
-		receivedPositions = new Dictionary<int, Synchronized<Vector3>>();
-
-		// int netPlayerCount = playerStartInfos.Length - 1;
-		foreach (var item in playerStartInfos)
-		{
-			if (item.playerId != ClientId)
-			{
-				Vector3 startPosition = Vector3.zero;
-				
-				receiverTransforms.Add(	item.playerId,
-										Instantiate(AvatarPrefab, startPosition, Quaternion.identity).transform);
-
-				receivedPositions.Add(	item.playerId,
-										new Synchronized<Vector3>(startPosition));
-			}
-		}
-
-		// Todo(Leo): Start update here 
-		doNetworkUpdate = true;
 	}
 
 	private class ReceiveThread : IThreadRunner
@@ -209,7 +167,7 @@ public class ClientController : MonoBehaviour
 							{
 								serverInfo = new ServerInfo
 								{ 
-									name = arguments.name
+									serverName = arguments.serverName
 								},
 								endPoint 			= receiveEndPoint,
 								lastConnectionTime 	= DateTime.Now
@@ -219,28 +177,37 @@ public class ClientController : MonoBehaviour
 							{
 								connection.selectedServerIndex = 0;
 							}
+	
+							connection.netControls.OnServerListChanged(connection.GetServers());
 						}
 
-						connection.OnServerListChanged?.Invoke(connection.GetServers());
 					} break;
 
 					case NetworkCommand.ServerStartGame:
 					{
-						Debug.Log("Server called to start game");
+						var arguments 			= contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
+						int playerCount 		= arguments.playerCount;
+						var playerStartInfos 	= packageData.ToArray<PlayerStartInfo>(playerCount);
 
-						var arguments = contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
-						int playerCount = arguments.playerCount;
-						var playerStartInfos = packageData.ToArray<PlayerStartInfo>(playerCount);
-						
-						Debug.Log("Server called to start game, arguments parsed");
-						mainThreadSyncQueue.Enqueue(() => connection.CreateGameInstance(playerStartInfos));
+						Debug.Log($"Server called to start game, arguments parsed, my index = {connection.ClientId}");
 
+						var gameStartInfo = new GameStartInfo
+						{
+							mapIndex = 0,
+							localPlayer = playerStartInfos
+												.Where(info => info.playerId == connection.ClientId)
+												.First(),
+							remotePlayers = playerStartInfos
+												.Where(info => info.playerId != connection.ClientId)
+												.ToArray()
+						};
+						connection.netControls.OnServerStartGame(gameStartInfo);
 					} break;
 
 					case NetworkCommand.ServerGameUpdate:
 					{
 						var arguments = contents.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
-						Debug.Log($"Received update from servers, id {arguments.playerId}");
+						Debug.Log($"Received update from servers, id {arguments.playerId} {((arguments.playerId == connection.ClientId) ? "(skipping own update)" : "")}");
 
 						if (connection.receivedPositions != null)
 						{
@@ -248,14 +215,13 @@ public class ClientController : MonoBehaviour
 							{
 								var package = packageData.ToStructure<PlayerGameUpdatePackage>();
 								connection.receivedPositions[arguments.playerId].Write(package.position);
+								Debug.Log(package.position);
 							}
 						}
 						else
 						{
-							Debug.Log("Receivers not yet created");
+							Debug.LogError("Receivers not yet created");
 						}
-
-
 					} break;
 
 					case NetworkCommand.ServerConfirmJoin:
@@ -293,7 +259,7 @@ public class ClientController : MonoBehaviour
 
 		public void Run()
 		{
-			Debug.Log($"Start SendUpdateThread, endPoint = {endPoint}");
+			Debug.Log($"[CLIENT]: Start SendUpdateThread, endPoint = {endPoint}");
 			while(true)
 			{
 				var updateArgs = new ClientGameUpdateArgs
@@ -309,6 +275,7 @@ public class ClientController : MonoBehaviour
 
 				byte [] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
 
+				Debug.Log("[CLIENT]: Send data to server");
 				udpClient.Send(data, data.Length, endPoint);
 
 				Thread.Sleep(sendDelayMs);
@@ -324,12 +291,36 @@ public class ClientController : MonoBehaviour
 		udpClient = new UdpClient(localEndPoint);
 		udpClient.JoinMulticastGroup(multicastAddress);
 
+		Debug.Log($"Joined server = {joinedServer}");
+
 		sendUpdateThread.Start(new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
 			clientId 	= ClientId,
 			udpClient 	= udpClient,
 			endPoint 	= joinedServer.endPoint
+		});
+		receiveUpdateThread.Start(new ReceiveThread { connection = this });
+	}
+
+	public void CreateHostingPlayerConnection()
+	{
+		var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
+		udpClient = new UdpClient(localEndPoint);
+		udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+		udpClient.JoinMulticastGroup(multicastAddress);
+	}
+
+	public void StartUpdateAsHostingPlayer()
+	{
+		// var serverEndPoint = new IPEndPoint(CurrentEndPoint.Address, Constants.serverReceivePort);
+		var serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), Constants.serverReceivePort);
+		sendUpdateThread.Start(new SendUpdateThread
+		{
+			sendDelayMs = netUpdateIntervalMs,
+			clientId 	= ClientId,
+			udpClient 	= udpClient,
+			endPoint 	= serverEndPoint
 		});
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
@@ -350,13 +341,8 @@ public class ClientController : MonoBehaviour
 			{
 				servers.RemoveAt(serverIndex);
 				serverIndex--;
-				OnServerListChanged?.Invoke(GetServers());
+				netControls.OnServerListChanged(GetServers());
 			}
-		}
-
-		while(mainThreadSyncQueue.TryDequeue(out Action action))
-		{
-			action.Invoke();
 		}
 
 		if (doNetworkUpdate)
@@ -400,5 +386,13 @@ public class ClientController : MonoBehaviour
 
 		int sentBytes = udpClient.Send(data, data.Length, endPoint);
 		Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
+	}
+
+	public void CreateLocalServerConnection()
+	{
+		StartUpdate();
+
+		// var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
+		// udpClient = new UdpClient(localEndPoint);
 	}
 }

@@ -31,9 +31,17 @@ public class PostFx : MonoBehaviour
         Graphics.Blit(source, destination, visionEffectMaterial);
         //Graphics.Blit(maskColorFull, destination, visionEffectMaterial2);
     }
- 
+
+
     private void Start()
     {
+        StartCoroutine(Initialize());
+    }
+
+    IEnumerator Initialize()
+    {
+        yield return new WaitForEndOfFrame();
+
         Debug.Log("START POST FX");
 
         visionEffectMaterial.EnableKeyword("_OriginColor");
