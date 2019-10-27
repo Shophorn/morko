@@ -34,8 +34,8 @@ public class GameManager : 	MonoBehaviour,
 
 	public void Awake()
 	{
-		uiController.OnEnterJoinView += StartListenBroadcast;
-		uiController.OnExitJoinView += StopListenBroadcast;
+		// uiController.OnEnterJoinView += StartListenBroadcast;
+		// uiController.OnExitJoinView += StopListenBroadcast;
 
 		uiController.OnQuit += ApplicationQuit;
 	}
@@ -125,6 +125,18 @@ public class GameManager : 	MonoBehaviour,
 		serverController.AbortGame();
 	}
 
+	void IClientUIControllable.BeginJoin()
+	{
+		Debug.Log("[UI]: Begin join");
+		clientController.StartListenBroadcast();
+	}
+
+	void IClientUIControllable.EndJoin()
+	{
+		Debug.Log("[UI]: End join");	
+		clientController.StopListenBroadcast();
+	}
+
 	private void StartGame(GameStartInfo startInfo)
 	{
 		Debug.Log("Client says server starts the game :)");
@@ -185,30 +197,6 @@ public class GameManager : 	MonoBehaviour,
 			localController.Update();
 			yield return null;
 		}
-	}
-	
-	private void StartListenBroadcast()
-	{
-		if (isListeningBroadcasts)
-		{
-			Debug.LogError("Trying to start joining when already joining.");
-			return;
-		}
-
-		isListeningBroadcasts = true;
-		clientController.StartListenBroadcast();
-	}
-
-	private void StopListenBroadcast()
-	{
-		if (isListeningBroadcasts == false)
-		{
-			Debug.LogError("Trying to stop joining when not joining.");
-			return;
-		}
-
-		isListeningBroadcasts = false;
-		clientController.StopListenBroadcast();
 	}
 
 	private void ApplicationQuit()

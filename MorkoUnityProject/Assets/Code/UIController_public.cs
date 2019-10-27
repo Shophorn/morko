@@ -9,9 +9,8 @@ using Morko;
 using Morko.Network;
 public interface IClientUIControllable
 {
-	// 	void BeginJoin();
-	// 	void EndJoin();
-	// 	void RequestJoin(JoinInfo joinInfo);
+	void BeginJoin();
+	void EndJoin();
 
 	void OnClientReady();
 	void OnRequestJoin(JoinInfo joinInfo);
@@ -38,9 +37,6 @@ public class JoinInfo
 are separated. Users only must depend on this public side. */
 public partial class UIController
 {
-	public event Action OnEnterJoinView;
-	public event Action OnExitJoinView;
-
 	public event Action OnExitHostWindow;
 	public event Action OnEnterHostLobbyWindow;
 	public event Action OnExitHostLobbyWindow;

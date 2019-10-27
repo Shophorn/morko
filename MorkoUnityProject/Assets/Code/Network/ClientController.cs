@@ -53,7 +53,7 @@ public struct PlayerGameUpdatePackage
 	public Vector3 position;
 }
 
-public class ClientController : MonoBehaviour
+public partial class ClientController : MonoBehaviour
 {
 	[Header("Network Configuration")]
 	public int netUpdateIntervalMs = 50;
@@ -130,159 +130,6 @@ public class ClientController : MonoBehaviour
 	{
 		var result = servers.Select(connection => connection.serverInfo).ToArray();
 		return result;	
-	}
-
-	private class ReceiveThread : IThreadRunner
-	{
-		public ClientController connection;
-
-		public void Run ()
-		{
-			var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-			while(true)
-			{
-				if (ProtocolFormat.TryParseCommand(	connection.udpClient.Receive(ref receiveEndPoint),
-													out NetworkCommand command,
-													out byte [] contents) == false)
-				{
-					continue;
-				}
-
-				switch (command)
-				{
-					case NetworkCommand.ServerIntroduce:
-					{
-						receiveEndPoint.Port = Constants.serverReceivePort;
-						var existingServer = connection.servers
-												.Find(server => IPEndPoint.Equals(	server.endPoint,
-																					receiveEndPoint));
-						if (existingServer != null)
-						{
-							existingServer.lastConnectionTime = DateTime.Now;
-						}
-						else
-						{
-							var arguments = contents.ToStructure<ServerIntroduceArgs>();
-							connection.servers.Add(new ServerConnectionInfo
-							{
-								serverInfo = new ServerInfo
-								{ 
-									serverName = arguments.serverName
-								},
-								endPoint 			= receiveEndPoint,
-								lastConnectionTime 	= DateTime.Now
-							});
-
-							if (connection.selectedServerIndex < 0)
-							{
-								connection.selectedServerIndex = 0;
-							}
-	
-							connection.netControls.OnServerListChanged(connection.GetServers());
-						}
-
-					} break;
-
-					case NetworkCommand.ServerStartGame:
-					{
-						var arguments 			= contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
-						int playerCount 		= arguments.playerCount;
-						var playerStartInfos 	= packageData.ToArray<PlayerStartInfo>(playerCount);
-
-						Debug.Log($"Server called to start game, arguments parsed, my index = {connection.ClientId}");
-
-						var gameStartInfo = new GameStartInfo
-						{
-							mapIndex = 0,
-							localPlayer = playerStartInfos
-												.Where(info => info.playerId == connection.ClientId)
-												.First(),
-							remotePlayers = playerStartInfos
-												.Where(info => info.playerId != connection.ClientId)
-												.ToArray()
-						};
-						connection.netControls.OnServerStartGame(gameStartInfo);
-					} break;
-
-					case NetworkCommand.ServerGameUpdate:
-					{
-						var arguments = contents.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
-						Debug.Log($"Received update from servers, id {arguments.playerId} {((arguments.playerId == connection.ClientId) ? "(skipping own update)" : "")}");
-
-						if (connection.receivedPositions != null)
-						{
-							if (arguments.playerId != connection.ClientId)
-							{
-								var package = packageData.ToStructure<PlayerGameUpdatePackage>();
-								connection.receivedPositions[arguments.playerId].Write(package.position);
-								Debug.Log(package.position);
-							}
-						}
-						else
-						{
-							Debug.LogError("Receivers not yet created");
-						}
-					} break;
-
-					case NetworkCommand.ServerConfirmJoin:
-					{
-						var arguments = contents.ToStructure<ServerConfirmJoinArgs>();
-
-						if (arguments.accepted)
-						{
-							connection.ClientId = arguments.playerId;
-							connection.joinedServer = connection.requestedServer;
-							Debug.Log($"Server accepted request, my id is {connection.ClientId}");
-						}
-						else
-						{
-							Debug.Log("Server declined request");
-						}
-
-						connection.OnJoinedServer?.Invoke();
-						connection.requestedServer = null;
-					} break;
-				}
-			}
-		}
-
-		public void CleanUp(){}
-	}
-
-	public class SendUpdateThread : IThreadRunner
-	{
-		public Vector3 		playerPosition;
-		public int 			sendDelayMs;
-		public int 			clientId;
-		public UdpClient 	udpClient;
-		public IPEndPoint 	endPoint;
-
-		public void Run()
-		{
-			Debug.Log($"[CLIENT]: Start SendUpdateThread, endPoint = {endPoint}");
-			while(true)
-			{
-				var updateArgs = new ClientGameUpdateArgs
-				{
-					playerId = clientId
-				};
-
-				byte [] updatePackage = new PlayerGameUpdatePackage
-				{
-					playerId = clientId,
-					position = playerPosition
-				}.ToBinary();
-
-				byte [] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
-
-				Debug.Log("[CLIENT]: Send data to server");
-				udpClient.Send(data, data.Length, endPoint);
-
-				Thread.Sleep(sendDelayMs);
-			}
-		}
-
-		public void CleanUp() {}
 	}
 
 	public void StartUpdate()
@@ -373,6 +220,16 @@ public class ClientController : MonoBehaviour
 
 	private void OnDisable()
 	{
+
+		if (detectServersThread.IsRunning)
+			detectServersThread.Stop();
+
+		if (sendUpdateThread.IsRunning)
+			sendUpdateThread.Stop();
+
+		if (receiveUpdateThread.IsRunning)
+			receiveUpdateThread.Stop();
+
 		udpClient?.Close();
 	}
 

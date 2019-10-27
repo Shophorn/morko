@@ -199,7 +199,7 @@ public partial class UIController : MonoBehaviour
 		mainView.joinViewButton.onClick.AddListener(
 			() => {
 				MoveToServerJoiningWindow();
-				OnEnterJoinView?.Invoke();
+				clientControls.BeginJoin();
 			});
 		mainView.optionsButton.onClick.AddListener(() => MoveToOptionsWindow());
 		mainView.creditsButton.onClick.AddListener(() => MoveToCreditsWindow());
@@ -252,7 +252,7 @@ public partial class UIController : MonoBehaviour
 		joinView.cancelButton.onClick.AddListener(() =>
 		{
 			BackToMainMenu();
-			OnExitJoinView?.Invoke();
+			clientControls.EndJoin();
 		});
 
 		/// CLIENT LOBBY VIEW
