@@ -78,15 +78,16 @@ public partial class ClientController : MonoBehaviour
 	public GameObject AvatarPrefab { get; set; }
 	private Transform senderTransform;
 	private Dictionary<int, Transform> receiverTransforms;
-	private Dictionary<int, Atomic<Vector3>> receivedPositions;
+	private Dictionary<int, Interlocked<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
 	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
 
+	// Todo(Leo): Please just make these normal variables, so we can like check against null... 
 	private readonly ThreadControl detectServersThread = new ThreadControl();
 	private readonly ThreadControl receiveUpdateThread = new ThreadControl();
-	private readonly ThreadControl<SendUpdateThread> sendUpdateThread 
-		= new ThreadControl<SendUpdateThread>();
+	private readonly ThreadControl sendUpdateThread = new ThreadControl();
+	private SendUpdateThread sendUpdateThreadRunner;
 
 	private bool doNetworkUpdate = false;
 
@@ -112,13 +113,13 @@ public partial class ClientController : MonoBehaviour
 	public void InitializeReceivers()
 	{
 		receiverTransforms = new Dictionary<int, Transform>();
-		receivedPositions = new Dictionary<int, Atomic<Vector3>>();
+		receivedPositions = new Dictionary<int, Interlocked<Vector3>>();
 	}
 
 	public void SetReceiver(int index, Transform transform)
 	{
 		receiverTransforms.Add(index, transform);
-		receivedPositions.Add(index, new Atomic<Vector3>());
+		receivedPositions.Add(index, new Interlocked<Vector3>());
 	}
 
 	public void StartNetworkUpdate()
@@ -140,13 +141,15 @@ public partial class ClientController : MonoBehaviour
 
 		Debug.Log($"Joined server = {joinedServer}");
 
-		sendUpdateThread.Start(new SendUpdateThread
+		sendUpdateThreadRunner = new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
 			clientId 	= ClientId,
 			udpClient 	= udpClient,
 			endPoint 	= joinedServer.endPoint
-		});
+		};
+
+		sendUpdateThread.Start(sendUpdateThreadRunner);
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
 
@@ -162,13 +165,14 @@ public partial class ClientController : MonoBehaviour
 	{
 		// var serverEndPoint = new IPEndPoint(CurrentEndPoint.Address, Constants.serverReceivePort);
 		var serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), Constants.serverReceivePort);
-		sendUpdateThread.Start(new SendUpdateThread
+		sendUpdateThreadRunner = new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
 			clientId 	= ClientId,
 			udpClient 	= udpClient,
 			endPoint 	= serverEndPoint
-		});
+		};
+		sendUpdateThread.Start(sendUpdateThreadRunner);
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
 
@@ -202,7 +206,7 @@ public partial class ClientController : MonoBehaviour
 
 			// Note(Leo): Lol, no accessing transform from threads??
 			if (senderTransform != null && sendUpdateThread.IsRunning)
-				sendUpdateThread.Runner.playerPosition = senderTransform.position;
+				sendUpdateThreadRunner.playerPosition = senderTransform.position;
 		}
 	}
 
@@ -214,21 +218,15 @@ public partial class ClientController : MonoBehaviour
 
 	public void StopListenBroadcast()
 	{
-		detectServersThread.Stop();
+		detectServersThread.StopAndWait();
 		udpClient?.Close();
 	}
 
 	private void OnDisable()
 	{
-
-		if (detectServersThread.IsRunning)
-			detectServersThread.Stop();
-
-		if (sendUpdateThread.IsRunning)
-			sendUpdateThread.Stop();
-
-		if (receiveUpdateThread.IsRunning)
-			receiveUpdateThread.Stop();
+		detectServersThread.StopAndWait();
+		sendUpdateThread.StopAndWait();
+		receiveUpdateThread.StopAndWait();
 
 		udpClient?.Close();
 	}

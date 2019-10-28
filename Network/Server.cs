@@ -63,6 +63,10 @@ namespace Morko.Network
 
 		private Action<string> Log;
 
+		public int PlayerCount => players.Count;
+		public string [] PlayersNames => players.Select(player => player.name).ToArray();
+	 	
+
 		// Note(Leo): this disables the use of constructor outside class
 		private Server() {}
 
@@ -172,9 +176,8 @@ namespace Morko.Network
 
 		public void StopBroadcasting()
 		{
-			// TODO(Leo): Remove questionmarksP????
-			broadcastControl?.Stop();
-			broadcastReceiveControl?.Stop();
+			broadcastControl.Stop();
+			broadcastReceiveControl.Stop();
 		}
 
 		public int AddHostingPlayer(string name, IPEndPoint endPoint)
@@ -199,22 +202,18 @@ namespace Morko.Network
 
 		public void AbortGame()
 		{
-			if (gameUpdateThreadControl.IsRunning)
-				gameUpdateThreadControl.Stop();
-	
-			if (gameUpdateReceiveThreadControl.IsRunning)
-				gameUpdateReceiveThreadControl.Stop();
-		}
-
-		public int PlayerCount => players.Count;
-		public string [] PlayersNames => players.Select(player => player.name).ToArray();
-	 	
-	 	public void Close()
-		{
-			broadcastControl.Stop();
-			broadcastReceiveControl.Stop();
 			gameUpdateThreadControl.Stop();
 			gameUpdateReceiveThreadControl.Stop();
+		}
+
+	 	public void Close()
+		{
+			/* Note(Leo): In addition to stopping, we must wait for cleanups also before closing sockets.
+			Cleanups may do things with sockets such as dropping multicastgroups */
+			broadcastControl.StopAndWait();
+			broadcastReceiveControl.StopAndWait();
+			gameUpdateThreadControl.StopAndWait();
+			gameUpdateReceiveThreadControl.StopAndWait();
 			
 			senderClient?.Close();
 			responseClient?.Close();

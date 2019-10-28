@@ -34,9 +34,6 @@ public class GameManager : 	MonoBehaviour,
 
 	public void Awake()
 	{
-		// uiController.OnEnterJoinView += StartListenBroadcast;
-		// uiController.OnExitJoinView += StopListenBroadcast;
-
 		uiController.OnQuit += ApplicationQuit;
 	}
 

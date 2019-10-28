@@ -9,7 +9,6 @@ namespace Morko.Threading
 		void CleanUp();
 	}
 
-
 	/* Note(Leo): We start thread with an infinite loop and/or
 	blocking io/network/other function calls. Calling Thread.Abort
 	causes ThreadAbortException to be thrown from thread and by
@@ -25,9 +24,10 @@ namespace Morko.Threading
 		public void Start(IThreadRunner threadRunner)
 		{
 			if (IsRunning)
-			{
 				throw new InvalidOperationException("'ThreadControl' is already running a thread");
-			}
+
+			if (threadRunner == null)
+				throw new ArgumentException("'threadRunner' argument cannot be null");
 
 			_thread = new Thread(() => 
 			{
@@ -50,74 +50,28 @@ namespace Morko.Threading
 			_thread = null;
 		}
 
-		~ThreadControl()
-		{
-			if (IsRunning)
-			{
-				Stop();
-			}
-		}
-
-	}
-
-	public class ThreadControl<TRunner> where TRunner : class, IThreadRunner
-	{
-		private Thread _thread;
-		private TRunner _runner;
-
-		public TRunner Runner => _runner;
-		public bool IsRunning => _thread != null;
-
-		public void Start(TRunner threadRunner)
-		{
-			if (IsRunning)
-				throw new InvalidOperationException("'ThreadControl' is already running a thread");
-
-			if (threadRunner == null)
-				throw new ArgumentException("'threadRunner' argument cannot be null");
-
-			_runner = threadRunner;
-			_thread = new Thread(() => 
-			{
-				try { threadRunner.Run(); }
-				catch (ThreadAbortException) { threadRunner.CleanUp(); }
-			});
-			_thread.Start();
-		}
-
-		public void Stop()
+		public void StopAndWait()
 		{
 			if (IsRunning == false)
 				return;
 
 			_thread.Abort();
+			_thread.Join();
 			_thread = null;
-			_runner = null;
-		}	
-
-		// Todo(Leo): We may need to use Finalizer to ensure thread is closed??
-		~ThreadControl()
-		{
-			if (IsRunning)
-			{
-				Stop();
-			}
 		}
+
+		~ThreadControl() => Stop();
 	}
 
-	/* Atomic creates a wrapper around an object of type T,
-	so that object can only be accessed from single place at a time.
-
-	Note(Leo): This is not really an 'atomic' as in atomic operation, 
-	but that's the best name I could come up with (Interlocked is already a
-	class in System libraries).*/
-	public class Atomic<T>
+	/* Interlocked creates a wrapper around an object of type T,
+	so that object can only be accessed from single place at a time. */
+	public class Interlocked<T>
 	{
 		private T _value;
 		private object threadLock = new object ();
 
-		public Atomic() => _value = default(T);
-		public Atomic(T value) 	=> _value = value;
+		public Interlocked() => _value = default(T);
+		public Interlocked(T value) => _value = value;
 
 		public T Read()
 		{

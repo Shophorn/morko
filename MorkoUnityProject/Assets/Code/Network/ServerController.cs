@@ -55,8 +55,6 @@ public class ServerController : MonoBehaviour
 	public void OnDisable()
 	{
 		Debug.Log("[SERVER CONTROLLER]: Cleanup");
-		server?.StopBroadcasting();
-		server?.AbortGame();
 		server?.Close();
 	}
 
