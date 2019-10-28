@@ -28,7 +28,7 @@ RectTransform:
   m_GameObject: {fileID: 821925625224956142}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 100, z: 100}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children:
   - {fileID: 7632433974224776043}
   m_Father: {fileID: 0}
@@ -79,9 +79,10 @@ MonoBehaviour:
   - {fileID: 100000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
   - {fileID: 100000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
   - {fileID: 100000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
-  maps:
-  - {fileID: 100000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
-  - {fileID: 100000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
+  map: {fileID: 7721435005251517925, guid: 77dcebe648731414aa669dc0d99ab9e1, type: 3}
+  mapTextures:
+  - {fileID: 2800000, guid: 70cc655d8a5e0b14bba68b4e45b19528, type: 3}
+  - {fileID: 2800000, guid: a0745f7e62e482941815b2178b1d4f89, type: 3}
 --- !u!222 &222263148825927400
 CanvasRenderer:
   m_ObjectHideFlags: 0
