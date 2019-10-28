@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -170,7 +170,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &106828332
 RectTransform:
@@ -711,7 +711,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -638.5, y: 18}
+  m_AnchoredPosition: {x: -639, y: 18}
   m_SizeDelta: {x: 775.2, y: -268.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &481212652
@@ -1482,6 +1482,7 @@ GameObject:
   - component: {fileID: 942324878}
   - component: {fileID: 942324877}
   - component: {fileID: 942324880}
+  - component: {fileID: 942324881}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1569,13 +1570,16 @@ MonoBehaviour:
   uiController: {fileID: 942324877}
   serverController: {fileID: 0}
   clientController: {fileID: 942324880}
-  normalSettings: {fileID: 0}
-  morkoSettings: {fileID: 0}
-  cameraControllerPrefab: {fileID: 0}
-  gameCameraPrefab: {fileID: 0}
-  visibilityEffectPrefab: {fileID: 0}
+  normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
+  morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
+  cameraControllerPrefab: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
+    type: 3}
+  gameCameraPrefab: {fileID: 7851460785377152831, guid: a67acd97b0ada524cb1286887f512123,
+    type: 3}
+  visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
+    type: 3}
   localAvatarLayer: 0
-  remoteAvatarLayer: 0
+  remoteAvatarLayer: 11
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0
@@ -1588,7 +1592,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &942324880
 MonoBehaviour:
@@ -1606,6 +1610,18 @@ MonoBehaviour:
   connectionRetryTimeMs: 500
   playerName: Default Player
   selectedServerIndex: 0
+--- !u!114 &942324881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942324876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 607197596728a834b923de9062e98081, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &952283472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,7 +2141,7 @@ GameObject:
   - component: {fileID: 1512451083}
   - component: {fileID: 1512451082}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: UICamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2535,75 +2551,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1573490002}
   m_CullTransparentMesh: 0
---- !u!1 &1608466953
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1608466955}
-  - component: {fileID: 1608466954}
-  m_Layer: 0
-  m_Name: Directional Light
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &1608466954
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608466953}
-  m_Enabled: 1
-  serializedVersion: 8
-  m_Type: 1
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
-  m_Range: 10
-  m_SpotAngle: 30
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
---- !u!4 &1608466955
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608466953}
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1 &1645206003
 GameObject:
   m_ObjectHideFlags: 0
@@ -2980,7 +2927,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1919530682
 GameObject:
