@@ -15,11 +15,15 @@ MonoBehaviour:
   walkSpeed: 5
   sneakMultiplier: 0.2
   runMultiplier: 2
-  sideMultiplier: 0.5
-  sideRunMultiplier: 0.4
-  backwardMultiplier: 0.2
-  backwardRunMultiplier: 0.2
+  sideMultiplier: 0.8
+  sideRunMultiplier: 0.7
+  backwardMultiplier: 0.8
+  backwardRunMultiplier: 0.8
   accelerationTime: 1
   decelerationTime: 0.5
   accelerationRunTime: 1.5
   decelerationRunTime: 1
+  dashDistance: 3
+  dashDuration: 2.98
+  dashCooldown: 1
+  rotateTowardsMove: 1

@@ -194,8 +194,8 @@ GameObject:
   - component: {fileID: 7553177203761304269}
   - component: {fileID: 8728536049425617433}
   m_Layer: 0
-  m_Name: CharacterPlaceHolder 1
-  m_TagString: Untagged
+  m_Name: CharacterPlaceHolder 3
+  m_TagString: Avatar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -314,7 +314,7 @@ PrefabInstance:
     - target: {fileID: 2300000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 3e73f7fdddc9ba94f92465edcd167bc3, type: 2}
+      objectReference: {fileID: 2100000, guid: 901764e35fd0e0f4b868167d5b1e40ea, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a57d0d7216250c468267f6303d8c5d9, type: 3}
 --- !u!4 &7425719034602531833 stripped

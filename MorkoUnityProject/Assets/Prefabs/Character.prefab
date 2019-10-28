@@ -274,10 +274,11 @@ GameObject:
   m_Component:
   - component: {fileID: 6070876065166259898}
   - component: {fileID: 905078142086698094}
+  - component: {fileID: 114524896099822810}
   - component: {fileID: 4258687238538738330}
   m_Layer: 0
   m_Name: Character
-  m_TagString: Untagged
+  m_TagString: Avatar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -311,6 +312,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 4258687238538738330}
+--- !u!114 &114524896099822810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8697868240952185027}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1813f6f17c92c941a64d32ceaab1e9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 2
 --- !u!143 &4258687238538738330
 CharacterController:
   m_ObjectHideFlags: 0
