@@ -58,7 +58,7 @@ namespace Morko
 			scrollRect.horizontal = scrollContent.Horizontal;
 			scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
 			currentItem = scrollContent.currentItem;
-			scrollSpeed = 10.0f;
+			scrollSpeed = 5.0f;
 		}
 
 
@@ -85,7 +85,6 @@ namespace Morko
 				scrollContent.StartCoroutine("LerpTowardsCenter");
 			}
 			currentItem = scrollContent.currentItem;
-			
 		}
 
 		/// <summary>
@@ -94,6 +93,7 @@ namespace Morko
 		/// <param name="eventData">The data related to the drag event.</param>
 		public void OnBeginDrag(PointerEventData eventData)
 		{
+			scrollContent.StopCoroutine("LerpTowardsCenter");
 			isScrolling = false;
 			lastDragPosition = eventData.position;
 		}

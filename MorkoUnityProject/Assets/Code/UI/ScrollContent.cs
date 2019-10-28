@@ -118,6 +118,8 @@ namespace Morko
 			InitializeContentHorizontal();
 
 			selectionLists[selectionType].listElements = listElements;
+			currentItem = CheckCurrentItem();
+			transform.Translate(-currentItem.transform.localPosition);
 		}
 		private void OnDisable()
 		{
@@ -178,33 +180,20 @@ namespace Morko
 			switch(selectionType)
 			{
 				case 0://Maps
-					GameObject mapContent = Instantiate(item.maps[index],item.transform.position,Quaternion.identity);
-					mapContent.transform.Rotate(-90,0,0);
+					GameObject mapContent = Instantiate(item.map,item.transform.position,Quaternion.identity);
+					//mapContent.transform.Rotate(-90,0,0);
+					mapContent.GetComponent<MeshRenderer>().material = mapContent.GetComponent<MeshRenderer>().materials[index];
 					mapContent.transform.SetParent(item.transform);
 					mapContent.transform.localPosition = new Vector3(0, -0.1f,-0.2f);
-					mapContent.transform.localScale = new Vector3(10, 10, 10);
+					mapContent.transform.localScale = new Vector3(3, 3, 1);
+					
 					break;
 				case 1://Characters
 					GameObject characterContent = Instantiate(item.characters[index], item.transform.position, Quaternion.identity);
 					characterContent.transform.Rotate(-90, 0, 0);
 					characterContent.transform.SetParent(item.transform);
-					characterContent.transform.localPosition = new Vector3(0, -0.1f,-0.2f);
-					characterContent.transform.localScale = new Vector3(10, 10, 10);
-					break;
-			}
-		}
-
-		private void SetListElementType(ListItem item, int i)
-		{
-			switch(i)
-			{
-				case 0://Map
-					item.transform.GetChild(i+1).gameObject.SetActive(false);
-					item.transform.GetChild(i+2).gameObject.SetActive(true);
-					break;
-				case 1: //Character
-					item.transform.GetChild(i).gameObject.SetActive(true);
-					item.transform.GetChild(i+1).gameObject.SetActive(false);
+					characterContent.transform.localPosition = new Vector3(0, -0.1f,-0.4f);
+					characterContent.transform.localScale = new Vector3(40, 40, 40);
 					break;
 			}
 		}
@@ -242,9 +231,21 @@ namespace Morko
 		IEnumerator LerpTowardsCenter()
 		{
 			float time = 0;
-			ListItem shortest = null;
+			currentItem = CheckCurrentItem();
+
+			while (time < 1.0f)
+			{
+				time += Time.deltaTime;
+				transform.localPosition = new Vector3(Mathf.Lerp(transform.localPosition.x, transform.localPosition.x - currentItem.transform.position.x, time), transform.localPosition.y, transform.localPosition.z);
+				yield return null;
+			}
+		}
+
+		private ListItem CheckCurrentItem()
+		{
 			float shortestDistance = 1000;
 			float distance = 0;
+			ListItem shortest = null;
 			foreach (var item in listElements)
 			{
 				distance = Vector3.Distance(item.transform.position, listGrid.transform.position);
@@ -254,14 +255,8 @@ namespace Morko
 					shortest = item;
 				}
 			}
-			currentItem = shortest;
 
-			while (time < 1.0f)
-			{
-				time += Time.deltaTime;
-				transform.localPosition = new Vector3(Mathf.Lerp(transform.localPosition.x, transform.localPosition.x - shortest.transform.position.x, time), transform.localPosition.y, transform.localPosition.z);
-				yield return null;
-			}
+			return shortest;
 		}
 	}
 }

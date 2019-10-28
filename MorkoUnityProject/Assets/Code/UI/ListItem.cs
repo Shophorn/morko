@@ -8,6 +8,6 @@ namespace Morko
 		public string listItemName;
 
 		public GameObject[] characters;
-		public GameObject[] maps;
+		public GameObject map;
 	}
 }
