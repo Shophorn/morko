@@ -31,7 +31,7 @@ public class GameManager : 	MonoBehaviour,
 
 	public int remoteCharacterLayer;
 
-	private LocalController localPlayerController = null;
+	private LocalPlayerController localPlayerController = null;
  	private RemotePlayerController [] remotePlayerControllers = null;
 
 	public void Awake()
@@ -148,7 +148,7 @@ public class GameManager : 	MonoBehaviour,
 		var localPlayerInfo 	= startInfo.localPlayer;
 		var localPlayer 		= CharacterInstantiator.Instantiate(new int [] {localPlayerInfo.avatarId})[0];
 		var localAvatar 		= localPlayer.GetComponent<Character>();
-		localPlayerController 	= LocalController.Create(localAvatar, normalSettings, morkoSettings);
+		localPlayerController 	= LocalPlayerController.Create(localAvatar, normalSettings, morkoSettings);
 
 		clientController.SetSender(localAvatar.transform);
 

@@ -5,11 +5,11 @@ public class Character : MonoBehaviour
 {
 	public CharacterController characterController;
 	[HideInInspector]
-	public LocalController localController;
+	public LocalPlayerController localController;
 
 	private DisableMovement disableMovement;
 
-	private LocalController lc
+	private LocalPlayerController lc
 	{
 		get => localController;
 		set => localController = value;
@@ -26,16 +26,16 @@ public class Character : MonoBehaviour
 		if (hit.collider.CompareTag("Avatar"))
 		{
 			/*
-			LocalController hitCharacterLocalController = hit.collider.GetComponent<Character>().localController;
+			LocalPlayerController hitCharacterLocalPlayerController = hit.collider.GetComponent<Character>().localController;
 			
-			if (!localController.isMorko && !hitCharacterLocalController.isMorko) return;
+			if (!localController.isMorko && !hitCharacterLocalPlayerController.isMorko) return;
 			
 			// TODO (Sampo/Leo): Both characters are morko, conflict
-			if (localController.isMorko && hitCharacterLocalController.isMorko)
+			if (localController.isMorko && hitCharacterLocalPlayerController.isMorko)
 				throw new NotImplementedException();
 
 			localController.ChangeState();
-			hitCharacterLocalController.ChangeState();
+			hitCharacterLocalPlayerController.ChangeState();
 			*/
 			localController.ChangeState();
 		}

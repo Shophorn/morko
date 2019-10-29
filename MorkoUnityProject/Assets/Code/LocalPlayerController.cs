@@ -6,7 +6,7 @@ using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 using Vector2 = UnityEngine.Vector2;
 
-public class LocalController
+public class LocalPlayerController
 {
 	/* Todo(Leo): controller only uses camera for one ray, so it should be
 	modified to only depend on more limited interface. */
@@ -91,9 +91,9 @@ public class LocalController
 	}
 	
 	
-	public static LocalController Create(Character character, PlayerSettings normalSettings, PlayerSettings morkoSettings)
+	public static LocalPlayerController Create(Character character, PlayerSettings normalSettings, PlayerSettings morkoSettings)
 	{
-		var result = new LocalController();
+		var result = new LocalPlayerController();
 		result.package = new AvatarPackage();
 
 		result.package.id = 0;
