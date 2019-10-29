@@ -114,7 +114,8 @@ public partial class ClientController
 				if (arguments.playerId != connection.ClientId)
 				{
 					var package = packageData.ToStructure<PlayerGameUpdatePackage>();
-					connection.receivedPositions[arguments.playerId].Write(package.position);
+					// connection.receivedPositions[arguments.playerId].Value = package.position;
+					connection.receivingControllers[arguments.playerId].SetPosition(package.position);
 					Debug.Log(package.position);
 				}
 			}

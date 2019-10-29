@@ -75,7 +75,7 @@ public partial class ClientController : MonoBehaviour
 	private ServerConnectionInfo joinedServer;
 	
 	private Transform senderTransform;
-	private Dictionary<int, RemoteNetworkPlayerController> receivingControllers;
+	private Dictionary<int, RemotePlayerController> receivingControllers;
 	private Dictionary<int, Interlocked<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
@@ -110,11 +110,11 @@ public partial class ClientController : MonoBehaviour
 
 	public void InitializeReceivers()
 	{
-		receivingControllers = new Dictionary<int, RemoteNetworkPlayerController>();
+		receivingControllers = new Dictionary<int, RemotePlayerController>();
 		receivedPositions = new Dictionary<int, Interlocked<Vector3>>();
 	}
 
-	public void SetReceiver(int index, RemoteNetworkPlayerController receivingPlayer)
+	public void SetReceiver(int index, RemotePlayerController receivingPlayer)
 	{
 		receivingControllers.Add(index, receivingPlayer);
 		receivedPositions.Add(index, new Interlocked<Vector3>());
@@ -196,11 +196,11 @@ public partial class ClientController : MonoBehaviour
 
 		if (doNetworkUpdate)
 		{
-			foreach (var item in receivedPositions)
-			{
-				int key = item.Key;
-				receivingControllers[key].SetPosition(item.Value.Read());
-			}
+			// foreach (var item in receivedPositions)
+			// {
+			// 	int key = item.Key;
+			// 	receivingControllers[key].SetPosition(item.Value.Value);
+			// }
 
 			// Note(Leo): Lol, no accessing transform from threads??
 			if (senderTransform != null && sendUpdateThread.IsRunning)

@@ -1,20 +1,29 @@
 using UnityEngine;
 
-public class RemoteNetworkPlayerController : MonoBehaviour
+public class RemotePlayerController
 {
-	private Vector3 position;
+	private Interlocked<Vector3> position;
+	private Character character;
 
+	// This is called from other threads
 	public void SetPosition(Vector3 position)
 	{
 		Debug.Log("[REMOTE CONTROLLER]: Position set");
-
+		this.position.Value = position;
+	}
+	
+	public void Update()
+	{
 		// Todo(Leo): Interpolate.
-		this.position = position;
+		// Todo(Leo): Actual movement
+		character.transform.position = position.Value;
 	}
 
-	private void Update()
+	public static RemotePlayerController Create(Character character)
 	{
-		// Todo(Leo): Actual movement
-		transform.position = position;
+		RemotePlayerController controller = new RemotePlayerController();
+		controller.character = character;
+		controller.position = new Interlocked<Vector3>();
+		return controller;
 	}
 }

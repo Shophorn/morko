@@ -62,27 +62,4 @@ namespace Morko.Threading
 
 		~ThreadControl() => Stop();
 	}
-
-	/* Interlocked creates a wrapper around an object of type T,
-	so that object can only be accessed from single place at a time. */
-	public class Interlocked<T>
-	{
-		private T _value;
-		private object threadLock = new object ();
-
-		public Interlocked() => _value = default(T);
-		public Interlocked(T value) => _value = value;
-
-		public T Read()
-		{
-			lock (threadLock)
-				return _value;
-		}
-
-		public void Write(T value)
-		{
-			lock (threadLock)
-				_value = value;
-		}
-	}
 }

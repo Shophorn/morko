@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public static class AvatarInstantiator
+public static class CharacterInstantiator
 {
     public static GameObject[] Instantiate(int[] avatarModelIds, string folderName = "AvatarPrefabs")
     {

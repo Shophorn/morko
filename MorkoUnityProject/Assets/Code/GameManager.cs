@@ -29,8 +29,10 @@ public class GameManager : 	MonoBehaviour,
 	public PostFx gameCameraPrefab;
 	public GameObject visibilityEffectPrefab;
 
-	public int localAvatarLayer;
-	public int remoteAvatarLayer;
+	public int remoteCharacterLayer;
+
+	private LocalController localPlayerController = null;
+ 	private RemotePlayerController [] remotePlayerControllers = null;
 
 	public void Awake()
 	{
@@ -107,7 +109,6 @@ public class GameManager : 	MonoBehaviour,
 		serverController.CloseServer();
 		Destroy(serverController);
 		serverController = null;
-
 	}
 
 	void IServerUIControllable.StartGame()
@@ -144,10 +145,10 @@ public class GameManager : 	MonoBehaviour,
 
 		int localPlayerId = clientController.ClientId;
 
-		var localPlayerInfo = startInfo.localPlayer;
-		var localPlayer 	= AvatarInstantiator.Instantiate(new int [] {localPlayerInfo.avatarId})[0];
-		var localAvatar 	= localPlayer.GetComponent<Character>();
-		var localController = LocalController.Create(localAvatar, normalSettings, morkoSettings);
+		var localPlayerInfo 	= startInfo.localPlayer;
+		var localPlayer 		= CharacterInstantiator.Instantiate(new int [] {localPlayerInfo.avatarId})[0];
+		var localAvatar 		= localPlayer.GetComponent<Character>();
+		localPlayerController 	= LocalController.Create(localAvatar, normalSettings, morkoSettings);
 
 		clientController.SetSender(localAvatar.transform);
 
@@ -164,34 +165,41 @@ public class GameManager : 	MonoBehaviour,
 											Quaternion.identity,
 											cameraController.transform);
 
-		localController.TEMPORARYSetCamera(gameCamera.camMain);
+		localPlayerController.TEMPORARYSetCamera(gameCamera.camMain);
 
 		clientController.InitializeReceivers();
 		int remotePlayerCount = startInfo.remotePlayers.Length;
+		remotePlayerControllers = new RemotePlayerController [remotePlayerCount];
 		for (int remotePlayerIndex = 0; remotePlayerIndex < remotePlayerCount; remotePlayerIndex++)
 		{
 			var info = startInfo.remotePlayers[remotePlayerIndex];
-			var remotePlayer = AvatarInstantiator.Instantiate(new int [] { info.avatarId })[0];
-			var remoteAvatar = remotePlayer.GetComponent<Character>();
-			var remoteController = remotePlayer.AddComponent<RemoteNetworkPlayerController>();
 
+			var remotePlayer 	= CharacterInstantiator.Instantiate(new int [] { info.avatarId })[0];
+			var remoteCharacter = remotePlayer.GetComponent<Character>();
+			remoteCharacter.gameObject.SetLayerRecursively(remoteCharacterLayer);
+
+			var remoteController = RemotePlayerController.Create(remoteCharacter);
 			clientController.SetReceiver(info.playerId, remoteController);
 
-			// Todo(Leo): Only get renderer from avatar and set its layer
-			remoteAvatar.gameObject.SetLayerRecursively(remoteAvatarLayer);
+			remotePlayerControllers[remotePlayerIndex] = remoteController;			
 		}
 
 		clientController.StartNetworkUpdate();
 
 		// Todo(Leo): Most definetly not like this
-		StartCoroutine(UpdateLocalCharacter(localController));
+		StartCoroutine(UpdateControllers());
 	}
 
-	private IEnumerator UpdateLocalCharacter(LocalController localController)
+	private IEnumerator UpdateControllers()
 	{
 		while(true)
 		{
-			localController.Update();
+			localPlayerController.Update();
+			foreach (var remoteController in remotePlayerControllers)
+			{
+				remoteController.Update();
+			}
+
 			yield return null;
 		}
 	}
