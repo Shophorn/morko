@@ -18,36 +18,61 @@ public class FenceBuilderEditor : Editor
         {
             fb.BuildFence(true);
         }
+        if (GUILayout.Button("Parent Fence"))
+        {
+            fb.ParentFenceToRoot();
+        }
+        if (GUILayout.Button("Clean Fence Objects"))
+        {
+            fb.DestroyFence();
+        }
     }
     public void OnSceneGUI()
     {
         
-        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive)); // Useless?
+        //HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive)); // Useless?
+        Tools.hidden = false;
+        Tools.current = Tool.None;
         FenceBuilder fb = (FenceBuilder)target;
 
         //Flag build fence in advance TODO: figure out why this works
+
         if (Event.current.type == EventType.MouseMove ||
             Event.current.type == EventType.MouseUp)
         {
-            if (fb.endPosModified)
+            if (fb.anyPosModified && fb.autoUpdateFence)
             {
-                fb.endPosModified = false;
+                fb.anyPosModified = false;
                 BuildFenceFlag = true;
             }
         }
-        Vector3 newPos = Handles.PositionHandle(fb.endPos, Quaternion.identity);
         
-        if (newPos != fb.endPos)
+        GUIStyle guiStyle = new GUIStyle();
+
+        guiStyle.normal.textColor = Color.white;
+        guiStyle.fontStyle = FontStyle.Bold;
+        for (int i = 0; i < fb.points.Length; i++)
         {
-            fb.SetEndPosCorrected(newPos);
             
+            Handles.Label(fb.points[i], new GUIContent("Point "+(i+1).ToString()), guiStyle);
+
+            Quaternion handleRotation = Quaternion.identity;
+
+            Vector3 newPos = Handles.PositionHandle(fb.points[i], handleRotation);
+            if (newPos != fb.points[i])
+            {
+                fb.SetPoint(newPos,i);
+
+            }
         }
-        // if build fence was flagged then build fence
         if (BuildFenceFlag)
         {
             fb.BuildFence();
             BuildFenceFlag = false;
         }
+
+
+
 
     }
 }
