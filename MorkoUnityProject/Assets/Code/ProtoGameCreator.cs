@@ -12,6 +12,10 @@ public class ProtoGameCreator : MonoBehaviour
     public PlayerSettings morkoSettings;
     private LocalPlayerController localController;
 
+    // Note(Leo): SAMPO LISÄSIN TÄN, pitää kytkee inspectorissa 
+    public CharacterCollection characterPrefabs;
+
+
     //<body><b>SINGLETON PATTERN ON VÄLIAIKAINEN</b></body>
     private static ProtoGameCreator instance;
     public static ProtoGameCreator Instance { get {return instance;} }
@@ -29,7 +33,7 @@ public class ProtoGameCreator : MonoBehaviour
         }
 
         int[] indexes = {0, 1, 2, 3, 4};
-        CharacterInstantiator.Instantiate(indexes);
+        characterPrefabs.InstantiateMany(indexes);
     }
     //TÄTÄ KUTSUTAAN LOADERISSA JOTTA HAHMOT INSTANSIOITUVAT OIKEAAN SCENEEN
     //UNITY INSTANSIOI ASIAT AKTIIVISESN SKENEEN JOKA PITÄÄ ASETTAA SCENEMANAGERISSA
@@ -37,8 +41,10 @@ public class ProtoGameCreator : MonoBehaviour
     public void StartScene()
     {
         var character = Instantiate(characterPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-        localController = LocalPlayerController.Create(character, normalSettings, morkoSettings);
-        character.localController = localController;
+
+        // Note(Leo): SAMPO POISTIN NÄMÄ väliaikaisesti, KAMERA PITÄÄ SYÖTTÄÄ CREATEEN MYÖS
+        // localController = LocalPlayerController.Create(character, normalSettings, morkoSettings);
+        // character.localController = localController;
     }
 
     private void Update()

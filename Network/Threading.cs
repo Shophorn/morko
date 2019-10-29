@@ -17,6 +17,9 @@ namespace Morko.Threading
 	// Todo(Leo): Maybe remove Exceptions???
 	public class ThreadControl
 	{
+		private static readonly string logFilePath 
+			= Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "morko_threadlog.log";
+
 		private Thread _thread;
 
 		public bool IsRunning => _thread != null;
@@ -35,7 +38,7 @@ namespace Morko.Threading
 				catch (ThreadAbortException) { threadRunner.CleanUp(); }
 				catch (Exception e)
 				{
-					System.IO.File.AppendAllText("w:/metropolia/morko/threadlog.log", $"{DateTime.Now}: {e}\n");
+					System.IO.File.AppendAllText(logFilePath, $"{DateTime.Now}: {e}\n");
 				}
 			});
 			_thread.Start();

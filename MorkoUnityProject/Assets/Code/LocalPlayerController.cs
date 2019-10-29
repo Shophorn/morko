@@ -6,18 +6,10 @@ using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 using Vector2 = UnityEngine.Vector2;
 
-public class LocalPlayerController
+public class LocalPlayerController : INetworkSender
 {
-	/* Todo(Leo): controller only uses camera for one ray, so it should be
-	modified to only depend on more limited interface. */
-	public void TEMPORARYSetCamera(Camera camera)
-	{	
-		this.camera = camera;
-	}
-
 	private Character character;
 	public bool isMorko = false;
-	private AvatarPackage package;
 	private Camera camera;
 	private Vector3 lastMousePosition = Input.mousePosition;
 	private LayerMask groundMask = 1 << 9;
@@ -63,6 +55,9 @@ public class LocalPlayerController
 	private bool disableMovement = false;
 	private long lastMillis = 0;
 
+	private Interlocked<Vector3> positionForNetwork = new Interlocked<Vector3>();
+	private Interlocked<float> rotationForNetwork = new Interlocked<float>();
+
 	public void ChangeStateTo(bool morko)
 	{
 		isMorko = morko;
@@ -91,25 +86,24 @@ public class LocalPlayerController
 	}
 	
 	
-	public static LocalPlayerController Create(Character character, PlayerSettings normalSettings, PlayerSettings morkoSettings)
-	{
-		var result = new LocalPlayerController();
-		result.package = new AvatarPackage();
+	public static LocalPlayerController Create(
+		Character character,
+		Camera camera,
+		PlayerSettings normalSettings,
+		PlayerSettings morkoSettings
+	){
+		var controller = new LocalPlayerController();
 
-		result.package.id = 0;
-		result.package.position = Vector3.zero;
-		result.package.rotation = Quaternion.identity;
-		result.package.velocity = Vector3.zero;
+		controller.normalSettings = normalSettings;
+		controller.morkoSettings = morkoSettings;
 		
-		result.normalSettings = normalSettings;
-		result.morkoSettings = morkoSettings;
-		
-		result.character = character;
-		result.camera = character.GetComponentInChildren<Camera>();
-		return result;
+		controller.character = character;
+		controller.camera = camera;
+
+		return controller;
 	}
 
-	public AvatarPackage Update()
+	public void Update()
 	{
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		
@@ -128,14 +122,20 @@ public class LocalPlayerController
 		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta);
 		Dash(dive);
 
-		// Update package data
-		package.position = character.gameObject.transform.position;
-		package.rotation = character.gameObject.transform.rotation;
-		package.velocity = (character.transform.position - lastPosition) / Time.deltaTime;
-		
-		return package;
+		positionForNetwork.Value = character.transform.position;
+		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
 	}
 	
+	PlayerGameUpdatePackage INetworkSender.GetPackageToSend()
+	{
+		var package = new PlayerGameUpdatePackage
+		{
+			position = positionForNetwork.Value,
+			rotation = rotationForNetwork.Value
+		};
+		return package;
+	}
+
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 	private void Move(Vector3 moveDirection, bool accelerateRun)
 	{

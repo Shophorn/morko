@@ -1,17 +1,16 @@
 using UnityEngine;
 
-public class RemotePlayerController
+public class RemotePlayerController : INetworkReceiver
 {
 	private Interlocked<Vector3> position;
 	private Character character;
 
-	// This is called from other threads
-	public void SetPosition(Vector3 position)
+	void INetworkReceiver.Receive(PlayerGameUpdatePackage package)
 	{
-		Debug.Log("[REMOTE CONTROLLER]: Position set");
-		this.position.Value = position;
+		Debug.Log("[RECEIVER INTERFACE]: Package received");
+		position.Value = package.position;
 	}
-	
+
 	public void Update()
 	{
 		// Todo(Leo): Interpolate.

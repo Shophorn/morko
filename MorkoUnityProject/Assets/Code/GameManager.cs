@@ -34,6 +34,8 @@ public class GameManager : 	MonoBehaviour,
 	private LocalPlayerController localPlayerController = null;
  	private RemotePlayerController [] remotePlayerControllers = null;
 
+ 	public CharacterCollection characterPrefabs;
+
 	public void Awake()
 	{
 		uiController.OnQuit += ApplicationQuit;
@@ -146,26 +148,29 @@ public class GameManager : 	MonoBehaviour,
 		int localPlayerId = clientController.ClientId;
 
 		var localPlayerInfo 	= startInfo.localPlayer;
-		var localPlayer 		= CharacterInstantiator.Instantiate(new int [] {localPlayerInfo.avatarId})[0];
-		var localAvatar 		= localPlayer.GetComponent<Character>();
-		localPlayerController 	= LocalPlayerController.Create(localAvatar, normalSettings, morkoSettings);
-
-		clientController.SetSender(localAvatar.transform);
-
-		var visibilityObject = Instantiate(	visibilityEffectPrefab,
-											Vector3.up * 1.0f,
-											Quaternion.identity,
-											localAvatar.transform.root);
-
+		var localPlayer 		= characterPrefabs.InstantiateOne(localPlayerInfo.avatarId);
+		var localCharacter 		= localPlayer.GetComponent<Character>();
+		
 		LocalCameraController cameraController = Instantiate(cameraControllerPrefab);
-		cameraController.target = localPlayer.transform;
-
+		cameraController.target = localCharacter.transform;
 		PostFx gameCamera = Instantiate(	gameCameraPrefab,
 											Vector3.zero,
 											Quaternion.identity,
 											cameraController.transform);
 
-		localPlayerController.TEMPORARYSetCamera(gameCamera.camMain);
+		localPlayerController 	= LocalPlayerController.Create(
+											localCharacter,
+											gameCamera.camMain,
+											normalSettings,
+											morkoSettings);
+
+		clientController.SetSender(localPlayerController);
+		Debug.Log("[GAME MANAGER]: Set sender to client controller");
+
+		var visibilityObject = Instantiate(	visibilityEffectPrefab,
+											Vector3.up * 1.0f,
+											Quaternion.identity,
+											localCharacter.transform.root);
 
 		clientController.InitializeReceivers();
 		int remotePlayerCount = startInfo.remotePlayers.Length;
@@ -174,7 +179,7 @@ public class GameManager : 	MonoBehaviour,
 		{
 			var info = startInfo.remotePlayers[remotePlayerIndex];
 
-			var remotePlayer 	= CharacterInstantiator.Instantiate(new int [] { info.avatarId })[0];
+			var remotePlayer 	= characterPrefabs.InstantiateOne(info.avatarId);
 			var remoteCharacter = remotePlayer.GetComponent<Character>();
 			remoteCharacter.gameObject.SetLayerRecursively(remoteCharacterLayer);
 
