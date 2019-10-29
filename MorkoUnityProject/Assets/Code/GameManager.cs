@@ -29,8 +29,12 @@ public class GameManager : 	MonoBehaviour,
 	public PostFx gameCameraPrefab;
 	public GameObject visibilityEffectPrefab;
 
-	public int localAvatarLayer;
-	public int remoteAvatarLayer;
+	public int remoteCharacterLayer;
+
+	private LocalPlayerController localPlayerController = null;
+ 	private RemotePlayerController [] remotePlayerControllers = null;
+
+ 	public CharacterCollection characterPrefabs;
 
 	public void Awake()
 	{
@@ -107,7 +111,6 @@ public class GameManager : 	MonoBehaviour,
 		serverController.CloseServer();
 		Destroy(serverController);
 		serverController = null;
-
 	}
 
 	void IServerUIControllable.StartGame()
@@ -144,54 +147,64 @@ public class GameManager : 	MonoBehaviour,
 
 		int localPlayerId = clientController.ClientId;
 
-		var localPlayerInfo = startInfo.localPlayer;
-		var localPlayer 	= AvatarInstantiator.Instantiate(new int [] {localPlayerInfo.avatarId})[0];
-		var localAvatar 	= localPlayer.GetComponent<Character>();
-		var localController = LocalController.Create(localAvatar, normalSettings, morkoSettings);
-
-		clientController.SetSender(localAvatar.transform);
-
-		var visibilityObject = Instantiate(	visibilityEffectPrefab,
-											Vector3.up * 1.0f,
-											Quaternion.identity,
-											localAvatar.transform.root);
-
+		var localPlayerInfo 	= startInfo.localPlayer;
+		var localPlayer 		= characterPrefabs.InstantiateOne(localPlayerInfo.avatarId);
+		var localCharacter 		= localPlayer.GetComponent<Character>();
+		
 		LocalCameraController cameraController = Instantiate(cameraControllerPrefab);
-		cameraController.target = localPlayer.transform;
-
+		cameraController.target = localCharacter.transform;
 		PostFx gameCamera = Instantiate(	gameCameraPrefab,
 											Vector3.zero,
 											Quaternion.identity,
 											cameraController.transform);
 
-		localController.TEMPORARYSetCamera(gameCamera.camMain);
+		localPlayerController 	= LocalPlayerController.Create(
+											localCharacter,
+											gameCamera.camMain,
+											normalSettings,
+											morkoSettings);
+
+		clientController.SetSender(localPlayerController);
+		Debug.Log("[GAME MANAGER]: Set sender to client controller");
+
+		var visibilityObject = Instantiate(	visibilityEffectPrefab,
+											Vector3.up * 1.0f,
+											Quaternion.identity,
+											localCharacter.transform.root);
 
 		clientController.InitializeReceivers();
 		int remotePlayerCount = startInfo.remotePlayers.Length;
+		remotePlayerControllers = new RemotePlayerController [remotePlayerCount];
 		for (int remotePlayerIndex = 0; remotePlayerIndex < remotePlayerCount; remotePlayerIndex++)
 		{
 			var info = startInfo.remotePlayers[remotePlayerIndex];
-			var remotePlayer = AvatarInstantiator.Instantiate(new int [] { info.avatarId })[0];
-			var remoteAvatar = remotePlayer.GetComponent<Character>();
-			clientController.SetReceiver(info.playerId, remoteAvatar.transform);
 
-			// Todo(Leo): Only get renderer from avatar and set its layer
-			remoteAvatar.gameObject.SetLayerRecursively(remoteAvatarLayer);
-			
-			// Todo(Leo): RemoteAvatarContoller
+			var remotePlayer 	= characterPrefabs.InstantiateOne(info.avatarId);
+			var remoteCharacter = remotePlayer.GetComponent<Character>();
+			remoteCharacter.gameObject.SetLayerRecursively(remoteCharacterLayer);
+
+			var remoteController = RemotePlayerController.Create(remoteCharacter);
+			clientController.SetReceiver(info.playerId, remoteController);
+
+			remotePlayerControllers[remotePlayerIndex] = remoteController;			
 		}
 
 		clientController.StartNetworkUpdate();
 
 		// Todo(Leo): Most definetly not like this
-		StartCoroutine(UpdateLocalCharacter(localController));
+		StartCoroutine(UpdateControllers());
 	}
 
-	private IEnumerator UpdateLocalCharacter(LocalController localController)
+	private IEnumerator UpdateControllers()
 	{
 		while(true)
 		{
-			localController.Update();
+			localPlayerController.Update();
+			foreach (var remoteController in remotePlayerControllers)
+			{
+				remoteController.Update();
+			}
+
 			yield return null;
 		}
 	}

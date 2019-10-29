@@ -17,6 +17,9 @@ namespace Morko.Threading
 	// Todo(Leo): Maybe remove Exceptions???
 	public class ThreadControl
 	{
+		private static readonly string logFilePath 
+			= Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "morko_threadlog.log";
+
 		private Thread _thread;
 
 		public bool IsRunning => _thread != null;
@@ -35,7 +38,7 @@ namespace Morko.Threading
 				catch (ThreadAbortException) { threadRunner.CleanUp(); }
 				catch (Exception e)
 				{
-					System.IO.File.AppendAllText("w:/metropolia/morko/threadlog.log", $"{DateTime.Now}: {e}\n");
+					System.IO.File.AppendAllText(logFilePath, $"{DateTime.Now}: {e}\n");
 				}
 			});
 			_thread.Start();
@@ -61,28 +64,5 @@ namespace Morko.Threading
 		}
 
 		~ThreadControl() => Stop();
-	}
-
-	/* Interlocked creates a wrapper around an object of type T,
-	so that object can only be accessed from single place at a time. */
-	public class Interlocked<T>
-	{
-		private T _value;
-		private object threadLock = new object ();
-
-		public Interlocked() => _value = default(T);
-		public Interlocked(T value) => _value = value;
-
-		public T Read()
-		{
-			lock (threadLock)
-				return _value;
-		}
-
-		public void Write(T value)
-		{
-			lock (threadLock)
-				_value = value;
-		}
 	}
 }

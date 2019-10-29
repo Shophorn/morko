@@ -109,12 +109,13 @@ public partial class ClientController
 			var arguments = argumentsData.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
 			Debug.Log($"Received update from servers, id {arguments.playerId} {((arguments.playerId == connection.ClientId) ? "(skipping own update)" : "")}");
 
-			if (connection.receivedPositions != null)
+			if (connection.receivers != null)
 			{
 				if (arguments.playerId != connection.ClientId)
 				{
 					var package = packageData.ToStructure<PlayerGameUpdatePackage>();
-					connection.receivedPositions[arguments.playerId].Write(package.position);
+					// connection.receivedPositions[arguments.playerId].Value = package.position;
+					connection.receivers[arguments.playerId].Receive(package);
 					Debug.Log(package.position);
 				}
 			}

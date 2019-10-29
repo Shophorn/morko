@@ -49,8 +49,18 @@ public class GameStartInfo
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct PlayerGameUpdatePackage
 {
-	public int playerId;
 	public Vector3 position;
+	public float rotation;
+}
+
+public interface INetworkReceiver
+{
+	void Receive(PlayerGameUpdatePackage package);
+}
+
+public interface INetworkSender
+{
+	PlayerGameUpdatePackage GetPackageToSend();
 }
 
 public partial class ClientController : MonoBehaviour
@@ -63,8 +73,6 @@ public partial class ClientController : MonoBehaviour
 	private float nextNetUpdateTime;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-	public bool AutoStart { get; set; }
-
 	[Header("Player info")]
 	[HideInInspector] public string playerName = "Default Player";
 	[HideInInspector] public int ClientId { get; set; } = -1;
@@ -75,10 +83,8 @@ public partial class ClientController : MonoBehaviour
 	private ServerConnectionInfo requestedServer;
 	private ServerConnectionInfo joinedServer;
 	
-	public GameObject AvatarPrefab { get; set; }
-	private Transform senderTransform;
-	private Dictionary<int, Transform> receiverTransforms;
-	private Dictionary<int, Interlocked<Vector3>> receivedPositions;
+	private INetworkSender sender;
+	private Dictionary<int, INetworkReceiver> receivers;
 
 	private UdpClient udpClient;
 	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
@@ -105,21 +111,20 @@ public partial class ClientController : MonoBehaviour
 		netControls = GetComponent<IClientNetControllable>();
 	}
 
-	public void SetSender(Transform transform)
+	public void SetSender(INetworkSender sender)
 	{
-		senderTransform = transform;
+		this.sender = sender;
+		Debug.Log($"[CLIENT CONTROLLER]: sender set {sender}");
 	}
 
 	public void InitializeReceivers()
 	{
-		receiverTransforms = new Dictionary<int, Transform>();
-		receivedPositions = new Dictionary<int, Interlocked<Vector3>>();
+		receivers = new Dictionary<int, INetworkReceiver>();
 	}
 
-	public void SetReceiver(int index, Transform transform)
+	public void SetReceiver(int index, INetworkReceiver receivingPlayer)
 	{
-		receiverTransforms.Add(index, transform);
-		receivedPositions.Add(index, new Interlocked<Vector3>());
+		receivers.Add(index, receivingPlayer);
 	}
 
 	public void StartNetworkUpdate()
@@ -144,12 +149,12 @@ public partial class ClientController : MonoBehaviour
 		sendUpdateThreadRunner = new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
-			clientId 	= ClientId,
 			udpClient 	= udpClient,
-			endPoint 	= joinedServer.endPoint
+			endPoint 	= joinedServer.endPoint,
+			controller 	= this
 		};
-
 		sendUpdateThread.Start(sendUpdateThreadRunner);
+		
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
 
@@ -168,11 +173,12 @@ public partial class ClientController : MonoBehaviour
 		sendUpdateThreadRunner = new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
-			clientId 	= ClientId,
 			udpClient 	= udpClient,
-			endPoint 	= serverEndPoint
+			endPoint 	= serverEndPoint,
+			controller 	= this
 		};
 		sendUpdateThread.Start(sendUpdateThreadRunner);
+		
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
 
@@ -196,18 +202,12 @@ public partial class ClientController : MonoBehaviour
 			}
 		}
 
-		if (doNetworkUpdate)
-		{
-			foreach (var item in receivedPositions)
-			{
-				int key = item.Key;
-				receiverTransforms[key].position = item.Value.Read();
-			}
-
-			// Note(Leo): Lol, no accessing transform from threads??
-			if (senderTransform != null && sendUpdateThread.IsRunning)
-				sendUpdateThreadRunner.playerPosition = senderTransform.position;
-		}
+		// if (doNetworkUpdate)
+		// {
+		// 	// Note(Leo): Lol, no accessing transform from threads??
+		// 	if (sender != null && sendUpdateThread.IsRunning)
+		// 		sendUpdateThreadRunner.playerPosition = sender.position;
+		// }
 	}
 
 	public void StartListenBroadcast()
@@ -241,13 +241,5 @@ public partial class ClientController : MonoBehaviour
 
 		int sentBytes = udpClient.Send(data, data.Length, endPoint);
 		Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
-	}
-
-	public void CreateLocalServerConnection()
-	{
-		StartUpdate();
-
-		// var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
-		// udpClient = new UdpClient(localEndPoint);
 	}
 }
