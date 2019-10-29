@@ -20,6 +20,7 @@
 */.idea/
 *.sublime-project
 *.sublime-workspace
+*.sln
 
 # This is only needed for net code development
 MorkoUnityProjectCopyForNetDev/
