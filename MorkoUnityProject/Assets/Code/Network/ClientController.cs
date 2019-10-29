@@ -51,6 +51,7 @@ public struct PlayerGameUpdatePackage
 {
 	public int playerId;
 	public Vector3 position;
+	public float rotation;
 }
 
 public partial class ClientController : MonoBehaviour
@@ -63,8 +64,6 @@ public partial class ClientController : MonoBehaviour
 	private float nextNetUpdateTime;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-	public bool AutoStart { get; set; }
-
 	[Header("Player info")]
 	[HideInInspector] public string playerName = "Default Player";
 	[HideInInspector] public int ClientId { get; set; } = -1;
@@ -75,9 +74,8 @@ public partial class ClientController : MonoBehaviour
 	private ServerConnectionInfo requestedServer;
 	private ServerConnectionInfo joinedServer;
 	
-	public GameObject AvatarPrefab { get; set; }
 	private Transform senderTransform;
-	private Dictionary<int, Transform> receiverTransforms;
+	private Dictionary<int, RemoteNetworkPlayerController> receivingControllers;
 	private Dictionary<int, Interlocked<Vector3>> receivedPositions;
 
 	private UdpClient udpClient;
@@ -112,13 +110,13 @@ public partial class ClientController : MonoBehaviour
 
 	public void InitializeReceivers()
 	{
-		receiverTransforms = new Dictionary<int, Transform>();
+		receivingControllers = new Dictionary<int, RemoteNetworkPlayerController>();
 		receivedPositions = new Dictionary<int, Interlocked<Vector3>>();
 	}
 
-	public void SetReceiver(int index, Transform transform)
+	public void SetReceiver(int index, RemoteNetworkPlayerController receivingPlayer)
 	{
-		receiverTransforms.Add(index, transform);
+		receivingControllers.Add(index, receivingPlayer);
 		receivedPositions.Add(index, new Interlocked<Vector3>());
 	}
 
@@ -201,7 +199,7 @@ public partial class ClientController : MonoBehaviour
 			foreach (var item in receivedPositions)
 			{
 				int key = item.Key;
-				receiverTransforms[key].position = item.Value.Read();
+				receivingControllers[key].SetPosition(item.Value.Read());
 			}
 
 			// Note(Leo): Lol, no accessing transform from threads??

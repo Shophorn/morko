@@ -173,12 +173,12 @@ public class GameManager : 	MonoBehaviour,
 			var info = startInfo.remotePlayers[remotePlayerIndex];
 			var remotePlayer = AvatarInstantiator.Instantiate(new int [] { info.avatarId })[0];
 			var remoteAvatar = remotePlayer.GetComponent<Character>();
-			clientController.SetReceiver(info.playerId, remoteAvatar.transform);
+			var remoteController = remotePlayer.AddComponent<RemoteNetworkPlayerController>();
+
+			clientController.SetReceiver(info.playerId, remoteController);
 
 			// Todo(Leo): Only get renderer from avatar and set its layer
 			remoteAvatar.gameObject.SetLayerRecursively(remoteAvatarLayer);
-			
-			// Todo(Leo): RemoteAvatarContoller
 		}
 
 		clientController.StartNetworkUpdate();
