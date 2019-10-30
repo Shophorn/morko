@@ -4,7 +4,10 @@ namespace Morko
 {
 	public class ListItem : MonoBehaviour
 	{
-		public int id;
+		public int listItemId;
 		public string listItemName;
+
+		public GameObject[] characters;
+		public GameObject map;
 	}
 }

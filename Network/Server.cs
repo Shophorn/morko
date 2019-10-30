@@ -63,6 +63,10 @@ namespace Morko.Network
 
 		private Action<string> Log;
 
+		public int PlayerCount => players.Count;
+		public string [] PlayersNames => players.Select(player => player.name).ToArray();
+	 	
+
 		// Note(Leo): this disables the use of constructor outside class
 		private Server() {}
 
@@ -172,9 +176,8 @@ namespace Morko.Network
 
 		public void StopBroadcasting()
 		{
-			// TODO(Leo): Remove questionmarksP????
-			broadcastControl?.Stop();
-			broadcastReceiveControl?.Stop();
+			broadcastControl.Stop();
+			broadcastReceiveControl.Stop();
 		}
 
 		public int AddHostingPlayer(string name, IPEndPoint endPoint)
@@ -199,16 +202,19 @@ namespace Morko.Network
 
 		public void AbortGame()
 		{
-			// TODO(Leo): Remove questionmarksP????
-			gameUpdateThreadControl?.Stop();
-			gameUpdateReceiveThreadControl?.Stop();
+			gameUpdateThreadControl.Stop();
+			gameUpdateReceiveThreadControl.Stop();
 		}
 
-		public int PlayerCount => players.Count;
-		public string [] PlayersNames => players.Select(player => player.name).ToArray();
-	 	
 	 	public void Close()
 		{
+			/* Note(Leo): In addition to stopping, we must wait for cleanups also before closing sockets.
+			Cleanups may do things with sockets such as dropping multicastgroups */
+			broadcastControl.StopAndWait();
+			broadcastReceiveControl.StopAndWait();
+			gameUpdateThreadControl.StopAndWait();
+			gameUpdateReceiveThreadControl.StopAndWait();
+			
 			senderClient?.Close();
 			responseClient?.Close();
 		}
@@ -227,9 +233,6 @@ namespace Morko.Network
 
 			public void Run()
 			{
-				server.Log("[SERVER]: Started update thread");
-
-
 				IPEndPoint endPoint = new IPEndPoint(Constants.multicastAddress, Constants.multicastPort);
 				server.senderClient.JoinMulticastGroup(Constants.multicastAddress);
 
@@ -284,25 +287,10 @@ namespace Morko.Network
 			public void Run()
 			{
 				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-				// server.Log("[SERVER]: Started update receive thread succesfully");
 
 				while(true)
 				{
-					// server.Log($"[SERVER]: Before receive data");
-					// byte [] data = null;
-					// try{
-						// System.IO.File.AppendAllText("w:/metropolia/morko/serverlog.log", $"{DateTime.Now}: Hello from receiving end\n");
-					// } catch (SocketException e)
-					// {
-					// 	System.IO.File.AppendAllText("w:/metropolia/morko/serverlog.log", $"{DateTime.Now}: {e}\n");
-					// 	server.Log("[SERVER EXCEPTION]: Caught socket exception");
-					// }
-
-					// if (data == null)
-					// 	continue;
 					byte [] data = server.responseClient.Receive(ref receiveEndPoint);
-
-					server.Log($"[SERVER]: Received data from {receiveEndPoint}");
 
 					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] contents))
 					{
@@ -310,9 +298,7 @@ namespace Morko.Network
 						{
 						case NetworkCommand.ClientGameUpdate:
 							var arguments = contents.ToStructure<ClientGameUpdateArgs>(out byte [] package);
-							server.Log($"[SERVER]: Received update from '{server.players[arguments.playerId].name}'");
 							server.players[arguments.playerId].lastReceivedPackage = package;
-
 							break;
 						}
 					}

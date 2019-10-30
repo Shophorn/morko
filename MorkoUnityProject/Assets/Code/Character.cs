@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Morko
+public class Character : MonoBehaviour
 {
 	public class Character : MonoBehaviour
 	{
@@ -10,13 +10,13 @@ namespace Morko
 		[HideInInspector]
 		public LocalController localController;
 
-		private DisableMovement disableMovement;
+	private DisableMovement disableMovement;
 
-		private LocalController lc
-		{
-			get => localController;
-			set => localController = value;
-		}
+	private LocalPlayerController lc
+	{
+		get => localController;
+		set => localController = value;
+	}
 
 		private void Start()
 		{
@@ -25,34 +25,33 @@ namespace Morko
 			disableMovement = GetComponent<DisableMovement>();
 		}
 
-		private void OnControllerColliderHit(ControllerColliderHit hit)
+	private void OnControllerColliderHit(ControllerColliderHit hit)
+	{
+		if (hit.collider.CompareTag("Avatar"))
 		{
-			if (hit.collider.CompareTag("Avatar"))
-			{
-				/*
-				LocalController hitCharacterLocalController = hit.collider.GetComponent<Character>().localController;
-				
-				if (!localController.isMorko && !hitCharacterLocalController.isMorko) return;
-				
-				// TODO (Sampo/Leo): Both characters are morko, conflict
-				if (localController.isMorko && hitCharacterLocalController.isMorko)
-					throw new NotImplementedException();
+			/*
+			LocalPlayerController hitCharacterLocalPlayerController = hit.collider.GetComponent<Character>().localController;
+			
+			if (!localController.isMorko && !hitCharacterLocalPlayerController.isMorko) return;
+			
+			// TODO (Sampo/Leo): Both characters are morko, conflict
+			if (localController.isMorko && hitCharacterLocalPlayerController.isMorko)
+				throw new NotImplementedException();
 
-				localController.ChangeState();
-				hitCharacterLocalController.ChangeState();
-				*/
-				localController.ChangeState();
-			}
+			localController.ChangeState();
+			hitCharacterLocalPlayerController.ChangeState();
+			*/
+			localController.ChangeState();
 		}
+	}
+
+	public void EnableDisableMovementScript()
+	{
+		disableMovement.enabled = true;
+	}
 	
-		public void EnableDisableMovementScript()
-		{
-			disableMovement.enabled = true;
-		}
-		
-		public void DisableDisableMovementScript()
-		{
-			disableMovement.enabled = false;
-		}
+	public void DisableDisableMovementScript()
+	{
+		disableMovement.enabled = false;
 	}
 }

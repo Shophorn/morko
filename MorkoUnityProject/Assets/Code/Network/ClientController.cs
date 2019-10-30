@@ -49,11 +49,21 @@ public class GameStartInfo
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct PlayerGameUpdatePackage
 {
-	public int playerId;
 	public Vector3 position;
+	public float rotation;
 }
 
-public class ClientController : MonoBehaviour
+public interface INetworkReceiver
+{
+	void Receive(PlayerGameUpdatePackage package);
+}
+
+public interface INetworkSender
+{
+	PlayerGameUpdatePackage GetPackageToSend();
+}
+
+public partial class ClientController : MonoBehaviour
 {
 	[Header("Network Configuration")]
 	public int netUpdateIntervalMs = 50;
@@ -63,8 +73,6 @@ public class ClientController : MonoBehaviour
 	private float nextNetUpdateTime;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-	public bool AutoStart { get; set; }
-
 	[Header("Player info")]
 	[HideInInspector] public string playerName = "Default Player";
 	[HideInInspector] public int ClientId { get; set; } = -1;
@@ -75,18 +83,17 @@ public class ClientController : MonoBehaviour
 	private ServerConnectionInfo requestedServer;
 	private ServerConnectionInfo joinedServer;
 	
-	public GameObject AvatarPrefab { get; set; }
-	private Transform senderTransform;
-	private Dictionary<int, Transform> receiverTransforms;
-	private Dictionary<int, Atomic<Vector3>> receivedPositions;
+	private INetworkSender sender;
+	private Dictionary<int, INetworkReceiver> receivers;
 
 	private UdpClient udpClient;
 	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
 
+	// Todo(Leo): Please just make these normal variables, so we can like check against null... 
 	private readonly ThreadControl detectServersThread = new ThreadControl();
 	private readonly ThreadControl receiveUpdateThread = new ThreadControl();
-	private readonly ThreadControl<SendUpdateThread> sendUpdateThread 
-		= new ThreadControl<SendUpdateThread>();
+	private readonly ThreadControl sendUpdateThread = new ThreadControl();
+	private SendUpdateThread sendUpdateThreadRunner;
 
 	private bool doNetworkUpdate = false;
 
@@ -104,21 +111,20 @@ public class ClientController : MonoBehaviour
 		netControls = GetComponent<IClientNetControllable>();
 	}
 
-	public void SetSender(Transform transform)
+	public void SetSender(INetworkSender sender)
 	{
-		senderTransform = transform;
+		this.sender = sender;
+		Debug.Log($"[CLIENT CONTROLLER]: sender set {sender}");
 	}
 
 	public void InitializeReceivers()
 	{
-		receiverTransforms = new Dictionary<int, Transform>();
-		receivedPositions = new Dictionary<int, Atomic<Vector3>>();
+		receivers = new Dictionary<int, INetworkReceiver>();
 	}
 
-	public void SetReceiver(int index, Transform transform)
+	public void SetReceiver(int index, INetworkReceiver receivingPlayer)
 	{
-		receiverTransforms.Add(index, transform);
-		receivedPositions.Add(index, new Atomic<Vector3>());
+		receivers.Add(index, receivingPlayer);
 	}
 
 	public void StartNetworkUpdate()
@@ -132,159 +138,6 @@ public class ClientController : MonoBehaviour
 		return result;	
 	}
 
-	private class ReceiveThread : IThreadRunner
-	{
-		public ClientController connection;
-
-		public void Run ()
-		{
-			var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-			while(true)
-			{
-				if (ProtocolFormat.TryParseCommand(	connection.udpClient.Receive(ref receiveEndPoint),
-													out NetworkCommand command,
-													out byte [] contents) == false)
-				{
-					continue;
-				}
-
-				switch (command)
-				{
-					case NetworkCommand.ServerIntroduce:
-					{
-						receiveEndPoint.Port = Constants.serverReceivePort;
-						var existingServer = connection.servers
-												.Find(server => IPEndPoint.Equals(	server.endPoint,
-																					receiveEndPoint));
-						if (existingServer != null)
-						{
-							existingServer.lastConnectionTime = DateTime.Now;
-						}
-						else
-						{
-							var arguments = contents.ToStructure<ServerIntroduceArgs>();
-							connection.servers.Add(new ServerConnectionInfo
-							{
-								serverInfo = new ServerInfo
-								{ 
-									serverName = arguments.serverName
-								},
-								endPoint 			= receiveEndPoint,
-								lastConnectionTime 	= DateTime.Now
-							});
-
-							if (connection.selectedServerIndex < 0)
-							{
-								connection.selectedServerIndex = 0;
-							}
-	
-							connection.netControls.OnServerListChanged(connection.GetServers());
-						}
-
-					} break;
-
-					case NetworkCommand.ServerStartGame:
-					{
-						var arguments 			= contents.ToStructure<ServerStartGameArgs>(out byte [] packageData);
-						int playerCount 		= arguments.playerCount;
-						var playerStartInfos 	= packageData.ToArray<PlayerStartInfo>(playerCount);
-
-						Debug.Log($"Server called to start game, arguments parsed, my index = {connection.ClientId}");
-
-						var gameStartInfo = new GameStartInfo
-						{
-							mapIndex = 0,
-							localPlayer = playerStartInfos
-												.Where(info => info.playerId == connection.ClientId)
-												.First(),
-							remotePlayers = playerStartInfos
-												.Where(info => info.playerId != connection.ClientId)
-												.ToArray()
-						};
-						connection.netControls.OnServerStartGame(gameStartInfo);
-					} break;
-
-					case NetworkCommand.ServerGameUpdate:
-					{
-						var arguments = contents.ToStructure<ServerGameUpdateArgs>(out byte [] packageData);
-						Debug.Log($"Received update from servers, id {arguments.playerId} {((arguments.playerId == connection.ClientId) ? "(skipping own update)" : "")}");
-
-						if (connection.receivedPositions != null)
-						{
-							if (arguments.playerId != connection.ClientId)
-							{
-								var package = packageData.ToStructure<PlayerGameUpdatePackage>();
-								connection.receivedPositions[arguments.playerId].Write(package.position);
-								Debug.Log(package.position);
-							}
-						}
-						else
-						{
-							Debug.LogError("Receivers not yet created");
-						}
-					} break;
-
-					case NetworkCommand.ServerConfirmJoin:
-					{
-						var arguments = contents.ToStructure<ServerConfirmJoinArgs>();
-
-						if (arguments.accepted)
-						{
-							connection.ClientId = arguments.playerId;
-							connection.joinedServer = connection.requestedServer;
-							Debug.Log($"Server accepted request, my id is {connection.ClientId}");
-						}
-						else
-						{
-							Debug.Log("Server declined request");
-						}
-
-						connection.OnJoinedServer?.Invoke();
-						connection.requestedServer = null;
-					} break;
-				}
-			}
-		}
-
-		public void CleanUp(){}
-	}
-
-	public class SendUpdateThread : IThreadRunner
-	{
-		public Vector3 		playerPosition;
-		public int 			sendDelayMs;
-		public int 			clientId;
-		public UdpClient 	udpClient;
-		public IPEndPoint 	endPoint;
-
-		public void Run()
-		{
-			Debug.Log($"[CLIENT]: Start SendUpdateThread, endPoint = {endPoint}");
-			while(true)
-			{
-				var updateArgs = new ClientGameUpdateArgs
-				{
-					playerId = clientId
-				};
-
-				byte [] updatePackage = new PlayerGameUpdatePackage
-				{
-					playerId = clientId,
-					position = playerPosition
-				}.ToBinary();
-
-				byte [] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
-
-				Debug.Log("[CLIENT]: Send data to server");
-				udpClient.Send(data, data.Length, endPoint);
-
-				Thread.Sleep(sendDelayMs);
-			}
-		}
-
-		public void CleanUp() {}
-	}
-
 	public void StartUpdate()
 	{
 		var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
@@ -293,13 +146,15 @@ public class ClientController : MonoBehaviour
 
 		Debug.Log($"Joined server = {joinedServer}");
 
-		sendUpdateThread.Start(new SendUpdateThread
+		sendUpdateThreadRunner = new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
-			clientId 	= ClientId,
 			udpClient 	= udpClient,
-			endPoint 	= joinedServer.endPoint
-		});
+			endPoint 	= joinedServer.endPoint,
+			controller 	= this
+		};
+		sendUpdateThread.Start(sendUpdateThreadRunner);
+		
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
 
@@ -315,13 +170,15 @@ public class ClientController : MonoBehaviour
 	{
 		// var serverEndPoint = new IPEndPoint(CurrentEndPoint.Address, Constants.serverReceivePort);
 		var serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), Constants.serverReceivePort);
-		sendUpdateThread.Start(new SendUpdateThread
+		sendUpdateThreadRunner = new SendUpdateThread
 		{
 			sendDelayMs = netUpdateIntervalMs,
-			clientId 	= ClientId,
 			udpClient 	= udpClient,
-			endPoint 	= serverEndPoint
-		});
+			endPoint 	= serverEndPoint,
+			controller 	= this
+		};
+		sendUpdateThread.Start(sendUpdateThreadRunner);
+		
 		receiveUpdateThread.Start(new ReceiveThread { connection = this });
 	}
 
@@ -345,18 +202,12 @@ public class ClientController : MonoBehaviour
 			}
 		}
 
-		if (doNetworkUpdate)
-		{
-			foreach (var item in receivedPositions)
-			{
-				int key = item.Key;
-				receiverTransforms[key].position = item.Value.Read();
-			}
-
-			// Note(Leo): Lol, no accessing transform from threads??
-			if (senderTransform != null && sendUpdateThread.IsRunning)
-				sendUpdateThread.Runner.playerPosition = senderTransform.position;
-		}
+		// if (doNetworkUpdate)
+		// {
+		// 	// Note(Leo): Lol, no accessing transform from threads??
+		// 	if (sender != null && sendUpdateThread.IsRunning)
+		// 		sendUpdateThreadRunner.playerPosition = sender.position;
+		// }
 	}
 
 	public void StartListenBroadcast()
@@ -367,12 +218,16 @@ public class ClientController : MonoBehaviour
 
 	public void StopListenBroadcast()
 	{
-		detectServersThread.Stop();
+		detectServersThread.StopAndWait();
 		udpClient?.Close();
 	}
 
 	private void OnDisable()
 	{
+		detectServersThread.StopAndWait();
+		sendUpdateThread.StopAndWait();
+		receiveUpdateThread.StopAndWait();
+
 		udpClient?.Close();
 	}
 
@@ -386,13 +241,5 @@ public class ClientController : MonoBehaviour
 
 		int sentBytes = udpClient.Send(data, data.Length, endPoint);
 		Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
-	}
-
-	public void CreateLocalServerConnection()
-	{
-		StartUpdate();
-
-		// var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
-		// udpClient = new UdpClient(localEndPoint);
 	}
 }
