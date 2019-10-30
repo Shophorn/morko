@@ -28,7 +28,8 @@ public class LocalPlayerController : INetworkSender
 	PlayerSettings normalSettings;
 	PlayerSettings morkoSettings;
 	PlayerSettings currentSettings => isMorko ? morkoSettings : normalSettings;
-	private MovementState currentMovementState = MovementState.Idle;
+	public MovementState currentMovementState = MovementState.Idle;
+	public float movementStateInterpolator = 1f;
 	private float walkSpeed => currentSettings.walkSpeed;
 	private float sneakSpeed => currentSettings.sneakSpeed;
 	private float runSpeed => currentSettings.runSpeed;
@@ -64,10 +65,12 @@ public class LocalPlayerController : INetworkSender
 		Walk,
 		Sideways,
 		Backwards,
+		SidewaysRun,
+		BackwardsRun,
 		Run,
 		Dive,
 	}
-
+	
 	private Interlocked<Vector3> positionForNetwork = new Interlocked<Vector3>();
 	private Interlocked<float> rotationForNetwork = new Interlocked<float>();
 
@@ -134,8 +137,9 @@ public class LocalPlayerController : INetworkSender
 		Move(moveDirection, accelerateAndRun);
 		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta);
 		currentMovementState = dive ? MovementState.Dive : currentMovementState;
-		
-		UpdateAnimator(currentMovementState, character.characterController.velocity.magnitude);
+
+		float interpolate = CurrentStateInterpolation(currentMovementState, character.characterController.velocity.magnitude);
+		UpdateAnimator(currentMovementState, interpolate);
 
 		positionForNetwork.Value = character.transform.position;
 		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
@@ -150,46 +154,51 @@ public class LocalPlayerController : INetworkSender
 		};
 		return package;
 	}
-	
-	private void UpdateAnimator(MovementState movementState, float velocityMagnitude)
+
+	private float CurrentStateInterpolation(MovementState movementState, float velocityMagnitude)
 	{
+		movementStateInterpolator = 1f;
+		
 		switch (movementState)
 		{
 			case MovementState.Idle:
-				character.animatorController.SetAnimation(movementState);
 				break;
-				
 			case MovementState.Rotate:
-				character.animatorController.SetAnimation(movementState);
 				break;
-				
 			case MovementState.Sneak:
-				character.animatorController.SetAnimation(movementState, Mathf.Clamp(velocityMagnitude / sneakSpeed, 0f, 1f));
+				movementStateInterpolator = velocityMagnitude / sneakSpeed;
 				break;
-				
 			case MovementState.Walk:
-				character.animatorController.SetAnimation(movementState, Mathf.Clamp(velocityMagnitude / walkSpeed, 0f, 1f));
+				movementStateInterpolator = (velocityMagnitude - sneakSpeed) / (walkSpeed - sneakSpeed);
 				break;
-				
 			case MovementState.Sideways:
-				character.animatorController.SetAnimation(movementState);
+				movementStateInterpolator = velocityMagnitude / walkSpeed;
 				break;
-				
 			case MovementState.Backwards:
-				character.animatorController.SetAnimation(movementState);
+				movementStateInterpolator = velocityMagnitude / walkSpeed;
 				break;
-				
 			case MovementState.Run:
-				character.animatorController.SetAnimation(movementState, Mathf.Clamp(velocityMagnitude / runSpeed, 0f, 1f));
+				movementStateInterpolator = (velocityMagnitude - walkSpeed) / (runSpeed - walkSpeed);
 				break;
-				
+			case MovementState.SidewaysRun:
+				movementStateInterpolator = (velocityMagnitude - walkSpeed) / (runSpeed - walkSpeed);
+				break;
+			case MovementState.BackwardsRun:
+				movementStateInterpolator = (velocityMagnitude - walkSpeed) / (runSpeed - walkSpeed);
+				break;
 			case MovementState.Dive:
-				character.animatorController.SetAnimation(movementState);
 				break;
-				
+			
 			default:
 				throw new ArgumentOutOfRangeException(nameof(movementState), movementState, null);
 		}
+
+		movementStateInterpolator = Mathf.Clamp(movementStateInterpolator, 0f, 1f);
+		return movementStateInterpolator;
+	}
+	private void UpdateAnimator(MovementState movementState, float interpolate)
+	{
+		character.animatorController.SetAnimation(movementState, interpolate);
 	}
 
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
@@ -221,6 +230,7 @@ public class LocalPlayerController : INetworkSender
 		{
 			currentMovementState = MovementState.Walk;
 			currentMovementSpeed += accelerationWalk * Time.deltaTime;
+			currentMovementSpeed = Mathf.Clamp(currentMovementSpeed, 0f, walkSpeed);
 		}
 		else if (decelerateWalk)
 		{
@@ -283,23 +293,32 @@ public class LocalPlayerController : INetworkSender
 		{
 			// Walk side multiplier
 			if (currentMovementSpeed <= walkSpeed)
+			{
 				decrease = Mathf.Lerp(sideMultiplier, 1f, moveLookDotProduct);
+				currentMovementState = MovementState.Sideways;
+			}
 			// Run side multiplier
 			else
+			{
 				decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
+				currentMovementState = MovementState.SidewaysRun;
+			}
 
-			currentMovementState = MovementState.Sideways;
 		}
 		else if (movingBackwards)
 		{
 			// Walk backwards multiplier
 			if (currentMovementSpeed <= walkSpeed)
+			{
 				decrease = Mathf.Lerp(sideMultiplier, backwardMultiplier, Mathf.Abs(moveLookDotProduct));
+				currentMovementState = MovementState.Backwards;
+			}
 			// Run backwards multiplier
 			else
+			{
 				decrease = Mathf.Lerp(sideRunMultiplier, backwardRunMultiplier, Mathf.Abs(moveLookDotProduct));
-				
-			currentMovementState = MovementState.Backwards;
+				currentMovementState = MovementState.BackwardsRun;
+			}
 		}
 		else
 			decrease = 1f;
