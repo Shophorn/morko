@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9203881931225905139}
   - component: {fileID: 7221998277546130218}
   - component: {fileID: 4936810860318769310}
-  - component: {fileID: 4803791914013669238}
+  - component: {fileID: 1663904760770783983}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -26,13 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 218940114761140414}
-  m_LocalRotation: {x: 0.31814343, y: -0, z: -0, w: 0.94804263}
-  m_LocalPosition: {x: 0, y: 7.83, z: -10.56}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1081713420466458088}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 37.101, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &7221998277546130218
 Camera:
   m_ObjectHideFlags: 0
@@ -83,7 +83,7 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 218940114761140414}
   m_Enabled: 1
---- !u!114 &4803791914013669238
+--- !u!114 &1663904760770783983
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -92,9 +92,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 218940114761140414}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 999e1e683a13e754991173937a083f13, type: 3}
+  m_Script: {fileID: 11500000, guid: 1791fb97675676545baa587acfe345e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  character: {fileID: 0}
+  camera: {fileID: 0}
+  target: {fileID: 1081713420466458088}
+  distance: 15
+  angle: 45
+  pushDistance: 1.5
+  pushForwardTime: 5
+  pullBackTime: 3
+  minMouseDistance: 3
 --- !u!1 &566992605936603820
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,6 +323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 5931495741578049458}
+  animatorController: {fileID: 0}
 --- !u!143 &5931495741578049458
 CharacterController:
   m_ObjectHideFlags: 0
