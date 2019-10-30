@@ -15,8 +15,6 @@ namespace Morko
     
         public void SetAnimation(LocalPlayerController.MovementState movementState, float multiplier = 1f)
         {
-            Debug.Log("PLAYING ANIM: " + movementState + " - " + multiplier);
-
             if (previousState == movementState)
             {
                 animator.speed = multiplier;
