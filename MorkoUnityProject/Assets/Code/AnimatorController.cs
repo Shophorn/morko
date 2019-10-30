@@ -5,7 +5,7 @@ namespace Morko
     public class AnimatorController : MonoBehaviour
     {
         public Animator animator;
-        private LocalController.MovementState previousState;
+        private LocalPlayerController.MovementState previousState;
     
         private void Start()
         {
@@ -13,7 +13,7 @@ namespace Morko
             animator.Play("Idle");
         }
     
-        public void SetAnimation(LocalController.MovementState movementState, float multiplier = 1f)
+        public void SetAnimation(LocalPlayerController.MovementState movementState, float multiplier = 1f)
         {
             Debug.Log("PLAYING ANIM: " + movementState + " - " + multiplier);
 

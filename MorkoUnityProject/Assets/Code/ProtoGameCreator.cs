@@ -33,7 +33,7 @@ public class ProtoGameCreator : MonoBehaviour
         }
 
         int[] indexes = {0, 1, 2, 3, 4};
-        characterPrefabs.InstantiateMany(indexes);
+        //characterPrefabs.InstantiateMany(indexes);
     }
     //TÄTÄ KUTSUTAAN LOADERISSA JOTTA HAHMOT INSTANSIOITUVAT OIKEAAN SCENEEN
     //UNITY INSTANSIOI ASIAT AKTIIVISESN SKENEEN JOKA PITÄÄ ASETTAA SCENEMANAGERISSA
@@ -41,6 +41,9 @@ public class ProtoGameCreator : MonoBehaviour
     public void StartScene()
     {
         var character = Instantiate(characterPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+        var camera = character.GetComponentInChildren<Camera>();
+        localController = LocalPlayerController.Create(character, camera, normalSettings, morkoSettings);
+        character.localController = localController;
 
         // Note(Leo): SAMPO POISTIN NÄMÄ väliaikaisesti, KAMERA PITÄÄ SYÖTTÄÄ CREATEEN MYÖS
         // localController = LocalPlayerController.Create(character, normalSettings, morkoSettings);

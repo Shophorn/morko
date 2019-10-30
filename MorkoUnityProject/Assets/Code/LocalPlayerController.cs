@@ -28,6 +28,7 @@ public class LocalPlayerController : INetworkSender
 	PlayerSettings normalSettings;
 	PlayerSettings morkoSettings;
 	PlayerSettings currentSettings => isMorko ? morkoSettings : normalSettings;
+	private MovementState currentMovementState = MovementState.Idle;
 	private float walkSpeed => currentSettings.walkSpeed;
 	private float sneakSpeed => currentSettings.sneakSpeed;
 	private float runSpeed => currentSettings.runSpeed;
@@ -54,6 +55,18 @@ public class LocalPlayerController : INetworkSender
 	private bool ran = false;
 	private bool disableMovement = false;
 	private long lastMillis = 0;
+	
+	public enum MovementState
+	{
+		Idle,
+		Rotate,
+		Sneak,
+		Walk,
+		Sideways,
+		Backwards,
+		Run,
+		Dive,
+	}
 
 	private Interlocked<Vector3> positionForNetwork = new Interlocked<Vector3>();
 	private Interlocked<float> rotationForNetwork = new Interlocked<float>();
@@ -120,7 +133,9 @@ public class LocalPlayerController : INetworkSender
 
 		Move(moveDirection, accelerateAndRun);
 		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta);
-		Dash(dive);
+		currentMovementState = dive ? MovementState.Dive : currentMovementState;
+		
+		UpdateAnimator(currentMovementState, character.characterController.velocity.magnitude);
 
 		positionForNetwork.Value = character.transform.position;
 		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
@@ -134,6 +149,47 @@ public class LocalPlayerController : INetworkSender
 			rotation = rotationForNetwork.Value
 		};
 		return package;
+	}
+	
+	private void UpdateAnimator(MovementState movementState, float velocityMagnitude)
+	{
+		switch (movementState)
+		{
+			case MovementState.Idle:
+				character.animatorController.SetAnimation(movementState);
+				break;
+				
+			case MovementState.Rotate:
+				character.animatorController.SetAnimation(movementState);
+				break;
+				
+			case MovementState.Sneak:
+				character.animatorController.SetAnimation(movementState, Mathf.Clamp(velocityMagnitude / sneakSpeed, 0f, 1f));
+				break;
+				
+			case MovementState.Walk:
+				character.animatorController.SetAnimation(movementState, Mathf.Clamp(velocityMagnitude / walkSpeed, 0f, 1f));
+				break;
+				
+			case MovementState.Sideways:
+				character.animatorController.SetAnimation(movementState);
+				break;
+				
+			case MovementState.Backwards:
+				character.animatorController.SetAnimation(movementState);
+				break;
+				
+			case MovementState.Run:
+				character.animatorController.SetAnimation(movementState, Mathf.Clamp(velocityMagnitude / runSpeed, 0f, 1f));
+				break;
+				
+			case MovementState.Dive:
+				character.animatorController.SetAnimation(movementState);
+				break;
+				
+			default:
+				throw new ArgumentOutOfRangeException(nameof(movementState), movementState, null);
+		}
 	}
 
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
@@ -157,34 +213,53 @@ public class LocalPlayerController : INetworkSender
 		
 		
 		if (sneak)
+		{
+			currentMovementState = MovementState.Sneak;
 			currentMovementSpeed = sneakSpeed;
+		}
 		else if (accelerateWalk)
+		{
+			currentMovementState = MovementState.Walk;
 			currentMovementSpeed += accelerationWalk * Time.deltaTime;
+		}
 		else if (decelerateWalk)
+		{
+			currentMovementState = MovementState.Walk;
 			currentMovementSpeed -= decelerationWalk * Time.deltaTime;
+		}
 		else if (maxRunSpeed)
 		{
+			currentMovementState = MovementState.Run;
 			ran = true;
 			currentMovementSpeed = runSpeed;
 		}
 		else if (accelerateRun)
 		{
+			currentMovementState = MovementState.Run;
 			ran = true;
 			currentMovementSpeed += accelerationRun * Time.deltaTime;
 		}
 		else if (decelerateRun)
 		{
+			currentMovementState = MovementState.Run;
 			currentMovementSpeed -= decelerationRun * Time.deltaTime;
 			if (currentMovementSpeed <= walkSpeed)
 			{
+				currentMovementState = MovementState.Walk;
 				ran = false;
 				currentMovementSpeed = walkSpeed;
 			}
 		}
 		else if (maxWalkSpeed)
+		{
+			currentMovementState = MovementState.Walk;
 			currentMovementSpeed = walkSpeed;
+		}
 		else
+		{
+			currentMovementState = MovementState.Idle;
 			currentMovementSpeed = 0f;
+		}
 		
 		// Save direction when not moving
 		// Because direction is required even when not giving input for deceleration
@@ -201,8 +276,8 @@ public class LocalPlayerController : INetworkSender
 		
 		float decrease = 1f;
 		
-		bool movingSideways = moveLookDotProduct >= 0 && moveLookDotProduct < 1f;
-		bool movingBackwards = moveLookDotProduct < 0 && moveLookDotProduct >= -1f;
+		bool movingSideways = moveLookDotProduct >= -0.32 && moveLookDotProduct <= 0.66f;
+		bool movingBackwards = moveLookDotProduct < -0.32 && moveLookDotProduct >= -1f;
 		
 		if (movingSideways)
 		{
@@ -212,6 +287,8 @@ public class LocalPlayerController : INetworkSender
 			// Run side multiplier
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
+
+			currentMovementState = MovementState.Sideways;
 		}
 		else if (movingBackwards)
 		{
@@ -221,6 +298,8 @@ public class LocalPlayerController : INetworkSender
 			// Run backwards multiplier
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, backwardRunMultiplier, Mathf.Abs(moveLookDotProduct));
+				
+			currentMovementState = MovementState.Backwards;
 		}
 		else
 			decrease = 1f;
@@ -248,18 +327,18 @@ public class LocalPlayerController : INetworkSender
 	private void Rotate(Vector3 lookDirectionJoystick, Vector3 currentMousePosition, Vector3 mouseDelta)
 	{
 		Vector3 rotationVector = Vector3.zero;
-		
+			
 		bool mouseRotated = (Mathf.Abs(mouseDelta.x) > minMouseDelta) || (Mathf.Abs(mouseDelta.y) > minMouseDelta);
 		bool rightJoystickRotated = lookDirectionJoystick.sqrMagnitude > joystickMinDeadzone;
 		bool mouseAndJoystickRotated = mouseRotated && rightJoystickRotated;
-		bool mouseOrLeftJoystickRotated = (mouseRotated && !rightJoystickRotated) || (!mouseRotated && rightJoystickRotated);
+		bool mouseOrRightJoystickRotated = (mouseRotated && !rightJoystickRotated) || (!mouseRotated && rightJoystickRotated);
 		
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
 		bool mouseForRotation = false;
 		bool rightJoystickForRotation = false;
 		bool onlyLeftJoystickUsed = false;
 		
-		if (mouseOrLeftJoystickRotated)
+		if (mouseOrRightJoystickRotated)
 		{
 			mouseForRotation = mouseRotated;
 			mouseRotatedLast = mouseForRotation;
@@ -295,11 +374,11 @@ public class LocalPlayerController : INetworkSender
 		else if (hasMoved)
 			onlyLeftJoystickUsed = true;
 		
-
 		if (onlyLeftJoystickUsed && !mouseRotatedLast && currentSettings.rotateTowardsMove)
 		{
 			character.transform.rotation = Quaternion.LookRotation(moveDirection);
 		}
+		
 		else if (mouseForRotation)
 		{
 			lastMousePosition = currentMousePosition;
@@ -319,8 +398,18 @@ public class LocalPlayerController : INetworkSender
 		// If rotation amount > threshold, slowdown character
 		float angle = Vector3.Angle(character.transform.forward, lastRotation);
 		lastRotation = character.transform.forward;
+
+		if ((mouseOrRightJoystickRotated || mouseAndJoystickRotated) && character.characterController.velocity.magnitude <= 0.1f)
+		{
+			currentMovementState = MovementState.Rotate;
+		}
+		else if (!mouseOrRightJoystickRotated && !mouseAndJoystickRotated && character.characterController.velocity.magnitude <= 0.1f)
+		{
+			currentMovementState = MovementState.Idle;
+		}
 	}
-	
+	/*
+	 Will be replaced by animation
 	private void Dash(bool dive)
 	{
 		if (!isMorko || !dive) return;
@@ -350,4 +439,5 @@ public class LocalPlayerController : INetworkSender
 		
 		currentMovementSpeed = 0f;
 	}
+	*/
 }

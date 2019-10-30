@@ -1,16 +1,14 @@
 ﻿using System;
+using Morko;
 using UnityEngine;
 
 public class Character : MonoBehaviour
 {
-	public class Character : MonoBehaviour
-	{
-		public CharacterController characterController;
-		public AnimatorController animatorController;
-		[HideInInspector]
-		public LocalController localController;
+	public CharacterController characterController;
+	public AnimatorController animatorController;
+	[HideInInspector]
+	public LocalPlayerController localController;
 
-	private DisableMovement disableMovement;
 
 	private LocalPlayerController lc
 	{
@@ -18,12 +16,11 @@ public class Character : MonoBehaviour
 		set => localController = value;
 	}
 
-		private void Start()
-		{
-			characterController = GetComponent<CharacterController>();
-			animatorController = GetComponent<AnimatorController>();
-			disableMovement = GetComponent<DisableMovement>();
-		}
+	private void Start()
+	{
+		characterController = GetComponent<CharacterController>();
+		animatorController = GetComponent<AnimatorController>();
+	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
@@ -43,15 +40,5 @@ public class Character : MonoBehaviour
 			*/
 			localController.ChangeState();
 		}
-	}
-
-	public void EnableDisableMovementScript()
-	{
-		disableMovement.enabled = true;
-	}
-	
-	public void DisableDisableMovementScript()
-	{
-		disableMovement.enabled = false;
 	}
 }
