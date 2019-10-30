@@ -28,8 +28,8 @@ public class ProtoGameCreator : MonoBehaviour
             StartScene();
         }
 
-        int[] indexes = {0, 1, 2, 3, 4};
-        AvatarInstantiator.Instantiate(indexes);
+        //int[] indexes = {0, 1, 2, 3, 4};
+        //AvatarInstantiator.Instantiate(indexes);
     }
     //TÄTÄ KUTSUTAAN LOADERISSA JOTTA HAHMOT INSTANSIOITUVAT OIKEAAN SCENEEN
     //UNITY INSTANSIOI ASIAT AKTIIVISESN SKENEEN JOKA PITÄÄ ASETTAA SCENEMANAGERISSA

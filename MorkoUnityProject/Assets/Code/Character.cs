@@ -6,6 +6,7 @@ namespace Morko
 	public class Character : MonoBehaviour
 	{
 		public CharacterController characterController;
+		public AnimatorController animatorController;
 		[HideInInspector]
 		public LocalController localController;
 
@@ -20,6 +21,7 @@ namespace Morko
 		private void Start()
 		{
 			characterController = GetComponent<CharacterController>();
+			animatorController = GetComponent<AnimatorController>();
 			disableMovement = GetComponent<DisableMovement>();
 		}
 
