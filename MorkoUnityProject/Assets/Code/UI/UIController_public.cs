@@ -7,13 +7,14 @@ using UnityEngine.UI;
 
 using Morko;
 using Morko.Network;
+
 public interface IClientUIControllable
 {
 	void BeginJoin();
 	void EndJoin();
 
 	void OnClientReady();
-	void OnRequestJoin(JoinInfo joinInfo);
+	void RequestJoin(JoinInfo joinInfo);
 }
 
 public interface IServerUIControllable
@@ -24,6 +25,11 @@ public interface IServerUIControllable
 	// Note(Leo): These are called when hosting player starts or stops game
 	void StartGame();
 	void AbortGame();
+}
+
+public interface IAppUIControllable
+{
+	void Quit();
 }
 
 public class JoinInfo
@@ -45,16 +51,14 @@ public partial class UIController
 	public event Action OnStartGame;
 	public event Action OnAbortGame;
 
-	public event Action OnQuit;
-
 	public void Show()
 	{
-		mainGameObject.SetActive(true);	
+		uiMainGameObject.SetActive(true);	
 	}
 
 	public void Hide()
 	{
-		mainGameObject.SetActive(false);	
+		uiMainGameObject.SetActive(false);	
 	}
 
 	private string MapNameFromIndex(int mapIndex)
