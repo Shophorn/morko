@@ -12,7 +12,8 @@ using Morko.Network;
 public class GameManager : 	MonoBehaviour,
 							IClientUIControllable,
 							IClientNetControllable,
-							IServerUIControllable
+							IServerUIControllable,
+							IAppUIControllable
 {
 	public UIController uiController;
 	public ServerController serverController;
@@ -36,18 +37,13 @@ public class GameManager : 	MonoBehaviour,
 
  	public CharacterCollection characterPrefabs;
 
-	public void Awake()
-	{
-		uiController.OnQuit += ApplicationQuit;
-	}
-
 	void IClientUIControllable.OnClientReady()
 	{
 		Debug.Log("Player is ready");
 		MainThreadWorker.AddJob(clientController.StartUpdate);
 	}
 
-	void IClientUIControllable.OnRequestJoin(JoinInfo joinInfo)
+	void IClientUIControllable.RequestJoin(JoinInfo joinInfo)
 	{
 		if (joinInfo == null)
 		{
@@ -61,13 +57,13 @@ public class GameManager : 	MonoBehaviour,
 		clientController.JoinSelectedServer();
 	}
 
-	void IClientNetControllable.OnServerStartGame(GameStartInfo gameStartInfo)
+	void IClientNetControllable.StartGame(GameStartInfo gameStartInfo)
 	{
 		Debug.Log("Game manager starting game");
 		MainThreadWorker.AddJob(() => StartGame(gameStartInfo));
 	}
 
-	void IClientNetControllable.OnServerListChanged(ServerInfo [] servers)
+	void IClientNetControllable.UpdateServersList(ServerInfo [] servers)
 	{
 		MainThreadWorker.AddJob(() => uiController.SetServerList(servers));
 	}
@@ -207,6 +203,11 @@ public class GameManager : 	MonoBehaviour,
 
 			yield return null;
 		}
+	}
+
+	void IAppUIControllable.Quit()
+	{
+		ApplicationQuit();
 	}
 
 	private void ApplicationQuit()

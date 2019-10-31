@@ -18,8 +18,8 @@ using static Morko.Network.Constants;
 
 public interface IClientNetControllable
 {
-	void OnServerStartGame(GameStartInfo gameStartInfo);
-	void OnServerListChanged(ServerInfo [] servers);
+	void StartGame(GameStartInfo gameStartInfo);
+	void UpdateServersList(ServerInfo [] servers);
 }
 
 [Serializable]
@@ -198,7 +198,7 @@ public partial class ClientController : MonoBehaviour
 			{
 				servers.RemoveAt(serverIndex);
 				serverIndex--;
-				netControls.OnServerListChanged(GetServers());
+				netControls.UpdateServersList(GetServers());
 			}
 		}
 
