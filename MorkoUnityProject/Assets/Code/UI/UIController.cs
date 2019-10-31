@@ -71,89 +71,52 @@ public partial class UIController : MonoBehaviour
 		mainView.view.Show();
 	}
 
-	private void MenuNavigation()
-	{
+	//private void MenuNavigation()
+	//{
+	//	if (Input.GetAxisRaw("Horizontal") < 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
 
-		if (Input.GetAxisRaw("Horizontal") < 0)
-		{
-			if (!isAxisInUse)
-			{
-				isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnLeft();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else if (Input.GetAxisRaw("Horizontal") > 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnRight();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else if (Input.GetAxisRaw("Vertical") > 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnUp();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else if (Input.GetAxisRaw("Vertical") < 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnDown();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else
+	//		isAxisInUse = false;
 
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
-				currentUIObject = currentUIObject.FindSelectableOnLeft();
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
-			}
-		}
-		else if (Input.GetAxisRaw("Horizontal") > 0)
-		{
-			if (!isAxisInUse)
-			{
-				isAxisInUse = true;
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
-				currentUIObject = currentUIObject.FindSelectableOnRight();
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
-			}
-		}
-		else if (Input.GetAxisRaw("Vertical") > 0)
-		{
-			if (!isAxisInUse)
-			{
-				isAxisInUse = true;
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
-				currentUIObject = currentUIObject.FindSelectableOnUp();
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
-			}
-		}
-		else if (Input.GetAxisRaw("Vertical") < 0)
-		{
-			if (!isAxisInUse)
-			{
-				isAxisInUse = true;
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
-				currentUIObject = currentUIObject.FindSelectableOnDown();
-				currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
-			}
-		}
-		else
-			isAxisInUse = false;
-
-		currentUIObject.Select();
-	}
-
-	public void ToggleNavigation()
-	{
-		for(int i = 0; i < toggleContainer.ToggleParent.childCount; i++)
-		{
-			Navigation nav = joinView.availableServersToggleParent.GetChild(i).GetComponent<Toggle>().navigation;
-			if(i == 0)
-			{
-				nav.selectOnUp = joinView.playerNameField;
-				nav.selectOnDown = joinView.availableServersToggleParent.GetChild(i + 1).GetComponent<Toggle>();
-			}
-			else
-			{
-				nav.selectOnUp = joinView.availableServersToggleParent.GetChild(i - 1).GetComponent<Toggle>();
-				if(i == joinView.availableServersToggleParent.childCount-1)
-				{
-					nav.selectOnDown = joinView.requestJoinButton;
-				}
-				else
-				{
-					nav.selectOnDown = joinView.availableServersToggleParent.GetChild(i + 1).GetComponent<Toggle>();
-				}
-			}
-			nav.selectOnLeft = nav.selectOnRight = joinView.availableServersToggleParent.GetChild(i).GetComponent<Toggle>();
-			joinView.availableServersToggleParent.GetChild(i).GetComponent<Toggle>().navigation = nav;
-		}
-		Navigation nameNav = joinView.playerNameField.navigation;
-		nameNav.selectOnDown = joinView.availableServersToggleParent.GetChild(joinView.availableServersToggleParent.childCount - 1).GetComponent<Toggle>();
-		joinView.playerNameField.navigation = nameNav;
-		Navigation cancelNav = joinView.cancelButton.navigation;
-		cancelNav.selectOnUp = joinView.availableServersToggleParent.GetChild(0).GetComponent<Toggle>();
-		joinView.cancelButton.navigation = cancelNav;
-		Navigation joinNav = joinView.requestJoinButton.navigation;
-		joinNav.selectOnUp = joinView.availableServersToggleParent.GetChild(0).GetComponent<Toggle>();
-		joinView.requestJoinButton.navigation = joinNav;
-	}
+	//	currentUIObject.Select();
+	//}
 }

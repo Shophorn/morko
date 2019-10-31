@@ -59,11 +59,47 @@ public class ToggleContainer : Selectable
 
 			//toggleInstance.Toggle.onValueChanged.AddListener(SetSelectedIndex);
 		}
-		uiController.ToggleNavigation();
+		ToggleNavigation();
 	}
 
 	private void ClearToggleList()
 	{
 		toggleParent.DestroyAllChildren();
+	}
+
+	public void ToggleNavigation()
+	{
+		//for (int i = 0; i < ToggleParent.childCount; i++)
+		//{
+		//	Navigation nav = toggleParent.GetChild(i).GetComponent<Toggle>().navigation;
+		//	if (i == 0)
+		//	{
+		//		nav.selectOnUp = joinView.playerNameField;
+		//		nav.selectOnDown = joinView.availableServersToggleParent.GetChild(i + 1).GetComponent<Toggle>();
+		//	}
+		//	else
+		//	{
+		//		nav.selectOnUp = joinView.availableServersToggleParent.GetChild(i - 1).GetComponent<Toggle>();
+		//		if (i == joinView.availableServersToggleParent.childCount - 1)
+		//		{
+		//			nav.selectOnDown = joinView.requestJoinButton;
+		//		}
+		//		else
+		//		{
+		//			nav.selectOnDown = joinView.availableServersToggleParent.GetChild(i + 1).GetComponent<Toggle>();
+		//		}
+		//	}
+		//	nav.selectOnLeft = nav.selectOnRight = joinView.availableServersToggleParent.GetChild(i).GetComponent<Toggle>();
+		//	joinView.availableServersToggleParent.GetChild(i).GetComponent<Toggle>().navigation = nav;
+		//}
+		//Navigation nameNav = joinView.playerNameField.navigation;
+		//nameNav.selectOnDown = joinView.availableServersToggleParent.GetChild(joinView.availableServersToggleParent.childCount - 1).GetComponent<Toggle>();
+		//joinView.playerNameField.navigation = nameNav;
+		//Navigation cancelNav = joinView.cancelButton.navigation;
+		//cancelNav.selectOnUp = joinView.availableServersToggleParent.GetChild(0).GetComponent<Toggle>();
+		//joinView.cancelButton.navigation = cancelNav;
+		//Navigation joinNav = joinView.requestJoinButton.navigation;
+		//joinNav.selectOnUp = joinView.availableServersToggleParent.GetChild(0).GetComponent<Toggle>();
+		//joinView.requestJoinButton.navigation = joinNav;
 	}
 }
