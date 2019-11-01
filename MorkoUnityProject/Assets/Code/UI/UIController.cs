@@ -70,4 +70,53 @@ public partial class UIController : MonoBehaviour
 
 		mainView.view.Show();
 	}
+
+	//private void MenuNavigation()
+	//{
+	//	if (Input.GetAxisRaw("Horizontal") < 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnLeft();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else if (Input.GetAxisRaw("Horizontal") > 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnRight();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else if (Input.GetAxisRaw("Vertical") > 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnUp();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else if (Input.GetAxisRaw("Vertical") < 0)
+	//	{
+	//		if (!isAxisInUse)
+	//		{
+	//			isAxisInUse = true;
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.normalColor;
+	//			currentUIObject = currentUIObject.FindSelectableOnDown();
+	//			currentUIObject.GetComponent<Image>().color = currentUIObject.colors.highlightedColor;
+	//		}
+	//	}
+	//	else
+	//		isAxisInUse = false;
+
+	//	currentUIObject.Select();
+	//}
 }

@@ -92,14 +92,14 @@ public partial class UIController
 			float yPosition = toggleHeight * selectedIndex;
 			toggleInstance.transform.localPosition = new Vector3(0, yPosition, 0);
 
-			toggleInstance.label.text = infos[selectedIndex].serverName;
-			toggleInstance.toggle.group = joinView.availableServersToggleGroup;
+			toggleInstance.Label.text = infos[selectedIndex].serverName;
+			toggleInstance.Toggle.group = joinView.availableServersToggleGroup;
 
 			/* Note(Leo): Unity documentation on Toggle.onValueChanged was unclear
 			about what does the bool argument represent, so it is ignored here. */
 			void SetSelectedIndex (bool ignored)
 			{
-				if (toggleInstance.toggle.isOn)
+				if (toggleInstance.Toggle.isOn)
 				{
 					joinView.selectedServerIndex = selectedIndex;
 
@@ -110,7 +110,7 @@ public partial class UIController
 				}
 			}
 
-			toggleInstance.toggle.onValueChanged.AddListener(SetSelectedIndex);
+			toggleInstance.Toggle.onValueChanged.AddListener(SetSelectedIndex);
 		}
 	}
 }
