@@ -149,15 +149,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 519bbb46bbb978045bfa8c2a24c8d56c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hostWindow: {fileID: 7661154684778053505}
-  joinWindow: {fileID: 421722676}
-  lobby: {fileID: 6984303727628552903}
-  hostNameText: {fileID: 0}
-  roomNameText: {fileID: 0}
-  playerAmount: {fileID: 0}
-  timerValue: {fileID: 0}
-  levelSelectionList: {fileID: 641131189390721215}
-  hostButton: {fileID: 0}
 --- !u!4 &63513865
 Transform:
   m_ObjectHideFlags: 0
@@ -1544,6 +1535,7 @@ GameObject:
   - component: {fileID: 942324877}
   - component: {fileID: 942324880}
   - component: {fileID: 942324881}
+  - component: {fileID: 942324882}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1586,11 +1578,12 @@ MonoBehaviour:
     gameDurationField: {fileID: 553593061}
   joinView:
     view: {fileID: 421722677}
-    availableServersToggleGroup: {fileID: 5619947737518011497}
+    availableServersToggleGroup: {fileID: 0}
     availableServersToggleParent: {fileID: 5671196229815622859}
     availableServersTogglePrefab: {fileID: 114836259103543732, guid: 91fb2e58c72948249a3df2f696e75e33,
       type: 3}
     selectedServerIndex: 0
+    availableServersSelector: {fileID: 3932696622396908115}
     hostingPlayerNameText: {fileID: 337083724088884057}
     mapNameText: {fileID: 1757921142990623306}
     joinedPlayersCountText: {fileID: 964006030635608671}
@@ -1675,6 +1668,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 607197596728a834b923de9062e98081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &942324882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942324876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 989abf42a35c5b2458d5b3417232a27b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: 0
+  servers:
+  - serverName: Nippon
+    hostingPlayerName: Guy
+    mapIndex: 0
+    maxPlayers: 0
+    gameDurationSeconds: 0
+  - serverName: Canada
+    hostingPlayerName: Bill Nyes
+    mapIndex: 0
+    maxPlayers: 0
+    gameDurationSeconds: 0
+  - serverName: Russkaja
+    hostingPlayerName: Jaques
+    mapIndex: 0
+    maxPlayers: 0
+    gameDurationSeconds: 0
 --- !u!1001 &1045603037
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1850,10 +1872,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Navigation:
     m_Mode: 4
-    m_SelectOnUp: {fileID: 701653361}
-    m_SelectOnDown: {fileID: 8412065752888684037}
-    m_SelectOnLeft: {fileID: 609012959}
-    m_SelectOnRight: {fileID: 609012959}
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
@@ -2145,11 +2167,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6ce73b4a37a64d43b4bc5ddbe2637dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hostName: {fileID: 337083724088884057}
-  levelName: {fileID: 1757921142990623306}
-  playerAmount: {fileID: 964006030635608671}
-  roundLength: {fileID: 7725679618990368367}
-  hostRoomContainer: {fileID: 63513864}
 --- !u!114 &1419833864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2162,15 +2179,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a347f43aa63498248a49f614b1258570, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hostRoomContainer: {fileID: 63513864}
-  toggleContainer: {fileID: 8800243162497701376}
-  toggleItem: {fileID: 1997432714811182477, guid: 7a3f2bf34f8f1c944980982bb9c763c9,
-    type: 3}
-  lobby: {fileID: 6024321210947996158}
-  roomToBeJoined: 0
-  nameText: {fileID: 5244491222053330152}
-  requestJoinButton: {fileID: 7719506723003602161}
-  cancelButton: {fileID: 1450761817555302041}
 --- !u!1 &1512451081
 GameObject:
   m_ObjectHideFlags: 0
@@ -2348,7 +2356,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   listItemContainer: {fileID: 49861045257821538}
-  type: 1
   scrollSpeed: 10
   currentItem: {fileID: 782115872075600979, guid: ae1442da0e39de941963921f8ad970ec,
     type: 3}
@@ -3766,7 +3773,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   listItemContainer: {fileID: 49861045257821538}
-  type: 0
   scrollSpeed: 10
   currentItem: {fileID: 0}
   gridCenter: {fileID: 903094173209290489}
@@ -4447,7 +4453,7 @@ RectTransform:
   m_Children:
   - {fileID: 8995193833508820551}
   m_Father: {fileID: 5671196229815622859}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -5239,23 +5245,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &3363872232624002803
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5705992177497731975}
-  - component: {fileID: 5619947737518011497}
-  m_Layer: 5
-  m_Name: Togglegroup
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!114 &3367651698913302670
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5459,13 +5448,68 @@ GameObject:
   - component: {fileID: 3386098554187436348}
   - component: {fileID: 561200372086918146}
   - component: {fileID: 3504021131253069192}
+  - component: {fileID: 3932696622396908115}
+  - component: {fileID: 3932696622396908114}
   m_Layer: 5
-  m_Name: ServerToggleListContainer
+  m_Name: AvailableServersSelector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &3932696622396908114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3932696622396908113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1184210157, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AllowSwitchOff: 1
+--- !u!114 &3932696622396908115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3932696622396908113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccf137ef5904caf438be95f1270b4672, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 3504021131253069192}
+  toggleItem: {fileID: 114836259103543732, guid: 91fb2e58c72948249a3df2f696e75e33,
+    type: 3}
+  toggleParent: {fileID: 8995193833508820551}
 --- !u!224 &4003721612610936748
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5855,21 +5899,9 @@ MonoBehaviour:
   listItem: {fileID: 782115872075600979, guid: ae1442da0e39de941963921f8ad970ec, type: 3}
   listElements: []
   listGrid: {fileID: 903094173209290489}
-  selectionLists:
-  - {fileID: 641131189390721215}
-  - {fileID: 5138170917234017630}
-  - {fileID: 1519418461}
   currentItem: {fileID: 0}
   itemWidth: 100
-  levelNames:
-  - Suburbs
-  - Random
-  characterNames:
-  - Tommy
-  - Maggie
-  - Edelbert
-  - Becky
-  - Random
+  selectedItemIndex: 0
   itemSpacing: 50
   horizontalMargin: 0
   verticalMargin: 0
@@ -6161,7 +6193,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   listItemContainer: {fileID: 49861045257821538}
-  type: 1
   scrollSpeed: 0
   currentItem: {fileID: 0}
   gridCenter: {fileID: 903094173209290489}
@@ -6350,19 +6381,6 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: Nickname
---- !u!114 &5619947737518011497
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3363872232624002803}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1184210157, guid: f70555f144d8491a825f0804e09c671c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AllowSwitchOff: 1
 --- !u!224 &5671196229815622859
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6374,7 +6392,6 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 5705992177497731975}
   - {fileID: 1744338233622288410}
   m_Father: {fileID: 421722679}
   m_RootOrder: 2
@@ -6383,25 +6400,6 @@ RectTransform:
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -205.3, y: 46.4}
   m_SizeDelta: {x: 233.5, y: 262.4}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!224 &5705992177497731975
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3363872232624002803}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 5671196229815622859}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5764322609401903917
 MonoBehaviour:
@@ -6468,12 +6466,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e49faedac9e7f634ca3f63fc2abe1fab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hostRooms: {fileID: 63513864}
-  playerListContainer: {fileID: 1919530682}
-  playerListItem: {fileID: 6161110867272074594, guid: 400c0b141396e6245a412c08dbd527d4,
-    type: 3}
-  characterSelectionList: {fileID: 1519418461}
-  selectedRoomId: 0
 --- !u!222 &6178191414375763395
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6693,12 +6685,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e49faedac9e7f634ca3f63fc2abe1fab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hostRooms: {fileID: 63513864}
-  playerListContainer: {fileID: 4678852103481780444}
-  playerListItem: {fileID: 6161110867272074594, guid: 400c0b141396e6245a412c08dbd527d4,
-    type: 3}
-  characterSelectionList: {fileID: 5138170917234017630}
-  selectedRoomId: 0
 --- !u!1 &6998039519934094335
 GameObject:
   m_ObjectHideFlags: 0
@@ -7265,10 +7251,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Navigation:
     m_Mode: 4
-    m_SelectOnUp: {fileID: 8412065752888684037}
-    m_SelectOnDown: {fileID: 3767476663472565279}
-    m_SelectOnLeft: {fileID: 7661154685058886460}
-    m_SelectOnRight: {fileID: 7661154684967306596}
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
@@ -7968,8 +7954,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Navigation:
     m_Mode: 4
-    m_SelectOnUp: {fileID: 5138170917234017632}
-    m_SelectOnDown: {fileID: 5138170917234017632}
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 4984093923553904915}
     m_SelectOnRight: {fileID: 8641528569711785738}
   m_Transition: 1
@@ -8131,7 +8117,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8995193833508820551}
   m_Layer: 5
-  m_Name: ToggleContent
+  m_Name: ToggleParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

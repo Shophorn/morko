@@ -15,10 +15,14 @@ public partial class UIController
 
 		public const string defaultPlayerName = "Client Player";
 
+
 		public ToggleGroup 			availableServersToggleGroup;
 		public Transform 			availableServersToggleParent;
 		public ServerToggleListItem availableServersTogglePrefab;
 		public int 					selectedServerIndex;
+
+
+		public ToggleContainer availableServersSelector;
 
 		public Text hostingPlayerNameText;
 		public Text mapNameText;

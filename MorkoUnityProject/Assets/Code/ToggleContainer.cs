@@ -1,21 +1,26 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(ToggleGroup))]
 public class ToggleContainer : Selectable
 {
 	[SerializeField] private ServerToggleListItem toggleItem;
 	[SerializeField] private Transform toggleParent;
-	[SerializeField] private ToggleGroup toggleGroup;
-	[SerializeField] private string serverName;
-	[SerializeField] private int selectedIndex;
-
-	[SerializeField] private UIController uiController;
+	private ToggleGroup toggleGroup;
 
 	public Transform ToggleParent { get => toggleParent; }
-	public int SelectedIndex { get => selectedIndex; }
+	public int SelectedIndex { get; private set; }
 
+
+	public Action<int> OnSelectionChanged;
+
+	public void Awake()
+	{
+		toggleGroup = GetComponent<ToggleGroup>();
+	}
 
 	public void SetOptions(string[] serverNames)
 	{
@@ -42,22 +47,16 @@ public class ToggleContainer : Selectable
 			toggleInstance.Label.text = serverNames[selectedIndex];
 			toggleInstance.Toggle.group = toggleGroup;
 
-			/* Note(Leo): Unity documentation on Toggle.onValueChanged was unclear
-			about what does the bool argument represent, so it is ignored here. */
-			//void SetSelectedIndex(bool ignored)
-			//{
-			//	if (toggleInstance.Toggle.isOn)
-			//	{
-			//		joinView.selectedServerIndex = selectedIndex;
-
-			//		joinView.hostingPlayerNameText.text = "Hosting Player";
-			//		joinView.mapNameText.text = MapNameFromIndex(infos[selectedIndex].mapIndex);
-			//		joinView.joinedPlayersCountText.text = infos[selectedIndex].maxPlayers.ToString();
-			//		joinView.gameDurationText.text = TimeFormat.ToTimeFormat(infos[selectedIndex].gameDurationSeconds);
-			//	}
-			//}
-
-			//toggleInstance.Toggle.onValueChanged.AddListener(SetSelectedIndex);
+			void SetIndex(bool ignored)
+			{
+				if (toggleInstance.Toggle.isOn)
+				{
+					SelectedIndex = selectedIndex;
+					OnSelectionChanged?.Invoke(selectedIndex);
+				}
+				else  {/* nothing */} 
+			}
+			toggleInstance.Toggle.onValueChanged.AddListener(SetIndex);
 		}
 		ToggleNavigation();
 	}

@@ -26,6 +26,7 @@ public interface IClientNetControllable
 public class ServerInfo
 {
 	public string serverName;
+	public string hostingPlayerName;
 	public int mapIndex;
 	public int maxPlayers;
 	public int gameDurationSeconds;
