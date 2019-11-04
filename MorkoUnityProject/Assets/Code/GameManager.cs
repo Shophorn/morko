@@ -37,6 +37,9 @@ public class GameManager : 	MonoBehaviour,
 
  	public CharacterCollection characterPrefabs;
 
+	public int broadcastDelayMs = 100;
+	public int gameUpdateThreadDelayMs = 50;
+
 	void IClientUIControllable.OnClientReady()
 	{
 		Debug.Log("Player is ready");
@@ -81,10 +84,12 @@ public class GameManager : 	MonoBehaviour,
 		serverController = gameObject.AddComponent<ServerController>();
 		var createInfo = new ServerCreateInfo
 		{
-			serverName = serverInfo.serverName,
+			serverName 				= serverInfo.serverName,
 			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
 			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
-			logFunction = Debug.Log
+			broadcastDelayMs 		= broadcastDelayMs,
+			gameUpdateThreadDelayMs = gameUpdateThreadDelayMs,
+			logFunction 			= Debug.Log
 		};
 		serverController.CreateServer(createInfo);
 		serverController.StartBroadcast();

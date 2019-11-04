@@ -1625,7 +1625,7 @@ MonoBehaviour:
   visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
     type: 3}
   remoteCharacterLayer: 11
-  characterPrefabs: {fileID: 11400000, guid: dc8a3bc717860b949a60868952c2a218, type: 2}
+  characterPrefabs: {fileID: 11400000, guid: ad712c776f7659d45bd3b64771bbb022, type: 2}
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0

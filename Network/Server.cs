@@ -38,6 +38,10 @@ namespace Morko.Network
 		public string serverName = "Default Server";
 		public int clientUpdatePackageSize;
 		public Type clientUpdatePackageType;
+
+		public int broadcastDelayMs = 100;
+		public int gameUpdateThreadDelayMs = 50;
+
 		public Action<string> logFunction;
 	}
 
@@ -45,8 +49,8 @@ namespace Morko.Network
 	{
 		private string name;
 
-		private int broadcastDelayMs = 100;
-		private int gameUpdateThreadDelayMs = 100;
+		private int broadcastDelayMs;
+		private int gameUpdateThreadDelayMs;
 
 		private readonly ThreadControl broadcastControl = new ThreadControl ();
 		private readonly ThreadControl broadcastReceiveControl = new ThreadControl ();
@@ -76,11 +80,14 @@ namespace Morko.Network
 			{
 				name 					= info.serverName,
 				clientUpdatePackageSize = info.clientUpdatePackageSize,
+				broadcastDelayMs		= info.broadcastDelayMs,
+				gameUpdateThreadDelayMs	= info.gameUpdateThreadDelayMs,
 				Log 					= info.logFunction ??  Morko.Logging.Logger.Log,
 
 				senderClient 			= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
 				players 				= new List<ClientInfo>(),
+
 			};
 
 			server.senderClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
