@@ -23,10 +23,6 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private GameObject uiMainGameObject;
 
-	/* Todo(Leo, Joonas): This does not really belong here, but should be hidden
-	 behind ScrollSelector etc. */
-	[SerializeField] private GameObject listItemContainer;
-
 	private MenuView currentView = null;
 
 	private void SetMainView()

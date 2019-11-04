@@ -21,12 +21,13 @@ public partial class UIController
 		public InputField serverNameField;
 		public DiscreteInputField playerCountField;
 		public DiscreteInputField gameDurationField;
+		public InfiniteScroll mapSelectionList;
 	}
 	[SerializeField] private HostView hostView;
 
 	private void InitializeHostView()
 	{
-		hostView.view.OnShow += () => listItemContainer.SetActive(true);
+		hostView.view.OnShow += () => hostView.mapSelectionList.listItemContainer.SetActive(true);
 
 		hostView.createRoomButton.onClick.AddListener(() =>
 		{

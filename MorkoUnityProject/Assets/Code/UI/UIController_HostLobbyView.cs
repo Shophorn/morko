@@ -14,12 +14,14 @@ public partial class UIController
 
 		public Button startGameButton;
 		public Button cancelButton;
+
+		public InfiniteScroll characterSelectionList;
 	}
 	[SerializeField] private HostLobbyView hostLobbyView;
 
 	private void InitializeHostLobbyView()
 	{
-		hostLobbyView.view.OnShow += () => listItemContainer.SetActive(true);
+		hostLobbyView.view.OnShow += () => hostLobbyView.characterSelectionList.listItemContainer.SetActive(true);
 
 		hostLobbyView.startGameButton.onClick.AddListener(() =>
 		{

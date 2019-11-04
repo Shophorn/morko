@@ -14,13 +14,15 @@ public partial class UIController
 
 		public Button readyButton;
 		public Button cancelButton;
+
+		public InfiniteScroll characterSelector;
 	}
 	[SerializeField] private ClientLobbyView clientLobbyView;
 
 	private void InitializeClientLobbyView()
 	{
 		clientLobbyView.view.OnShow += () => clientLobbyView.readyButton.enabled = true;
-		clientLobbyView.view.OnShow += () => listItemContainer.SetActive(true);
+		clientLobbyView.view.OnShow += () => clientLobbyView.characterSelector.listItemContainer.SetActive(true);
 
 		clientLobbyView.readyButton.onClick.AddListener(() => 
 		{
