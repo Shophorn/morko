@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -14,7 +15,6 @@ public partial class UIController
 
 		public Button startGameButton;
 		public Button cancelButton;
-
 		public InfiniteScroll characterSelectionList;
 	}
 	[SerializeField] private HostLobbyView hostLobbyView;
@@ -22,7 +22,7 @@ public partial class UIController
 	private void InitializeHostLobbyView()
 	{
 		hostLobbyView.view.OnShow += () => hostLobbyView.characterSelectionList.listItemContainer.SetActive(true);
-
+		
 		hostLobbyView.startGameButton.onClick.AddListener(() =>
 		{
 			serverControls.StartGame();
@@ -31,6 +31,7 @@ public partial class UIController
 		hostLobbyView.cancelButton.onClick.AddListener(() =>
 		{
 			serverControls.AbortGame();
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
 			SetMainView();
 		});
 	}

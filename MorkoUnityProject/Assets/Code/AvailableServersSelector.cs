@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(ToggleGroup))]
@@ -15,6 +16,7 @@ public class AvailableServersSelector : Selectable
 
 
 	public Action<int> OnSelectionChanged;
+	public event Action OnServerListUpdated;
 
 	public void Awake()
 	{
@@ -57,8 +59,8 @@ public class AvailableServersSelector : Selectable
 			}
 			toggleInstance.Toggle.onValueChanged.AddListener(SetIndex);
 		}
+		OnServerListUpdated?.Invoke();
 	}
-
 	private void ClearToggleList()
 	{
 		toggleParent.DestroyAllChildren();

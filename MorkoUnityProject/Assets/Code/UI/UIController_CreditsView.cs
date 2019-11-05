@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -18,6 +19,10 @@ public partial class UIController
 
 	private void InitializeCreditsView()
 	{
-		creditsView.cancelButton.onClick.AddListener(() => SetMainView());
+		creditsView.cancelButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
+			SetMainView();
+		});
 	}
 }

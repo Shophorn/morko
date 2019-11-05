@@ -109,6 +109,14 @@ public class ScrollContent : MonoBehaviour
 
 		return currentItem;
 	}
+
+	private void SetCurrentSelectionIndex(int itemIndex)
+	{
+		ListItem currentListItem = listElements[itemIndex];
+		selectedItemIndex = currentListItem.ID;
+	}
+
+
 	public void SetOptions(string[] names, GameObject[] objects)
 	{
 		if (names.Length != objects.Length)
@@ -116,6 +124,7 @@ public class ScrollContent : MonoBehaviour
 			Debug.LogError("Lengths of passed arrays do not match.");
 			return;
 		}
+		ClearScrollingList();
 		listElements = new ListItem[names.Length];
 
 		for (int i = 0; i < listElements.Length; i++)
@@ -132,7 +141,13 @@ public class ScrollContent : MonoBehaviour
 		}
 
 		InitializeContentHorizontal();
+		OnSelectionChanged += SetCurrentSelectionIndex;
 		currentItem = CheckCurrentItem();
 		transform.Translate(-currentItem.transform.localPosition);
+	}
+
+	private void ClearScrollingList()
+	{
+		transform.DestroyAllChildren();
 	}
 }

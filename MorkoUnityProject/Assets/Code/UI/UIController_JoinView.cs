@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Morko;
 
 public partial class UIController
 {
@@ -14,12 +14,7 @@ public partial class UIController
 		bool IMenuLayout.BelongsToMainMenu => true;
 
 		public const string defaultPlayerName = "Client Player";
-
-
-		public ToggleGroup availableServersToggleGroup;
-		public Transform availableServersToggleParent;
-		public ServerToggleListItem availableServersTogglePrefab;
-		public int 					selectedServerIndex;
+		public int 	selectedServerIndex;
 
 
 		public AvailableServersSelector availableServersSelector;
@@ -49,7 +44,7 @@ public partial class UIController
 				selectedServerIndex = joinView.selectedServerIndex
 			};
 			clientControls.RequestJoin(info);
-
+			EventSystem.current.SetSelectedGameObject(clientLobbyView.readyButton.gameObject);
 			SetView(clientLobbyView);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
@@ -57,24 +52,37 @@ public partial class UIController
 		joinView.cancelButton.onClick.AddListener(() =>
 		{
 			clientControls.EndJoin();
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
 			SetMainView();
 		});
 	}
 
+	//TODO (Joonas): Find a more elegant way to do this.
 	private void SetServerListNavigation()
 	{
-		for (int i = 0; i < joinView.availableServersSelector.toggleParent.childCount; i++)
+		Navigation serverListNav = new Navigation();
+		serverListNav.mode = Navigation.Mode.Explicit;
+		serverListNav.selectOnDown = serverListNav.selectOnLeft = serverListNav.selectOnRight = serverListNav.selectOnUp
+			= joinView.availableServersSelector.toggleParent.GetChild(0).GetComponent<Toggle>();
+		joinView.availableServersSelector.navigation = serverListNav;
+
+		int childCount = joinView.availableServersSelector.toggleParent.childCount;
+
+		for (int i = 0; i < childCount; i++)
 		{
 			Navigation nav = joinView.availableServersSelector.toggleParent.GetChild(i).GetComponent<Toggle>().navigation;
 			if (i == 0)
 			{
 				nav.selectOnUp = joinView.playerNameField;
-				nav.selectOnDown = joinView.availableServersSelector.toggleParent.GetChild(i + 1).GetComponent<Toggle>();
+				if (childCount > 1)
+					nav.selectOnDown = joinView.availableServersSelector.toggleParent.GetChild(i + 1).GetComponent<Toggle>();
+				else
+					nav.selectOnDown = joinView.requestJoinButton;
 			}
 			else
 			{
 				nav.selectOnUp = joinView.availableServersSelector.toggleParent.GetChild(i - 1).GetComponent<Toggle>();
-				if (i == joinView.availableServersSelector.toggleParent.childCount - 1)
+				if (i == (childCount - 1))
 				{
 					nav.selectOnDown = joinView.requestJoinButton;
 				}
@@ -86,14 +94,5 @@ public partial class UIController
 			nav.selectOnLeft = nav.selectOnRight = joinView.availableServersSelector.toggleParent.GetChild(i).GetComponent<Toggle>();
 			joinView.availableServersSelector.toggleParent.GetChild(i).GetComponent<Toggle>().navigation = nav;
 		}
-		Navigation nameNav = joinView.playerNameField.navigation;
-		nameNav.selectOnDown = joinView.availableServersSelector.toggleParent.GetChild(joinView.availableServersSelector.toggleParent.childCount - 1).GetComponent<Toggle>();
-		joinView.playerNameField.navigation = nameNav;
-		Navigation cancelNav = joinView.cancelButton.navigation;
-		cancelNav.selectOnUp = joinView.availableServersSelector.toggleParent.GetChild(0).GetComponent<Toggle>();
-		joinView.cancelButton.navigation = cancelNav;
-		Navigation joinNav = joinView.requestJoinButton.navigation;
-		joinNav.selectOnUp = joinView.availableServersSelector.toggleParent.GetChild(0).GetComponent<Toggle>();
-		joinView.requestJoinButton.navigation = joinNav;
 	}
 }

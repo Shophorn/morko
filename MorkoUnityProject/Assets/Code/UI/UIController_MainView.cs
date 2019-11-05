@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -19,10 +20,26 @@ public partial class UIController
 
 	private void InitializeMainView()
 	{
-		mainView.hostViewButton.onClick.AddListener(() => SetView(hostView));
-		mainView.joinViewButton.onClick.AddListener(() => SetView(joinView));
-		mainView.optionsButton.onClick.AddListener(() => SetView(optionsView));
-		mainView.creditsButton.onClick.AddListener(() => SetView(creditsView));
+		mainView.hostViewButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(hostView.serverNameField.gameObject);
+			SetView(hostView);
+		});
+		mainView.joinViewButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(joinView.playerNameField.gameObject);
+			SetView(joinView);
+		});
+		mainView.optionsButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(optionsView.cancelButton.gameObject);
+			SetView(optionsView);
+		});
+		mainView.creditsButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(creditsView.cancelButton.gameObject);
+			SetView(creditsView);
+		});
 
 		mainView.quitButton.onClick.AddListener(() => appControls.Quit());
 	}

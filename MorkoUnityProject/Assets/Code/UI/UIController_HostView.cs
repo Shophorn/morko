@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -34,14 +35,20 @@ public partial class UIController
 			var info = new ServerInfo
 			{
 				serverName			= hostView.serverNameField.text,
-				mapIndex 			= 0,
+				mapIndex 			= 0, //hostView.mapSelectionList.currentItem.ID,
 				maxPlayers 			= hostView.playerCountField.IntValue,
 				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
 			serverControls.CreateServer(info);
+			EventSystem.current.SetSelectedGameObject(hostLobbyView.startGameButton.gameObject);
 			SetView(hostLobbyView);
 		});
-		hostView.cancelButton.onClick.AddListener(() => SetMainView());
+		hostView.cancelButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
+			SetMainView();
+		});
+
 		hostView.playerNameField.text = HostView.defaultPlayerName;
 		hostView.serverNameField.text = HostView.defaultServerName;
 	}
