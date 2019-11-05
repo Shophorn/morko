@@ -79,7 +79,7 @@ public partial class ClientController
 					connection.selectedServerIndex = 0;
 				}
 
-				connection.netControls.OnServerListChanged(connection.GetServers());
+				connection.netControls.UpdateServersList(connection.GetServers());
 			}
 		}
 
@@ -101,7 +101,7 @@ public partial class ClientController
 									.Where(info => info.playerId != connection.ClientId)
 									.ToArray()
 			};
-			connection.netControls.OnServerStartGame(gameStartInfo);
+			connection.netControls.StartGame(gameStartInfo);
 		}
 
 		private void HandleServerGameUpdateMessage(byte [] argumentsData)

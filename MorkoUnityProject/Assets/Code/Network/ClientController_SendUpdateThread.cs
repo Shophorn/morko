@@ -33,9 +33,9 @@ public partial class ClientController
 
 					Debug.Log($"[CLIENT SEND UPDATE]: {controller != null} and {controller.sender != null}");
 
-					byte [] updatePackage = controller.sender.GetPackageToSend().ToBinary();
+					byte[] updatePackage = controller.sender.GetPackageToSend().ToBinary();
 
-					byte [] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
+					byte[] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
 
 					Debug.Log("[CLIENT]: Send data to server");
 					udpClient.Send(data, data.Length, endPoint);
