@@ -122,7 +122,7 @@ Material:
     - _Modulo: 0.772
     - _NearClipPlane: -3.51
     - _OcclusionStrength: 1
-    - _OutsideBlur: 0.0012
+    - _OutsideBlur: 0
     - _Parallax: 0.02
     - _Saturation: 0.12
     - _SmoothnessTextureChannel: 0

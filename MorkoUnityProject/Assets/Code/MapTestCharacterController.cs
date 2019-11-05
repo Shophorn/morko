@@ -71,7 +71,7 @@ public class MapTestCharacterController : MonoBehaviour
         Debug.DrawRay(transform.position, direction);
         Quaternion lookDir = Quaternion.LookRotation(direction, Vector3.up);
         Vector3 euler = Quaternion.Lerp(transform.rotation, lookDir, 0.5f).eulerAngles;
-        transform.rotation = Quaternion.Euler(transform.rotation.x, euler.y, transform.rotation.z);
+        transform.rotation = Quaternion.Euler(0, euler.y, 0);
     }
 
     private Vector3 CursorPosition()
