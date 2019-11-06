@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class MapTestCharacterController : MonoBehaviour
 {
+    public Transform cameraPos;
+    public Vector3 targetCameraPos;
     public Camera cam;
     public CharacterController characterController;
     public float arbitraryAngleLimit = 0.55f;
@@ -12,12 +14,14 @@ public class MapTestCharacterController : MonoBehaviour
     public float currentSpeed = 2.5f;
     public float speedGrowth = 0.1f;
     public float maxSpeed = 3.5f;
+    public float distanceToCursor;
+
+    
 
 
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -25,6 +29,13 @@ public class MapTestCharacterController : MonoBehaviour
     {
         Move();
         Rotate();
+       
+    }
+    private void LateUpdate()
+    {
+        targetCameraPos = Vector3.Lerp(transform.position, transform.position + (transform.forward * 1f), Mathf.Clamp(distanceToCursor,0,1));
+        cameraPos.position = Vector3.Lerp(cameraPos.position, targetCameraPos, 0.2f);
+
     }
 
     private void Move()
@@ -41,7 +52,7 @@ public class MapTestCharacterController : MonoBehaviour
         if (Vector3.Dot(transform.forward, moveDir) > arbitraryAngleLimit)
         {
             if (currentSpeed < speed)
-                currentSpeed = speed;
+                currentSpeed += (speedGrowth * Time.deltaTime);
 
             if (Vector3.Dot(transform.forward, moveDir) > arbitraryRunLimit)
             {
@@ -70,7 +81,7 @@ public class MapTestCharacterController : MonoBehaviour
         Vector3 direction = (CursorPosition() - transform.position).normalized;
         Debug.DrawRay(transform.position, direction);
         Quaternion lookDir = Quaternion.LookRotation(direction, Vector3.up);
-        Vector3 euler = Quaternion.Lerp(transform.rotation, lookDir, 0.5f).eulerAngles;
+        Vector3 euler = Quaternion.Lerp(transform.rotation, lookDir, 0.2f).eulerAngles;
         transform.rotation = Quaternion.Euler(0, euler.y, 0);
     }
 
@@ -87,6 +98,8 @@ public class MapTestCharacterController : MonoBehaviour
             target = ray.GetPoint(distance);
             target = new Vector3(target.x, transform.position.y, target.z);
         }
+        distanceToCursor = Vector3.Distance(transform.position, target) / 5;
+
         return target;
     }
 
