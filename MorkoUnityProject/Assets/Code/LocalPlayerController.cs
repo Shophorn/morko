@@ -259,7 +259,7 @@ public class LocalPlayerController : INetworkSender
 			if (mouseRotated)
 			{
 				mouseRotatedLast = true;
-				targetRotation = GetMouseRotation();
+				targetRotation = GetRotationToCursorPositionRelativeToCameraAndCharacterPosition();
 			}
 			else
 			{
@@ -270,7 +270,7 @@ public class LocalPlayerController : INetworkSender
 		else if (mouseAndJoystickRotated)
 		{
 			lastMousePosition = currentMousePosition;
-			var mouseRotation = GetMouseRotation();
+			var mouseRotation = GetRotationToCursorPositionRelativeToCameraAndCharacterPosition();
 			
 			// check which one is larger
 			float mouseAngle = Quaternion.Angle(mouseRotation, lastRotation);
@@ -293,7 +293,7 @@ public class LocalPlayerController : INetworkSender
 		character.transform.rotation = targetRotation;
 	}
 
-	private Quaternion GetMouseRotation()
+	private Quaternion GetRotationToCursorPositionRelativeToCameraAndCharacterPosition()
 	{
 		Plane playerPlane = new Plane(Vector3.up, character.transform.position);
 		Ray ray = camera.ScreenPointToRay (Input.mousePosition);
