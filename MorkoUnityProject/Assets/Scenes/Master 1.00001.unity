@@ -984,7 +984,7 @@ PrefabInstance:
     - target: {fileID: 5788769229121955000, guid: d8b419d9d7dc19b4b85d9eeadd66fcf1,
         type: 3}
       propertyPath: format
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5788769229121955000, guid: d8b419d9d7dc19b4b85d9eeadd66fcf1,
         type: 3}
@@ -1554,7 +1554,7 @@ PrefabInstance:
     - target: {fileID: 5788769229121955000, guid: d8b419d9d7dc19b4b85d9eeadd66fcf1,
         type: 3}
       propertyPath: format
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d8b419d9d7dc19b4b85d9eeadd66fcf1, type: 3}
@@ -1870,7 +1870,9 @@ MonoBehaviour:
   visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
     type: 3}
   remoteCharacterLayer: 11
-  characterPrefabs: {fileID: 11400000, guid: dc8a3bc717860b949a60868952c2a218, type: 2}
+  characterPrefabs: {fileID: 0}
+  broadcastDelayMs: 100
+  gameUpdateThreadDelayMs: 50
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0

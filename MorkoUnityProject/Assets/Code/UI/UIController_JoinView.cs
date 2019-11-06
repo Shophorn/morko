@@ -16,11 +16,7 @@ public partial class UIController
 		public const string defaultPlayerName = "Client Player";
 		public int 	selectedServerIndex;
 
-
 		public AvailableServersSelector availableServersSelector;
-
-
-		public ToggleContainer availableServersSelector;
 
 		public Text hostingPlayerNameText;
 		public Text mapNameText;
