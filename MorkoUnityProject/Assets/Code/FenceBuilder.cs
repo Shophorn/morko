@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public class FenceBuilder : MonoBehaviour // Fence Builder v0.5 by Irtsa
+public class FenceBuilder : MonoBehaviour // Fence Builder v0.5.1 by Irtsa
 {
     [Header("Fence prefab and its width")]
     public GameObject fencePiece;
@@ -31,11 +31,13 @@ public class FenceBuilder : MonoBehaviour // Fence Builder v0.5 by Irtsa
     [Space(30)]
     public bool autoUpdateFence = false;
 
+    public bool autoParentFence = true;
+
     List<GameObject> fenceSides;
     List<List<GameObject>> fenceContents;
 
     private const int ARBITRARY_PIECE_LIMIT     = 500;
-    private const int ARBITRARY_POINT_LIMIT     = 10;
+    private const int ARBITRARY_POINT_LIMIT     = 20;
     private const float ARBITRARY_MINIMUM_WIDTH = 0.01f;
 
 
@@ -47,6 +49,8 @@ public class FenceBuilder : MonoBehaviour // Fence Builder v0.5 by Irtsa
     public void DestroyFence()
     {
         anyPosModified = false;
+        fenceSides = new List<GameObject>();
+        fenceContents = new List<List<GameObject>>();
 
         int originalChildCount = transform.childCount;
 
@@ -190,22 +194,30 @@ public class FenceBuilder : MonoBehaviour // Fence Builder v0.5 by Irtsa
         {
             Debug.LogWarning("(FenceBuilder) Fence modified, click Build Fence button to override");
         }
-        ParentFenceToRoot();
+        if(autoParentFence)
+            ParentFenceToRoot();
     }
     public void ParentFenceToRoot()
     {
-        for (int i = 0; i < fenceSides.Count; i++)
+        if(fenceSides != null && fenceContents != null)
         {
-            for (int j = 0; j < fenceContents[i].Count; j++)
+            for (int i = 0; i < fenceSides.Count; i++)
             {
-                fenceContents[i][j].transform.SetParent(fenceSides[i].transform);
-            }
+                for (int j = 0; j < fenceContents[i].Count; j++)
+                {
+                    if (fenceContents[i][j] != null)
+                        fenceContents[i][j].transform.SetParent(fenceSides[i].transform);
+                    else
+                        fenceContents[i].Remove(fenceContents[i][j]);
+                }
 
+            }
+            for (int i = fenceSides.Count - 1; i >= 0; i--)
+            {
+                fenceSides[i].transform.SetParent(transform);
+            }
         }
-        for (int i = fenceSides.Count - 1; i >= 0; i--)
-        {
-            fenceSides[i].transform.SetParent(transform);
-        }
+        
 
     }
 

@@ -62,7 +62,7 @@ public partial class UIController
 		uiMainGameObject.SetActive(false);	
 	}
 
-	private ServerInfo[] availableServers;
+	private ServerInfo [] availableServers;
 
 	private string MapNameFromIndex(int mapIndex)
 	{
