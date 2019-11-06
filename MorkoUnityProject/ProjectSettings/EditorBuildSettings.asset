@@ -7,10 +7,7 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/Master.unity
-    guid: 1c3ed6bef4479ce40ac942a8a5f77a1a
-  - enabled: 1
-    path: Assets/Scenes/sampo_character_builder.unity
-    guid: ace64aa64c4cbd6418ab458171620e22
+    guid: 5b17390fedeb53949bc885646827af4c
   - enabled: 1
     path: Assets/Scenes/Maps/Map01.unity
     guid: f3c58bcf7e706284bb9f24530b9f206f

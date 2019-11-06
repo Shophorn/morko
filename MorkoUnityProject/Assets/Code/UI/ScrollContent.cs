@@ -1,210 +1,138 @@
-﻿using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using System;
+using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 
-namespace Morko
+public class ScrollContent : MonoBehaviour
 {
-	public class ScrollContent : MonoBehaviour
+	#region Public Properties
+	public ListItem listItem;
+	public ListItem[] listElements;
+	public GameObject listGrid;
+
+	public ListItem currentItem;
+	public float itemWidth;
+
+	public int SelectedIndex { get => selectedItemIndex; }
+	public float ItemSpacing { get { return itemSpacing; } }
+	public float HorizontalMargin { get { return horizontalMargin; } }
+	public float VerticalMargin { get { return verticalMargin; } }
+	public bool Horizontal { get { return horizontal; } }
+	public bool Vertical { get { return vertical; } }
+	public float Width { get { return width; } }
+	public float Height { get { return height; } }
+
+	public event Action<int> OnSelectionChanged;
+	#endregion
+
+	#region Private Members
+	private RectTransform rectTransform;
+	private float width, height;
+	[SerializeField]
+	private int selectedItemIndex;
+	[SerializeField]
+	private float itemSpacing;
+	[SerializeField]
+	private float horizontalMargin, verticalMargin;
+	[SerializeField]
+	private bool horizontal, vertical;
+	#endregion
+
+	private void OnEnable()
 	{
-		#region Public Properties
+		itemWidth = listItem.gameObject.GetComponent<RectTransform>().rect.width;
 
-		public ListItem listElement;
-		public ListItem[] listElements;
-		private GameObject listGrid;
+		rectTransform = GetComponent<RectTransform>();
+		rectTransform.sizeDelta = new Vector2(listElements.Length * (rectTransform.rect.width + itemSpacing), 100);
 
-		public InfiniteScroll selectionList;
+		width = rectTransform.rect.width;
+		height = rectTransform.rect.height;
+	}
+	private void OnDisable()
+	{
+		rectTransform.sizeDelta = new Vector2(100, 100);
+		transform.localPosition = Vector3.zero;
+		ClearSelectionList();
+	}
 
-		public ListItem currentItem;
-
-		public Sprite[] levelImages;
-		public Sprite[] characterImages;
-
-		public int amountOfCharacters;
-
-		public GameObject gridCenter;
-
-		private int numberOfScenes;
-		public string[] levelNames;
-		public string[] characterNames;
-
-
-		/// <summary>
-		/// How far apart each item is in the scroll view.
-		/// </summary>
-		public float ItemSpacing { get { return itemSpacing; } }
-
-		/// <summary>
-		/// How much the items are indented from left and right of the scroll view.
-		/// </summary>
-		public float HorizontalMargin { get { return horizontalMargin; } }
-
-		/// <summary>
-		/// How much the items are indented from top and bottom of the scroll view.
-		/// </summary>
-		public float VerticalMargin { get { return verticalMargin; } }
-
-		/// <summary>
-		/// Is the scroll view oriented horizontally?
-		/// </summary>
-		public bool Horizontal { get { return horizontal; } }
-
-		/// <summary>
-		/// Is the scroll view oriented vertically?
-		/// </summary>
-		public bool Vertical { get { return vertical; } }
-
-		/// <summary>
-		/// The width of the scroll content.
-		/// </summary>
-		public float Width { get { return width; } }
-
-		/// <summary>
-		/// The height of the scroll content.
-		/// </summary>
-		public float Height { get { return height; } }
-
-		#endregion
-
-		#region Private Members
-
-		/// <summary>
-		/// The RectTransform component of the scroll content.
-		/// </summary>
-		private RectTransform rectTransform;
-
-		/// <summary>
-		/// The width and height of the parent.
-		/// </summary>
-		private float width, height;
-
-
-		/// <summary>
-		/// How far apart each item is in the scroll view.
-		/// </summary>
-		[SerializeField]
-		private float itemSpacing;
-
-		/// <summary>
-		/// How much the items are indented from the top/bottom and left/right of the scroll view.
-		/// </summary>
-		[SerializeField]
-		private float horizontalMargin, verticalMargin;
-
-		/// <summary>
-		/// Is the scroll view oriented horizontall or vertically?
-		/// </summary>
-		[SerializeField]
-		private bool horizontal, vertical;
-
-		#endregion
-
-		private void Start()
+	private void ClearSelectionList()
+	{
+		for (int i = 0; i < transform.childCount; i++)
 		{
-			listGrid = GameObject.Find("ScrollContent");
-			if (CompareTag("Host Window"))
-				CreateLevelList();
-			else
-				CreateCharacterList();
-
-			rectTransform = GetComponent<RectTransform>();
-
-			width = rectTransform.rect.width;
-			height = rectTransform.rect.height;
-
-			//Margins not in use currently
-			//// Subtract the margin from both sides.
-			//width = rectTransform.rect.width - (2 * horizontalMargin);
-
-			//// Subtract the margin from the top and bottom.
-			//height = rectTransform.rect.height - (2 * verticalMargin);
-
-
-			//horizontal = !vertical;
-			//if (vertical)
-			//	InitializeContentVertical();
-			//else
-			//	InitializeContentHorizontal();
-
-			InitializeContentHorizontal();
-
-			selectionList.listElements = listElements;
+			Destroy(transform.GetChild(i).gameObject);
 		}
-
-		private void CreateLevelList()
+	}
+	private void InitializeContentHorizontal()
+	{
+		float originX = 0 - (width);
+		float posOffset = width * 0.566666666667f;
+		for (int i = 0; i < listElements.Length; i++)
 		{
-			numberOfScenes = SceneManager.sceneCountInBuildSettings;
-			listElements = new ListItem[numberOfScenes - 1];
-			levelNames = new string[numberOfScenes - 1];
+			Vector3 childPos = listElements[i].transform.localPosition;
+			childPos.x = originX + posOffset + i * (itemWidth + itemSpacing + 12.25f);
+			listElements[i].transform.localPosition = childPos;
+		}
+	}
 
-			for (int i = 0; i < numberOfScenes - 1; i++)
-			{
-				string path = SceneUtility.GetScenePathByBuildIndex(i + 1);
-				string levelName = System.IO.Path.GetFileNameWithoutExtension(path);
-				levelNames[i] = levelName;
-			}
+	IEnumerator LerpTowardsCenter()
+	{
+		float time = 0;
+		currentItem = CheckCurrentItem();
 
-			if (listGrid != null)
+		while (time < 1.0f)
+		{
+			time += Time.deltaTime;
+			transform.localPosition = new Vector3(Mathf.Lerp(transform.localPosition.x, transform.localPosition.x - currentItem.transform.position.x, time), transform.localPosition.y, transform.localPosition.z);
+			yield return null;
+		}
+	}
+
+	private ListItem CheckCurrentItem()
+	{
+		float shortestDistance = 1000;
+		float distance = 0;
+		ListItem shortest = null;
+		foreach (var item in listElements)
+		{
+			distance = Vector3.Distance(item.transform.position, listGrid.transform.position);
+			if (distance < shortestDistance)
 			{
-				for (int i = 0; i < numberOfScenes - 1; i++)
-				{
-					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
-					listElements[i].id = i;
-					listElements[i].listItemName = levelNames[i];
-					listElements[i].transform.Find("Name").GetComponent<Text>().text = levelNames[i];
-					listElements[i].transform.Find("Image").GetComponent<Image>().sprite = levelImages[i];
-					listElements[i].transform.parent = listGrid.transform;
-				}
-				currentItem = listElements[0];
+				shortestDistance = distance;
+				shortest = item;
 			}
 		}
+		currentItem = shortest;
+		int tempIndex = selectedItemIndex;
+		selectedItemIndex = currentItem.ID;
+		if (tempIndex != selectedItemIndex)
+			OnSelectionChanged?.Invoke(selectedItemIndex);
 
-		private void CreateCharacterList()
+		return currentItem;
+	}
+	public void SetOptions(string[] names, GameObject[] objects)
+	{
+		if (names.Length != objects.Length)
 		{
-			listElements = new ListItem[amountOfCharacters];
+			Debug.LogError("Lengths of passed arrays do not match.");
+			return;
+		}
+		listElements = new ListItem[names.Length];
 
-			if (listGrid != null)
-			{
-				for (int i = 0; i < amountOfCharacters; i++)
-				{
-					listElements[i] = Instantiate(listElement, new Vector3(listGrid.transform.position.x, listGrid.transform.position.y, 0), Quaternion.identity);
-					listElements[i].id = i;
-					listElements[i].listItemName = characterNames[i];
-					listElements[i].transform.Find("Name").GetComponent<Text>().text = characterNames[i];
-					listElements[i].transform.Find("Image").GetComponent<Image>().sprite = characterImages[i];
-					listElements[i].transform.parent = listGrid.transform;
-				}
-				currentItem = listElements[0];
-			}
+		for (int i = 0; i < listElements.Length; i++)
+		{
+			listElements[i] = Instantiate(listItem, new Vector3(transform.position.x, transform.position.y, 0), Quaternion.identity);
+			listElements[i].ID = i;
+			listElements[i].Model = objects[i];
+			listElements[i].Name = names[i];
+
+			//TODO (Joonas): Working text element for the scrolling elements
+			//listElements[i].transform.Find("NameLabel").GetComponent<Text>().text = names[i];
+
+			listElements[i].transform.parent = transform;
 		}
 
-		/// <summary>
-		/// Initializes the scroll content if the scroll view is oriented horizontally.
-		/// </summary>
-		private void InitializeContentHorizontal()
-		{
-			float originX = 0 - (width * 0.25f);
-			float posOffset = width * 0.25f;
-			for (int i = 0; i < numberOfScenes - 1; i++)
-			{
-				Vector3 childPos = listElements[i].transform.localPosition;
-				childPos.x = originX + posOffset + i * (width + itemSpacing);
-				listElements[i].transform.localPosition = childPos;
-			}
-		}
-
-		/// <summary>
-		/// Initializes the scroll content if the scroll view is oriented vertically.
-		/// </summary>
-		private void InitializeContentVertical()
-		{
-			float originY = 0 - (height * 0.5f);
-			float posOffset = height * 0.5f;
-			for (int i = 0; i < numberOfScenes - 1; i++)
-			{
-				Vector2 childPos = listElements[i].transform.localPosition;
-				childPos.y = originY + posOffset + i * (height + itemSpacing);
-				listElements[i].transform.localPosition = childPos;
-			}
-		}
+		InitializeContentHorizontal();
+		currentItem = CheckCurrentItem();
+		transform.Translate(-currentItem.transform.localPosition);
 	}
 }

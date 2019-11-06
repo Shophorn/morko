@@ -40,22 +40,21 @@ public class ServerController : MonoBehaviour
 
 	public void StartGame()
 	{
-		Debug.Log("[SERVER] start game");
+		Debug.Log("[SERVER CONTROLLER]: start game");
 		server.StartGame();
 		Status = StatusType.RunningGame;
 	}
 
 	public void AbortGame()
 	{
-		Debug.Log("[SERVER] abort game");
+		Debug.Log("[SERVER CONTROLLER]: abort game");
 		server.AbortGame();
 		Status = StatusType.Idle;
 	}
 
 	public void OnDisable()
 	{
-		server?.StopBroadcasting();
-		server?.AbortGame();
+		Debug.Log("[SERVER CONTROLLER]: Cleanup");
 		server?.Close();
 	}
 
