@@ -118,10 +118,9 @@ public class LocalPlayerController : INetworkSender
 		Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateZ"));
 		Vector3 currentMousePosition = Input.mousePosition;
 		Vector3 mouseDelta = currentMousePosition - lastMousePosition;
-		RotationWith rotationWith = CheckGamepadOrMouse(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
 
 		Move(moveDirection, accelerateAndRun, hasMoved);
-		Rotate(rotationWith, currentMousePosition, lookDirectionJoystick);
+		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
 
 		positionForNetwork.Value = character.transform.position;
 		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
@@ -245,43 +244,7 @@ public class LocalPlayerController : INetworkSender
 			velocityY = 0f;
 	}
 
-	private void Rotate(RotationWith rotationWith, Vector3 currentMousePosition, Vector3 lookDirectionJoystick)
-	{
-		var targetRotation = character.transform.rotation;
-
-		switch (rotationWith)
-		{
-			case RotationWith.mouse:
-				
-				Plane characterPlane = new Plane(Vector3.up, character.transform.position);
-				Ray ray = camera.ScreenPointToRay (currentMousePosition);
-         
-				float distance = 0.0f;
-         
-				if (characterPlane.Raycast (ray, out distance)) 
-				{
-					Vector3 targetPoint = ray.GetPoint(distance);
-					targetRotation = Quaternion.LookRotation(targetPoint - character.transform.position);
-				}
-				break;
-			case RotationWith.leftStick:
-				targetRotation = Quaternion.LookRotation(moveDirection);
-				break;
-			case RotationWith.rightStick:
-				targetRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
-				break;
-			case RotationWith.currentRotation:
-				targetRotation = character.transform.rotation;
-				break;
-			default:
-				throw new ArgumentOutOfRangeException();
-		}
-
-		character.transform.rotation = targetRotation;
-		lastRotation = targetRotation;
-	}
-
-	private RotationWith CheckGamepadOrMouse(Vector3 lookDirectionJoystick, Vector3 currentMousePosition, Vector3 mouseDelta, bool hasMoved)
+	private void Rotate(Vector3 lookDirectionJoystick, Vector3 currentMousePosition, Vector3 mouseDelta, bool hasMoved)
 	{
 		bool mouseRotated = (Mathf.Abs(mouseDelta.x) > minMouseDelta) || (Mathf.Abs(mouseDelta.y) > minMouseDelta);
 		bool rightJoystickRotated = lookDirectionJoystick.sqrMagnitude > joystickMinDeadzone;
@@ -289,37 +252,25 @@ public class LocalPlayerController : INetworkSender
 		bool mouseOrLeftJoystickRotated = (mouseRotated && !rightJoystickRotated) || (!mouseRotated && rightJoystickRotated);
 		bool mouseAndJoystickRotated = mouseRotated && rightJoystickRotated;
 		
-		bool mouseForRotation = false;
-		bool rightJoystickForRotation = false;
-		bool onlyLeftJoystickUsed = false;
+		var targetRotation = character.transform.rotation;
 
 		if (mouseOrLeftJoystickRotated)
 		{
 			if (mouseRotated)
 			{
 				mouseRotatedLast = true;
-				return RotationWith.mouse;
+				targetRotation = GetMouseRotation();
 			}
-
-			mouseRotatedLast = false;
-			return RotationWith.rightStick;
+			else
+			{
+				mouseRotatedLast = false;
+				targetRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
+			}
 		}
-
-		if (mouseAndJoystickRotated)
+		else if (mouseAndJoystickRotated)
 		{
 			lastMousePosition = currentMousePosition;
-			
-			Plane playerPlane = new Plane(Vector3.up, character.transform.position);
-			Ray ray = camera.ScreenPointToRay (currentMousePosition);
-         
-			float distance = 0.0f;
-			var mouseRotation = character.transform.rotation;
-         
-			if (playerPlane.Raycast (ray, out distance)) 
-			{
-				Vector3 targetPoint = ray.GetPoint(distance);
-				mouseRotation = Quaternion.LookRotation(targetPoint - character.transform.position);
-			}
+			var mouseRotation = GetMouseRotation();
 			
 			// check which one is larger
 			float mouseAngle = Quaternion.Angle(mouseRotation, lastRotation);
@@ -328,25 +279,34 @@ public class LocalPlayerController : INetworkSender
 			if (mouseAngle >= joystickAngle)
 			{
 				mouseRotatedLast = true;
-				return RotationWith.mouse;
+				targetRotation = mouseRotation;
 			}
 			else if (mouseAngle < joystickAngle)
 			{
 				mouseRotatedLast = false;
-				return RotationWith.rightStick;
+				targetRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
 			}
 		}
 		else if (hasMoved && currentSettings.rotateTowardsMove)
-			return RotationWith.leftStick;
-		
-		return RotationWith.currentRotation;
+			targetRotation = Quaternion.LookRotation(moveDirection);
+
+		character.transform.rotation = targetRotation;
 	}
 
-	enum RotationWith
+	private Quaternion GetMouseRotation()
 	{
-		mouse,
-		leftStick,
-		rightStick,
-		currentRotation
+		Plane playerPlane = new Plane(Vector3.up, character.transform.position);
+		Ray ray = camera.ScreenPointToRay (Input.mousePosition);
+         
+		float distance = 0.0f;
+		var mouseRotation = character.transform.rotation;
+         
+		if (playerPlane.Raycast (ray, out distance)) 
+		{
+			Vector3 targetPoint = ray.GetPoint(distance);
+			mouseRotation = Quaternion.LookRotation(targetPoint - character.transform.position);
+		}
+
+		return mouseRotation;
 	}
 }
