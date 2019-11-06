@@ -2,7 +2,6 @@
 using System.Numerics;
 using UnityEngine;
 using Morko.Network;
-using Plane = UnityEngine.Plane;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 using Vector2 = UnityEngine.Vector2;
@@ -49,7 +48,7 @@ public class LocalPlayerController : INetworkSender
 	private Vector3 moveDirection;
 	private Vector3 lastPosition;
 	private Vector3 oldDirection = Vector3.zero;
-	private Quaternion lastRotation = Quaternion.identity;
+	private Vector3 lastRotation = Vector3.zero;
 	private Vector3 previousVelocityVector = Vector3.zero;
 	private const float minVectorVelocityAngleChange = 160f;
 	private bool ran = false;
@@ -107,7 +106,6 @@ public class LocalPlayerController : INetworkSender
 	public void Update()
 	{
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
-		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
 		
 		bool runningInput = (Input.GetButton("Sprint") || Input.GetKey(KeyCode.LeftShift));
 		bool runningSpeed = currentMovementSpeed >= walkSpeed;
@@ -116,11 +114,13 @@ public class LocalPlayerController : INetworkSender
 		bool dive = Input.GetKeyDown(KeyCode.Space);
 		
 		Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateZ"));
+
 		Vector3 currentMousePosition = Input.mousePosition;
 		Vector3 mouseDelta = currentMousePosition - lastMousePosition;
 
-		Move(moveDirection, accelerateAndRun, hasMoved);
-		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
+		Move(moveDirection, accelerateAndRun);
+		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta);
+		Dash(dive);
 
 		positionForNetwork.Value = character.transform.position;
 		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
@@ -137,12 +137,13 @@ public class LocalPlayerController : INetworkSender
 	}
 
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
-	private void Move(Vector3 moveDirection, bool accelerateRun, bool hasMoved)
+	private void Move(Vector3 moveDirection, bool accelerateRun)
 	{
 		lastPosition = character.gameObject.transform.position;
 		character.transform.position = new Vector3(character.transform.position.x, 0f, character.transform.position.z);
 		
 		bool joystickMaxed = moveDirection.magnitude >= joystickMaxThreshold;
+		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
 		bool sneakingSpeed = currentMovementSpeed <= sneakSpeed;
 		bool sneak = hasMoved && !joystickMaxed && sneakingSpeed;
 		
@@ -244,69 +245,109 @@ public class LocalPlayerController : INetworkSender
 			velocityY = 0f;
 	}
 
-	private void Rotate(Vector3 lookDirectionJoystick, Vector3 currentMousePosition, Vector3 mouseDelta, bool hasMoved)
+	private void Rotate(Vector3 lookDirectionJoystick, Vector3 currentMousePosition, Vector3 mouseDelta)
 	{
+		Vector3 rotationVector = Vector3.zero;
+		
 		bool mouseRotated = (Mathf.Abs(mouseDelta.x) > minMouseDelta) || (Mathf.Abs(mouseDelta.y) > minMouseDelta);
 		bool rightJoystickRotated = lookDirectionJoystick.sqrMagnitude > joystickMinDeadzone;
-		
-		bool mouseOrLeftJoystickRotated = (mouseRotated && !rightJoystickRotated) || (!mouseRotated && rightJoystickRotated);
 		bool mouseAndJoystickRotated = mouseRotated && rightJoystickRotated;
+		bool mouseOrLeftJoystickRotated = (mouseRotated && !rightJoystickRotated) || (!mouseRotated && rightJoystickRotated);
 		
-		var targetRotation = character.transform.rotation;
-
+		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
+		bool mouseForRotation = false;
+		bool rightJoystickForRotation = false;
+		bool onlyLeftJoystickUsed = false;
+		
 		if (mouseOrLeftJoystickRotated)
 		{
-			if (mouseRotated)
-			{
-				mouseRotatedLast = true;
-				targetRotation = GetMouseRotation();
-			}
-			else
-			{
-				mouseRotatedLast = false;
-				targetRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
-			}
+			mouseForRotation = mouseRotated;
+			mouseRotatedLast = mouseForRotation;
+			rightJoystickForRotation = rightJoystickRotated;
+			// Check rotation amount compared to last frame
 		}
 		else if (mouseAndJoystickRotated)
 		{
 			lastMousePosition = currentMousePosition;
-			var mouseRotation = GetMouseRotation();
-			
+			Ray mouseRay = camera.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			Physics.Raycast(mouseRay, out hit, groundMask);
+			Vector3 lookDirection = (hit.point - character.transform.position).normalized;
+			Vector3 lookDirectionLevel = new Vector3(lookDirection.x, character.transform.position.y, lookDirection.z);
 			// check which one is larger
-			float mouseAngle = Quaternion.Angle(mouseRotation, lastRotation);
-			float joystickAngle = Quaternion.Angle(Quaternion.Euler(lookDirectionJoystick),lastRotation);
+			float mouseAngle = Vector3.Angle(lookDirectionLevel, lastRotation);
+			float joystickAngle = Vector3.Angle(lookDirectionJoystick, lastRotation);
+			
 
-			if (mouseAngle >= joystickAngle)
+			if (mouseAngle > joystickAngle)
 			{
+				mouseForRotation = true;
 				mouseRotatedLast = true;
-				targetRotation = mouseRotation;
+				rightJoystickForRotation = false;
 			}
 			else if (mouseAngle < joystickAngle)
 			{
+				mouseForRotation = false;
 				mouseRotatedLast = false;
-				targetRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
+				rightJoystickForRotation = true;
 			}
 		}
-		else if (hasMoved && currentSettings.rotateTowardsMove)
-			targetRotation = Quaternion.LookRotation(moveDirection);
+		else if (hasMoved)
+			onlyLeftJoystickUsed = true;
+		
 
-		character.transform.rotation = targetRotation;
-	}
-
-	private Quaternion GetMouseRotation()
-	{
-		Plane playerPlane = new Plane(Vector3.up, character.transform.position);
-		Ray ray = camera.ScreenPointToRay (Input.mousePosition);
-         
-		float distance = 0.0f;
-		var mouseRotation = character.transform.rotation;
-         
-		if (playerPlane.Raycast (ray, out distance)) 
+		if (onlyLeftJoystickUsed && !mouseRotatedLast && currentSettings.rotateTowardsMove)
 		{
-			Vector3 targetPoint = ray.GetPoint(distance);
-			mouseRotation = Quaternion.LookRotation(targetPoint - character.transform.position);
+			character.transform.rotation = Quaternion.LookRotation(moveDirection);
 		}
+		else if (mouseForRotation)
+		{
+			lastMousePosition = currentMousePosition;
+			Ray mouseRay = camera.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			Physics.Raycast(mouseRay, out hit, groundMask);
+			Vector3 lookDirection = (hit.point - character.transform.position).normalized;
+			Vector3 lookDirectionLevel = new Vector3(lookDirection.x, character.transform.position.y, lookDirection.z);
+			character.transform.rotation = Quaternion.LookRotation(lookDirectionLevel);
+		}
+		else if (rightJoystickForRotation)
+		{
+			Quaternion lookRotation = Quaternion.LookRotation(lookDirectionJoystick, Vector3.up);
+			character.transform.rotation = Quaternion.RotateTowards(lookRotation, character.transform.rotation, Time.deltaTime);
+		}
+		
+		// If rotation amount > threshold, slowdown character
+		float angle = Vector3.Angle(character.transform.forward, lastRotation);
+		lastRotation = character.transform.forward;
+	}
+	
+	private void Dash(bool dive)
+	{
+		if (!isMorko || !dive) return;
 
-		return mouseRotation;
+		Vector3 currentPosition = character.transform.position;
+		Vector3 targetPosition = currentPosition + character.transform.forward * dashDistance;
+		
+		long currentMillis = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+		bool pastCooldown = currentMillis - lastMillis >= dashCooldown * 1000;
+			
+		if (!pastCooldown)
+			return;
+		
+		var time = 0f;
+		while(time < 1)
+		{
+			time += Time.deltaTime / dashDuration;
+			Debug.Log(time);
+			character.transform.position = Vector3.Lerp(currentPosition, targetPosition, time);
+			
+			// If collision with other player
+			// changeState(false);
+			// Change other player to morko
+		}
+		
+		lastMillis = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+		
+		currentMovementSpeed = 0f;
 	}
 }
