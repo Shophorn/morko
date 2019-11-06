@@ -5,6 +5,7 @@ shophorn@protonmail.com
 NetworkCommand enum describes the function we want to execute
 */
 
+using System;
 using System.Runtime.InteropServices;	
 
 namespace Morko.Network
@@ -24,16 +25,42 @@ namespace Morko.Network
 
 
 		// Note(Leo): Updates may have some data in addition to Args structure.
-		ServerLobbyUpdate,
 		ServerGameUpdate,
 		ClientGameUpdate,
 
+		ServerUpdatePlayers,
+
+		// These are errors
 		Undefined,
+		NotSupported,
+	}
+
+	public static class NetworkCommandExtensions
+	{
+		public static int GetArgumentsSize(this NetworkCommand command)
+		{
+			// Note(Leo): This is only to shorten lines on following switch statement
+			int SizeOf<T>() => Marshal.SizeOf(default(T));
+
+			switch (command)
+			{
+				case NetworkCommand.ServerIntroduce: 	return SizeOf<ServerIntroduceArgs>();
+				case NetworkCommand.ServerConfirmJoin: 	return SizeOf<ServerConfirmJoinArgs>();
+
+				default:
+					throw new InvalidOperationException($"NetworkCommand '{command}' does not have arguments, or it is invalid");
+			}
+		}
 	}
 
 	public interface INetworkCommandArgs
 	{
 		NetworkCommand Command { get; }
+	}
+
+	public struct InvalidCommandArgs : INetworkCommandArgs
+	{
+		public NetworkCommand Command { get; set; }
 	}
 
 	/* Note(Leo): These structs are to be sent over network,
@@ -56,7 +83,7 @@ namespace Morko.Network
 
 		public int playerId;
 
-		[MarshalAs(UnmanagedType.I1)] // 1-byte integer, can be used as a bool, like in C
+		[MarshalAs(UnmanagedType.I1)] // 1-byte integer, used as a bool like in C
 		public bool accepted;
 	} 
 
@@ -94,6 +121,14 @@ namespace Morko.Network
 		public NetworkCommand Command => NetworkCommand.ServerGameUpdate;
 
 		public int playerId;
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct ServerUpdatePlayersArgs : INetworkCommandArgs
+	{
+		public NetworkCommand Command => NetworkCommand.ServerUpdatePlayers;
+
+		public int playerCount;
 	}
 }
 

@@ -21,5 +21,6 @@ namespace Morko.Network
 		public static readonly IPAddress multicastAddress = IPAddress.Parse("224.0.0.200");
 
 		public const int serverReceivePort = 21002;
+		public const int serverTcpListenPort = 21003;
 	}
 }

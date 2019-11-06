@@ -12,6 +12,7 @@ How to make forms application:
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -60,6 +61,7 @@ namespace Morko.Network
 		private UdpClient senderClient;
 		private UdpClient responseClient;
 
+		private List<TcpClient> playerTcpClients;
 		private List<ClientInfo> players;
 		private int clientUpdatePackageSize;
 
@@ -74,6 +76,19 @@ namespace Morko.Network
 		// Note(Leo): this disables the use of constructor outside class
 		private Server() {}
 
+		private static IPAddress GetIPAddress()
+        {
+            IPHostEntry hostEntry = Dns.GetHostEntry(Environment.MachineName);
+
+            foreach (IPAddress address in hostEntry.AddressList)
+            {
+                if (address.AddressFamily == AddressFamily.InterNetwork)
+                    return address;
+            }
+
+            return null;
+        }
+
 		public static Server Create(ServerCreateInfo info)
 		{
 			var server = new Server
@@ -82,7 +97,7 @@ namespace Morko.Network
 				clientUpdatePackageSize = info.clientUpdatePackageSize,
 				broadcastDelayMs		= info.broadcastDelayMs,
 				gameUpdateThreadDelayMs	= info.gameUpdateThreadDelayMs,
-				Log 					= info.logFunction ??  Morko.Logging.Logger.Log,
+				Log 					= info.logFunction ?? Morko.Logging.Logger.Log,
 
 				senderClient 			= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
@@ -123,6 +138,85 @@ namespace Morko.Network
 
 			public void Run()
 			{
+				var listener = new TcpListener(new IPEndPoint(IPAddress.Any, Constants.serverTcpListenPort));
+				listener.Start();
+				server.Log($"TCP Listener created {listener.LocalEndpoint}");
+				
+				server.playerTcpClients = new List<TcpClient>();
+
+				while(true)
+				{
+					try
+					{
+						var newPlayerClient = listener.AcceptTcpClient();
+						var newPlayerStream = newPlayerClient.GetStream();
+
+						while(!newPlayerStream.DataAvailable)
+						{
+							server.Log("Sleeping waiting for messages...");
+							Thread.Sleep(10);
+						}
+						while(newPlayerStream.DataAvailable)
+						{
+							int correctIdBytes = 0;
+							while(correctIdBytes != ProtocolFormat.idBytesCount)
+							{
+								int nextByte = newPlayerStream.ReadByte();
+								if (nextByte == ProtocolFormat.idBytes[correctIdBytes])
+								{
+									correctIdBytes++;
+								}
+								else
+								{
+									correctIdBytes = 0;
+								}
+							}
+
+							// Todo(Leo): Learn about Span<T>
+							// Note(Leo): At this point we have proper header (supposedly)
+							byte[] argumentLengthBytes = new byte [2];
+							newPlayerStream.Read(argumentLengthBytes, 0, 2);
+							ushort length = BitConverter.ToUInt16(argumentLengthBytes, 0);
+
+							byte instructionByte = (byte)newPlayerStream.ReadByte();
+
+							byte[] argumentsData = new byte[length];
+							newPlayerStream.Read(argumentsData, 0, length);
+
+							var args = argumentsData.ToStructure<ClientRequestJoinArgs>();
+							server.Log($"New player connected: {newPlayerClient.Client.LocalEndPoint} \"{args.playerName}\"");						
+						}
+						// var byteList = new List<byte> ();
+						// while(newPlayerStream.DataAvailable)
+						// {
+						// 	int nextByte = newPlayerStream.ReadByte();
+						// 	if (nextByte >= 0)
+						// 	{
+						// 		byteList.Add((byte)nextByte);
+						// 	}
+						// }
+						// var byteArray = byteList.ToArray();
+
+						// server.Log($"Read {byteArray.Length} bytes from net. Expected {Marshal.SizeOf(default(ClientRequestJoinArgs)) + 10}");
+
+						// if (ProtocolFormat.TryParseCommand(	byteArray,
+						// 									out NetworkCommand command,
+						// 									out byte [] argumentsData)
+						// 	&& command == NetworkCommand.ClientRequestJoin)
+						// {
+						// 	var args = argumentsData.ToStructure<ClientRequestJoinArgs>();
+						// 	server.Log($"New player connected: {newPlayerClient.Client.LocalEndPoint} \"{args.playerName}\"");
+						// }
+
+					}
+					catch(Exception e)
+					{
+						newPlayerClient.Close();
+						server.Log(e.ToString());
+					}
+				}
+
+				/*
 				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
 				while(true)
 				{
@@ -170,6 +264,7 @@ namespace Morko.Network
 						}
 					}
 				}
+					*/
 			}
 
 			public void CleanUp() {}

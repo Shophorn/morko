@@ -8,6 +8,7 @@ either one needs to change.
 */
 
 using System;
+using System.Runtime.InteropServices;
 
 using Morko.Logging;
 
@@ -22,16 +23,16 @@ namespace Morko.Network
 		public static byte [] Encode(string text) => System.Text.Encoding.ASCII.GetBytes(text);
 
 		public const string appId = "MORKO";
-		private static readonly byte [] idBytes = Encode(appId);
+		public static readonly byte [] idBytes = Encode(appId);
 
-		private const int idByteIndex 			= 0;
-		private const int idBytesCount 			= 5; // appId.Length;
-		private const int commandByteIndex 		= idByteIndex + idBytesCount;
-		private const int commandBytesCount 	= 1;
-		private const int cmdCounterBytesIndex	= commandByteIndex + commandBytesCount;
-		private const int cmdCounterBytesCount 	= sizeof(int);
+		public const int idByteIndex 			= 0;
+		public const int idBytesCount 			= 5; // appId.Length;
+		public const int commandByteIndex 		= idByteIndex + idBytesCount;
+		public const int commandBytesCount 		= 1;
+		public const int cmdCounterBytesIndex	= commandByteIndex + commandBytesCount;
+		public const int cmdCounterBytesCount 	= sizeof(int);
 
-		private const int headerSize = cmdCounterBytesIndex + cmdCounterBytesCount;
+		public const int headerSize = cmdCounterBytesIndex + cmdCounterBytesCount;
 
 		public static byte [] MakeCommand<T>(T arguments, byte [] package = null) 
 			where T : struct, INetworkCommandArgs
@@ -111,6 +112,43 @@ namespace Morko.Network
 		{
 			int key = (playerId << 24) | (0x00FFFFFF & counter);
 			return key;
+		}
+
+		public static byte [] MakeTcpMessage<T>(T arguments)
+			where T : struct, INetworkCommandArgs
+		{
+			/*
+			1)	5 bytes:	"MORKO", magic word.
+			2)	2 bytes:	length of arguments structure, NOT including header.
+			3)	1 byte:		instruction byte.
+			
+			4)	n bytes:	arguments structure, n is equal to length above.
+			*/
+
+			byte[] argumentBytes = arguments.ToBinary();
+			ushort argumentLength = (ushort)argumentBytes.Length;
+
+			var data = new byte [8 + argumentLength];
+			int dataIndex = 0;
+
+			// 1)
+			for (int idIndex = 0; idIndex < 5; idIndex++, dataIndex++)
+				data[dataIndex] = idBytes[idIndex];
+
+			// 2)
+			byte[] lengthBytes = BitConverter.GetBytes(argumentLength);
+			for (int lengthIndex = 0; lengthIndex < 2; lengthIndex++, dataIndex++)
+				data[dataIndex] = lengthBytes[lengthIndex];
+
+			// 3)
+			data[dataIndex] = (byte)arguments.Command;
+			dataIndex++;
+
+			// 4)
+			for (int argumentIndex = 0; argumentIndex < argumentLength; argumentIndex++, dataIndex++)
+				data[dataIndex] = argumentBytes[argumentIndex];
+
+			return data;
 		}
 	}
 }

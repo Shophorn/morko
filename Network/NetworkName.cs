@@ -20,10 +20,22 @@ namespace Morko.Network
 		private unsafe fixed byte _data [_maxLength];
 		private int _length;
 
+		public unsafe static void Test(byte[] data, Action<string> printFunction, int offset = 0)
+		{
+			int count = 32;
+			byte[] byteArray = new byte[count];
+			fixed(byte * srcBytes = data)
+			fixed(byte * dstBytes = byteArray)
+			{
+				Buffer.MemoryCopy(srcBytes + offset, dstBytes, count, count);
+			}
+			printFunction("NetworkNameTest: " + Encoding.ASCII.GetString(byteArray));				
+		}
+
 		public unsafe static implicit operator string(NetworkName name)
 		{
 			int count = name._length;
-			byte [] byteArray = new byte[count];
+			byte[] byteArray = new byte[count];
 			fixed(byte * dstBytes = byteArray)
 			{
 				Buffer.MemoryCopy(name._data, dstBytes, count, count);
@@ -34,7 +46,7 @@ namespace Morko.Network
 		public unsafe static implicit operator NetworkName (string text)
 		{
 			NetworkName result = new NetworkName();
-			byte [] byteArray = Encoding.ASCII.GetBytes(text);
+			byte[] byteArray = Encoding.ASCII.GetBytes(text);
 			int count = byteArray.Length < _maxLength ?
 						byteArray.Length :
 						_maxLength;

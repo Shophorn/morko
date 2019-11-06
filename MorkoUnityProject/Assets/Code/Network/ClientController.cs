@@ -1,6 +1,7 @@
 using System; 
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -89,6 +90,8 @@ public partial class ClientController : MonoBehaviour
 
 	private UdpClient udpClient;
 	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
+
+	private TcpClient tcpClient;
 
 	// Todo(Leo): Please just make these normal variables, so we can like check against null... 
 	private readonly ThreadControl detectServersThread = new ThreadControl();
@@ -202,13 +205,6 @@ public partial class ClientController : MonoBehaviour
 				netControls.UpdateServersList(GetServers());
 			}
 		}
-
-		// if (doNetworkUpdate)
-		// {
-		// 	// Note(Leo): Lol, no accessing transform from threads??
-		// 	if (sender != null && sendUpdateThread.IsRunning)
-		// 		sendUpdateThreadRunner.playerPosition = sender.position;
-		// }
 	}
 
 	public void StartListenBroadcast()
@@ -236,11 +232,31 @@ public partial class ClientController : MonoBehaviour
 	{
 		requestedServer = servers[selectedServerIndex];
 
+		var tcpTestEndPoint = new IPEndPoint(requestedServer.endPoint.Address, Constants.serverTcpListenPort);
+		var tcpTestClient = new TcpClient();
+		tcpTestClient.Connect(tcpTestEndPoint);
+
+
+		NetworkStream stream = tcpTestClient.GetStream();
+		// StreamWriter sw = new StreamWriter(tcpTestClient.GetStream());
+		// sw.WriteLine("Hello from web");
+		// sw.Flush();
+
+
 		var arguments 	= new ClientRequestJoinArgs{ playerName = playerName };
-		var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);
+
+		// var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);
+		var data = ProtocolFormat.MakeTcpMessage(arguments);
 		var endPoint 	= requestedServer.endPoint;
 
-		int sentBytes = udpClient.Send(data, data.Length, endPoint);
-		Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
+		Thread.Sleep(100);
+
+
+		stream.Write(data, 0, data.Length);
+		stream.Write(data, 0, data.Length);
+		tcpTestClient.Close();
+
+		// int sentBytes = udpClient.Send(data, data.Length, endPoint);
+		// Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
 	}
 }
