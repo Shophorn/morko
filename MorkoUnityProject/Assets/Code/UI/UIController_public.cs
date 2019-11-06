@@ -72,7 +72,6 @@ public partial class UIController
 
 	private void SetCurrentServer(int serverIndex)
 	{
-		Debug.Log("Working? AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 		ServerInfo selectedServer = availableServers[serverIndex];
 
 		joinView.selectedServerIndex = serverIndex;
