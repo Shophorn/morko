@@ -3,10 +3,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 
-public class GamepadInputFieldHelper : EventTrigger
+public class GamepadInputFieldHelper : MonoBehaviour
 {
-	[SerializeField] private InputField inputField;
-	private bool isActive = false;
+	public InputField inputField;
 
 	private void Update()
 	{

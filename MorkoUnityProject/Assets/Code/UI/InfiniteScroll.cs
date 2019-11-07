@@ -8,8 +8,8 @@ public class InfiniteScroll : Selectable, IBeginDragHandler, IDragHandler, IScro
 	public GameObject listItemContainer;
 	public ListItem currentItem;
 	public GameObject gridCenter;
-	public InputField nameInputField;
-	public InputField roomInputField;
+	public InputField serverNameField;
+	public InputField hostNameField;
 
 	#region Private Members
 
@@ -47,9 +47,9 @@ public class InfiniteScroll : Selectable, IBeginDragHandler, IDragHandler, IScro
 		else if (Input.GetAxis("Horizontal") < 0)
 			positiveDrag = false;
 
-		if (nameInputField != null && nameInputField.isFocused == true)
+		if (hostNameField != null && hostNameField.isFocused == true)
 			scrollFactor = 0;
-		if (roomInputField != null && roomInputField.isFocused == true)
+		if (serverNameField != null && serverNameField.isFocused == true)
 			scrollFactor = 0;
 
 
