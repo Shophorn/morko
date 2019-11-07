@@ -26,52 +26,102 @@ public class LocalCameraController : MonoBehaviour
 	
 	Quaternion quaternion = Quaternion.Euler(new Vector3(60, 0, 0));
 
-	private Vector3 pos = Vector3.zero;
-	private Vector3 orgPos = Vector3.zero;
+	public int lerpAmount = 10;
+	public float parabolaHeigh = 2f;
 
-	private Quaternion prevQ;
-	private Quaternion currQ;
-	
+	private Vector3 defaultPoss;
+	private Vector3[] points = new Vector3[10];
+	private Vector3 point;
+	private Vector3 previousPosition;
+
 	private void Start()
 	{
 		character = GetComponentInParent<Character>();
 		camera = GetComponent<Camera>();
-
-		prevQ = target.rotation;
-		currQ = prevQ;
 	}
 
 	private void LateUpdate()
 	{
-		currQ = target.rotation;
-		
-		transform.rotation = quaternion;
-
 		float y = Mathf.Sin(angle) * distance;
 		float z = -Mathf.Cos(angle) * distance;
-		Vector3 targetPosition = target.position;
-		
+
 		Vector3 localPosition = new Vector3(0, y, z);
-		Vector3 cameraNormalPosition = targetPosition + localPosition;
+		Vector3 defaultPosition = target.position + localPosition;
+		defaultPoss = defaultPosition;
 
-		orgPos = cameraNormalPosition;
+		transform.position = previousPosition;
+
+		var cameraPos = MoveCameraIfPlayerNotVisible(defaultPosition);
+		point = cameraPos;
+
+		transform.position = cameraPos;
+		previousPosition = cameraPos;
 		
-		LocalPlayerController.MovementState targetMovementState = character.localController.currentMovementState;
-		float targetStateInterpolation = character.localController.movementStateInterpolator;
-		float ang = Quaternion.Angle(currQ, prevQ);
+		transform.LookAt(target.position);
+	}
 
-		var moveCameraBy = CalculateCameraPosition(cameraNormalPosition, targetMovementState, targetStateInterpolation, ang);
-		transform.position = moveCameraBy;
+	private Vector3 MoveCameraIfPlayerNotVisible(Vector3 defaultPosition)
+	{
+		var cameraCurrentPosition = transform.position;
+		var defaultForward = target.position - defaultPosition;
+		var cameraMaxPosition = new Vector3(target.transform.position.x, distance, target.transform.position.z);
+		var defaultToMaxVector = cameraMaxPosition - defaultPosition;
+		
+		Vector3[] vectorPoints = new Vector3[lerpAmount];
+		float iterator = 0f;
+		float iteratorAmount = 1f / lerpAmount;
 
-		prevQ = currQ;
+		for (int i = 0; i < lerpAmount; i++)
+		{
+			iterator += iteratorAmount;
+			iterator = Mathf.Clamp(iterator, 0, 1);
+			
+			vectorPoints[i] = defaultPosition + defaultToMaxVector * iterator;
+			vectorPoints[i].y += Mathf.Sin( iterator * Mathf.PI ) * parabolaHeigh;
+		}
+
+		points = vectorPoints;
+		RaycastHit hit;
+
+		if(Physics.Raycast(defaultPosition, defaultForward, out hit)) {
+
+			if (hit.collider.gameObject.CompareTag("Wall"))
+			{
+				foreach (var p in vectorPoints)
+				{
+					var direction = target.position - p;
+					if (Physics.Raycast(p, direction, out hit))
+					{
+						if (!hit.collider.gameObject.CompareTag("Wall"))
+						{
+							transform.position = Vector3.MoveTowards(cameraCurrentPosition, p, speed * Time.deltaTime);
+							return transform.position;
+						}
+					}
+				}
+			}
+		}
+		
+		return defaultPosition;
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+		Gizmos.color = Color.red;
+		Gizmos.DrawLine(defaultPoss, new Vector3(target.transform.position.x, distance, target.transform.position.z));
+		Gizmos.color = Color.blue;
+		foreach (var p in points)
+		{
+			Gizmos.DrawSphere(p, 0.05f);
+		}
+		Gizmos.color = Color.yellow;
+		Gizmos.DrawSphere(point, 0.15f);
 	}
 
 	private Vector3 CalculateCameraPosition(Vector3 cameraPosition, LocalPlayerController.MovementState state, float interpolate, float angle)
 	{
 
 		var rotationFactor = Mathf.Lerp(1f, 0f, Mathf.Clamp(angle / 3f, 0f, 1f));
-		
-		Debug.Log(rotationFactor);
 		
 		var desiredPosition = cameraPosition;
 		var targetMaxPositionRun = cameraPosition + target.forward * pushDistance;
@@ -81,20 +131,14 @@ public class LocalCameraController : MonoBehaviour
 		               state == LocalPlayerController.MovementState.BackwardsRun;
 
 		if (running)
-			desiredPosition = Vector3.Lerp(cameraPosition, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate) * rotationFactor);
+			desiredPosition = Vector3.Lerp(cameraPosition, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
 
 		pos = desiredPosition;
 		
 		return desiredPosition;
 	}
 
-	private void OnDrawGizmosSelected()
-	{
-		Gizmos.color = Color.red;
-		Gizmos.DrawSphere(orgPos, 0.1f);
-		Gizmos.color = Color.yellow;
-		Gizmos.DrawSphere(pos, 0.1f);
-	}
+	
 
 	private Vector3 CalculateCameraLookAtPosition(Vector3 targetPosition, LocalPlayerController.MovementState state, float interpolate)
 	{
