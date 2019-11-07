@@ -133,8 +133,6 @@ public class LocalCameraController : MonoBehaviour
 		if (running)
 			desiredPosition = Vector3.Lerp(cameraPosition, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
 
-		pos = desiredPosition;
-		
 		return desiredPosition;
 	}
 
