@@ -6,11 +6,7 @@ using Morko.Network;
 
 public class ServerController : MonoBehaviour
 {
-	public enum StatusType {Idle, Broadcasting, RunningGame};
-	public StatusType Status { get; private set; }
-
 	private Server server;
-
 	public string [] players;
 
 	public void CreateServer(ServerCreateInfo createInfo)
@@ -29,27 +25,23 @@ public class ServerController : MonoBehaviour
 	public void StartBroadcast()
 	{
 		server.StartBroadcasting();
-		Status = StatusType.Broadcasting;
 	}
 
 	public void StopBroadcast()
 	{
 		server.StopBroadcasting();
-		Status = StatusType.Idle;
 	}
 
 	public void StartGame()
 	{
 		Debug.Log("[SERVER CONTROLLER]: start game");
 		server.StartGame();
-		Status = StatusType.RunningGame;
 	}
 
 	public void AbortGame()
 	{
 		Debug.Log("[SERVER CONTROLLER]: abort game");
 		server.AbortGame();
-		Status = StatusType.Idle;
 	}
 
 	public void OnDisable()

@@ -8,6 +8,7 @@ either one needs to change.
 */
 
 using System;
+using System.Net.Sockets;	
 using System.Runtime.InteropServices;
 
 using Morko.Logging;
@@ -108,13 +109,8 @@ namespace Morko.Network
 			}
 		}
 
-		private static int MakeKey(int playerId, int counter)
-		{
-			int key = (playerId << 24) | (0x00FFFFFF & counter);
-			return key;
-		}
-
-		public static byte [] MakeTcpMessage<T>(T arguments)
+		// Todo(Leo): return value from here indicating connection is lost, or throw exception
+		public static void WriteTcpMessage<T>(this NetworkStream stream, T arguments, byte [] data = null)
 			where T : struct, INetworkCommandArgs
 		{
 			/*
@@ -123,32 +119,72 @@ namespace Morko.Network
 			3)	1 byte:		instruction byte.
 			
 			4)	n bytes:	arguments structure, n is equal to length above.
+			5)	m bytes:	extra data such as info for each player's avatars
 			*/
 
-			byte[] argumentBytes = arguments.ToBinary();
-			ushort argumentLength = (ushort)argumentBytes.Length;
+			int dataLength = (data != null) ? data.Length : 0;
 
-			var data = new byte [8 + argumentLength];
-			int dataIndex = 0;
+			byte[] argumentBytes = arguments.ToBinary();
+			int argumentLength = argumentBytes.Length;
+
+
+			ushort contentLength = (ushort)(argumentLength + dataLength);
+			var package = new byte [8 + contentLength];
+			int packageIndex = 0;
 
 			// 1)
-			for (int idIndex = 0; idIndex < 5; idIndex++, dataIndex++)
-				data[dataIndex] = idBytes[idIndex];
+			for (int idIndex = 0; idIndex < 5; idIndex++, packageIndex++)
+				package[packageIndex] = idBytes[idIndex];
 
 			// 2)
-			byte[] lengthBytes = BitConverter.GetBytes(argumentLength);
-			for (int lengthIndex = 0; lengthIndex < 2; lengthIndex++, dataIndex++)
-				data[dataIndex] = lengthBytes[lengthIndex];
+			byte[] lengthBytes = BitConverter.GetBytes(contentLength);
+			for (int lengthIndex = 0; lengthIndex < 2; lengthIndex++, packageIndex++)
+				package[packageIndex] = lengthBytes[lengthIndex];
 
 			// 3)
-			data[dataIndex] = (byte)arguments.Command;
-			dataIndex++;
+			package[packageIndex] = (byte)arguments.Command;
+			packageIndex++;
 
 			// 4)
-			for (int argumentIndex = 0; argumentIndex < argumentLength; argumentIndex++, dataIndex++)
-				data[dataIndex] = argumentBytes[argumentIndex];
+			for (int argumentIndex = 0; argumentIndex < argumentLength; argumentIndex++, packageIndex++)
+				package[packageIndex] = argumentBytes[argumentIndex];
 
-			return data;
+			// 5)
+			if (data != null)
+				Array.Copy(data, 0, package, packageIndex, dataLength);
+
+			stream.Write(package, 0, package.Length);
+		}
+
+		public static NetworkCommand ReadTcpMessage(this NetworkStream stream, out byte [] argumentsData)
+		{
+			int correctIdBytes = 0;
+			while(correctIdBytes != idBytesCount)
+			{
+				int nextByte = stream.ReadByte();
+				if (nextByte == idBytes[correctIdBytes])
+				{
+					correctIdBytes++;
+				}
+				else
+				{
+					correctIdBytes = 0;
+				}
+			}
+
+			// We now have confirmed first that bytes match the id sequence
+
+			byte[] argumentsLengthBytes = new byte [2];
+			stream.Read(argumentsLengthBytes, 0, 2);
+			ushort argumentsLength = BitConverter.ToUInt16(argumentsLengthBytes, 0);
+
+			byte commandByte = (byte)stream.ReadByte();
+			NetworkCommand result = (NetworkCommand)commandByte;
+
+			argumentsData = new byte[argumentsLength];
+			stream.Read(argumentsData, 0, argumentsLength);
+
+			return result;
 		}
 	}
 }

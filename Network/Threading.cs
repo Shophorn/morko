@@ -13,36 +13,63 @@ namespace Morko.Threading
 	blocking io/network/other function calls. Calling Thread.Abort
 	causes ThreadAbortException to be thrown from thread and by
 	catching it we are able to exit gracefully. */
-	
-	// Todo(Leo): Maybe remove Exceptions???
+
+	// Todo(Leo): See if we should use background threads
 	public class ThreadControl
 	{
 		private static readonly string logFilePath 
-			= Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "morko_threadlog.log";
+			= 	Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+				+ $"/morko_threadlog_{DateTime.Now.ToString("HH:mm:ss")}.log";
 
 		private Thread _thread;
 
 		public bool IsRunning => _thread != null;
 
-		public void Start(IThreadRunner threadRunner)
+		private ThreadControl () {}
+
+		public static ThreadControl Start(IThreadRunner threadRunner)
 		{
-			if (IsRunning)
-				throw new InvalidOperationException("'ThreadControl' is already running a thread");
+			var control = new ThreadControl();
 
 			if (threadRunner == null)
 				throw new ArgumentException("'threadRunner' argument cannot be null");
 
-			_thread = new Thread(() => 
+			control._thread = new Thread(() => 
 			{
 				try { threadRunner.Run(); }
-				catch (ThreadAbortException) { threadRunner.CleanUp(); }
+				catch (ThreadAbortException) { /* This is okay, this is how we stop we threads */ }
 				catch (Exception e)
 				{
-					System.IO.File.AppendAllText(logFilePath, $"{DateTime.Now}: {e}\n");
+					throw;
+					// System.IO.File.AppendAllText(logFilePath, $"{DateTime.Now}: {e}\n");
 				}
+				finally { threadRunner.CleanUp(); }
 			});
-			_thread.Start();
+			control._thread.Start();
+
+			return control;
 		}
+
+		// public void Start(IThreadRunner threadRunner)
+		// {
+		// 	if (IsRunning)
+		// 		throw new InvalidOperationException("'ThreadControl' is already running a thread");
+
+		// 	if (threadRunner == null)
+		// 		throw new ArgumentException("'threadRunner' argument cannot be null");
+
+		// 	_thread = new Thread(() => 
+		// 	{
+		// 		try { threadRunner.Run(); }
+		// 		catch (ThreadAbortException) { /* This is okay, this is how we stop we threads */ }
+		// 		catch (Exception e)
+		// 		{
+		// 			System.IO.File.AppendAllText(logFilePath, $"{DateTime.Now}: {e}\n");
+		// 		}
+		// 		finally { threadRunner.CleanUp(); }
+		// 	});
+		// 	_thread.Start();
+		// }
 
 		public void Stop()
 		{

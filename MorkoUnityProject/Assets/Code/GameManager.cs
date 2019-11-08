@@ -43,7 +43,8 @@ public class GameManager : 	MonoBehaviour,
 	void IClientUIControllable.OnClientReady()
 	{
 		Debug.Log("Player is ready");
-		MainThreadWorker.AddJob(clientController.StartUpdate);
+		// Todo(Leo): Implement message to server, and from there to other players
+		// MainThreadWorker.AddJob(clientController.StartUpdate);
 	}
 
 	void IClientUIControllable.RequestJoin(JoinInfo joinInfo)
@@ -94,10 +95,7 @@ public class GameManager : 	MonoBehaviour,
 		serverController.CreateServer(createInfo);
 		serverController.StartBroadcast();
 
-		 // Todo(Leo): Join itself to server
-		clientController.CreateHostingPlayerConnection();
-		int hostingPlayerId = serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
-		clientController.ClientId = hostingPlayerId;
+		clientController.JoinLocalServer();
 	}
 
 	void IServerUIControllable.DestroyServer()
@@ -116,8 +114,8 @@ public class GameManager : 	MonoBehaviour,
 
 	void IServerUIControllable.StartGame()
 	{
-		Debug.Log("[GAMEMANAGER]: Starting game as hosting player");
-		clientController.StartUpdateAsHostingPlayer();
+		Debug.Log("[GAMEMANAGER]: Starting game from server");
+		// clientController.StartUpdateAsHostingPlayer();
 		serverController.StartGame();
 	}
 
@@ -190,7 +188,7 @@ public class GameManager : 	MonoBehaviour,
 			remotePlayerControllers[remotePlayerIndex] = remoteController;			
 		}
 
-		clientController.StartNetworkUpdate();
+		clientController.StartUpdate();
 
 		// Todo(Leo): Most definetly not like this
 		StartCoroutine(UpdateControllers());

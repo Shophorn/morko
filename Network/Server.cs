@@ -28,7 +28,11 @@ internal class ClientInfo
 	public string name;
 	public IPEndPoint endPoint;
 	public DateTime lastConnectionTime;
+
 	public byte [] lastReceivedPackage;
+	public NetworkStream tcpStream;
+	public TcpClient tcpClient;
+	public IPEndPoint udpEndPoint;
 }
 
 namespace Morko.Network
@@ -53,15 +57,16 @@ namespace Morko.Network
 		private int broadcastDelayMs;
 		private int gameUpdateThreadDelayMs;
 
-		private readonly ThreadControl broadcastControl = new ThreadControl ();
-		private readonly ThreadControl broadcastReceiveControl = new ThreadControl ();
-		private readonly ThreadControl gameUpdateThreadControl = new ThreadControl ();
-		private readonly ThreadControl gameUpdateReceiveThreadControl = new ThreadControl ();
+		private ThreadControl broadcastControl;// = new ThreadControl ();
+		private ThreadControl broadcastReceiveControl;// = new ThreadControl ();
+		private ThreadControl gameUpdateThreadControl;// = new ThreadControl ();
+		private ThreadControl gameUpdateReceiveThreadControl;// = new ThreadControl ();
 
 		private UdpClient senderClient;
 		private UdpClient responseClient;
 
-		private List<TcpClient> playerTcpClients;
+		/* Todo(Leo) IMPORTANT: THIS MUST BE THREAD SAFE. Or maybe not, if we only add from broadcast
+		listen thread and only loop all in gameupdate thread, which are not run simultaneously. */
 		private List<ClientInfo> players;
 		private int clientUpdatePackageSize;
 
@@ -102,7 +107,6 @@ namespace Morko.Network
 				senderClient 			= new UdpClient(0),
 				responseClient 			= new UdpClient(Constants.serverReceivePort),
 				players 				= new List<ClientInfo>(),
-
 			};
 
 			server.senderClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -132,7 +136,7 @@ namespace Morko.Network
 			public void CleanUp() {}
 		}
 
-		private class BroadcastReceiveThread : IThreadRunner
+		private class BroadcastListenThread : IThreadRunner
 		{
 			public Server server;
 
@@ -141,130 +145,29 @@ namespace Morko.Network
 				var listener = new TcpListener(new IPEndPoint(IPAddress.Any, Constants.serverTcpListenPort));
 				listener.Start();
 				server.Log($"TCP Listener created {listener.LocalEndpoint}");
-				
-				server.playerTcpClients = new List<TcpClient>();
 
 				while(true)
 				{
-					try
+					var newPlayerClient = listener.AcceptTcpClient();
+					var newPlayerStream = newPlayerClient.GetStream();
+
+					var command = ProtocolFormat.ReadTcpMessage(newPlayerStream, out byte [] argumentsData);
+					if (command == NetworkCommand.ClientRequestJoin)
 					{
-						var newPlayerClient = listener.AcceptTcpClient();
-						var newPlayerStream = newPlayerClient.GetStream();
+						var arguments = argumentsData.ToStructure<ClientRequestJoinArgs>();
 
-						while(!newPlayerStream.DataAvailable)
+						int playerIndex = server.players.Count;
+						server.players.Add(new ClientInfo
 						{
-							server.Log("Sleeping waiting for messages...");
-							Thread.Sleep(10);
-						}
-						while(newPlayerStream.DataAvailable)
-						{
-							int correctIdBytes = 0;
-							while(correctIdBytes != ProtocolFormat.idBytesCount)
-							{
-								int nextByte = newPlayerStream.ReadByte();
-								if (nextByte == ProtocolFormat.idBytes[correctIdBytes])
-								{
-									correctIdBytes++;
-								}
-								else
-								{
-									correctIdBytes = 0;
-								}
-							}
+							name 		= arguments.playerName,
+							tcpClient 	= newPlayerClient,
+							tcpStream 	= newPlayerStream
+						});
+						server.players[playerIndex].tcpStream.WriteTcpMessage(new ServerConfirmJoinArgs { playerId = 0, accepted = true });
 
-							// Todo(Leo): Learn about Span<T>
-							// Note(Leo): At this point we have proper header (supposedly)
-							byte[] argumentLengthBytes = new byte [2];
-							newPlayerStream.Read(argumentLengthBytes, 0, 2);
-							ushort length = BitConverter.ToUInt16(argumentLengthBytes, 0);
-
-							byte instructionByte = (byte)newPlayerStream.ReadByte();
-
-							byte[] argumentsData = new byte[length];
-							newPlayerStream.Read(argumentsData, 0, length);
-
-							var args = argumentsData.ToStructure<ClientRequestJoinArgs>();
-							server.Log($"New player connected: {newPlayerClient.Client.LocalEndPoint} \"{args.playerName}\"");						
-						}
-						// var byteList = new List<byte> ();
-						// while(newPlayerStream.DataAvailable)
-						// {
-						// 	int nextByte = newPlayerStream.ReadByte();
-						// 	if (nextByte >= 0)
-						// 	{
-						// 		byteList.Add((byte)nextByte);
-						// 	}
-						// }
-						// var byteArray = byteList.ToArray();
-
-						// server.Log($"Read {byteArray.Length} bytes from net. Expected {Marshal.SizeOf(default(ClientRequestJoinArgs)) + 10}");
-
-						// if (ProtocolFormat.TryParseCommand(	byteArray,
-						// 									out NetworkCommand command,
-						// 									out byte [] argumentsData)
-						// 	&& command == NetworkCommand.ClientRequestJoin)
-						// {
-						// 	var args = argumentsData.ToStructure<ClientRequestJoinArgs>();
-						// 	server.Log($"New player connected: {newPlayerClient.Client.LocalEndPoint} \"{args.playerName}\"");
-						// }
-
-					}
-					catch(Exception e)
-					{
-						newPlayerClient.Close();
-						server.Log(e.ToString());
+						server.Log($"New player connected: {newPlayerClient.Client.LocalEndPoint} \"{arguments.playerName}\"");						
 					}
 				}
-
-				/*
-				var receiveEndPoint = new IPEndPoint(IPAddress.Any, 0);
-				while(true)
-				{
-					var data = server.responseClient.Receive(ref receiveEndPoint);
-
-					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] contents))
-					{
-						switch (command)
-						{
-							case NetworkCommand.ClientRequestJoin:
-								var existingPlayer = server.players.Find(player => IPEndPoint.Equals(player.endPoint, receiveEndPoint));
-								if (existingPlayer != null)
-								{
-									existingPlayer.lastConnectionTime = DateTime.Now;
-								}
-								else
-								{
-									var arguments = contents.ToStructure<ClientRequestJoinArgs>();
-									int playerIndex = server.players.Count;
-									if (arguments.isHostingPlayer)
-									{
-										server.Log("Hosting player joined");
-									}
-									server.players.Add(new ClientInfo 
-									{
-										endPoint 			= receiveEndPoint,
-										name 				= arguments.playerName,
-										lastConnectionTime 	= DateTime.Now
-									});
-									server.Log($"Added player {arguments.playerName} ({receiveEndPoint})");
-									server.OnPlayerAdded?.Invoke();
-
-									var response = ProtocolFormat.MakeCommand(
-														new ServerConfirmJoinArgs
-														{
-															playerId = playerIndex,
-															accepted = true
-														});
-
-									server.responseClient.Send(	response, response.Length,
-																server.players[playerIndex].endPoint);
-								}
-
-								break;
-						}
-					}
-				}
-					*/
 			}
 
 			public void CleanUp() {}
@@ -272,8 +175,8 @@ namespace Morko.Network
 
 		public void StartBroadcasting()
 		{
-			broadcastControl.Start(new BroadcastThread { server = this });
-			broadcastReceiveControl.Start(new BroadcastReceiveThread { server = this });
+			broadcastControl = ThreadControl.Start(new BroadcastThread {server = this});
+			broadcastReceiveControl = ThreadControl.Start(new BroadcastListenThread {server = this});
 		}
 
 		public void StopBroadcasting()
@@ -298,8 +201,8 @@ namespace Morko.Network
 		{	
 			InitializePlayers();
 
-			gameUpdateThreadControl.Start(new GameUpdateThread { server = this });
-			gameUpdateReceiveThreadControl.Start(new ReceiveUpdateFromPlayersThread { server = this });
+			gameUpdateThreadControl 		= ThreadControl.Start(new GameUpdateThread { server = this });
+			gameUpdateReceiveThreadControl 	= ThreadControl.Start(new ReceiveUpdateFromPlayersThread { server = this });
 		}
 
 		public void AbortGame()
@@ -319,6 +222,11 @@ namespace Morko.Network
 			
 			senderClient?.Close();
 			responseClient?.Close();
+
+			foreach(var player in players)
+			{
+				player.tcpClient.Close();
+			}
 		}
 
 		private void InitializePlayers()
@@ -353,12 +261,16 @@ namespace Morko.Network
 						};
 					}
 
-					var package = playerStartInfos.ToBinary();
-					var data = ProtocolFormat.MakeCommand(
-									new ServerStartGameArgs { playerCount = server.players.Count },
-									package);
-					
-					server.senderClient.Send(data, data.Length, endPoint);
+					var arguments = new ServerStartGameArgs
+					{
+						playerCount = playerCount,
+						mapId 		= 0
+					};
+					var data = playerStartInfos.ToBinary();
+					for (int playerId = 0; playerId < playerCount; playerId++)
+					{
+						server.players[playerId].tcpStream.WriteTcpMessage(arguments, data);
+					}
 				}
 
 				while(true)
@@ -366,10 +278,15 @@ namespace Morko.Network
 					for (int playerId = 0; playerId < playerCount; playerId++)
 					{
 						var data = ProtocolFormat.MakeCommand(
-										new ServerGameUpdateArgs {playerId = playerId},
+										new ServerGameUpdateArgs
+										{
+											playerId = playerId
+										},
 										server.players[playerId].lastReceivedPackage);
 
 						server.senderClient.Send(data, data.Length, endPoint);
+						// server.Log($"first float = {BitConverter.ToSingle(server.players[playerId].lastReceivedPackage, 0)}");
+
 					}
 
 					Thread.Sleep(server.gameUpdateThreadDelayMs);
@@ -392,15 +309,20 @@ namespace Morko.Network
 
 				while(true)
 				{
+					server.Log("Waiting data");
+
 					byte [] data = server.responseClient.Receive(ref receiveEndPoint);
 
 					if (ProtocolFormat.TryParseCommand(data, out NetworkCommand command, out byte [] contents))
 					{
+						server.Log("Got data");
 						switch (command)
 						{
 						case NetworkCommand.ClientGameUpdate:
 							var arguments = contents.ToStructure<ClientGameUpdateArgs>(out byte [] package);
 							server.players[arguments.playerId].lastReceivedPackage = package;
+							// server.Log($"first float = {BitConverter.ToSingle(server.players[arguments.playerId].lastReceivedPackage, 0)}");
+
 							break;
 						}
 					}

@@ -11,9 +11,7 @@ public partial class ClientController
 {
 	private class SendUpdateThread : IThreadRunner
 	{
-		// public Vector3 		playerPosition;
 		public int 			sendDelayMs;
-		// public int 			clientId;
 		public UdpClient 	udpClient;
 		public IPEndPoint 	endPoint;
 
@@ -24,7 +22,7 @@ public partial class ClientController
 			Debug.Log($"[CLIENT]: Start SendUpdateThread, endPoint = {endPoint}");
 			while(true)
 			{
-				if (controller.doNetworkUpdate && controller.sender != null)
+				if (controller.sender != null)
 				{
 					var updateArgs = new ClientGameUpdateArgs
 					{
@@ -34,10 +32,9 @@ public partial class ClientController
 					Debug.Log($"[CLIENT SEND UPDATE]: {controller != null} and {controller.sender != null}");
 
 					byte[] updatePackage = controller.sender.GetPackageToSend().ToBinary();
-
 					byte[] data = ProtocolFormat.MakeCommand (updateArgs, updatePackage);
 
-					Debug.Log("[CLIENT]: Send data to server");
+					Debug.Log($"[CLIENT]: Send data to server, position = {controller.sender.GetPackageToSend().position}");
 					udpClient.Send(data, data.Length, endPoint);
 				}
 				Thread.Sleep(sendDelayMs);

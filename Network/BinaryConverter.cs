@@ -78,18 +78,21 @@ namespace Morko.Network
 			return result;
 		}
 
-		public static T[] ToArray<T> (this byte [] data, int count) where T : struct
+		public static T[] ToArray<T> (this byte [] data) where T : struct
 		{
-			if (count == 0)
+			if (data.Length == 0)
 				return Array.Empty<T>();
 
-			var result = new T [count];
+			int itemSize = Marshal.SizeOf(default(T));
+			int itemCount = data.Length / itemSize;
+			if ((itemSize * itemCount) != data.Length)
+			{
+				throw new ArgumentException($"'data.Length' ({data.Length}) is not a multiple of size of '{typeof(T)}' ({itemSize}), and so data cannot represent an array of {typeof(T)}.");
+			}
 
-			int itemSize = Marshal.SizeOf(result[0]);
-
+			var result = new T [itemCount];
 			int offset = 0;
-
-			for (int itemId = 0; itemId < count; itemId++)
+			for (int itemId = 0; itemId < itemCount; itemId++)
 			{
 				result [itemId] = data.ToStructure<T>(offset);
 				offset += itemSize;

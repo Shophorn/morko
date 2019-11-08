@@ -9,6 +9,8 @@ public class RemotePlayerController : INetworkReceiver
 
 	void INetworkReceiver.Receive(PlayerGameUpdatePackage package)
 	{
+		Debug.Log($"package Received, position {package.position}");
+
 		position.Value = package.position;
 		rotation.Value = package.rotation;
 	}

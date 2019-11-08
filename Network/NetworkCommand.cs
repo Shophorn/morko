@@ -58,6 +58,8 @@ namespace Morko.Network
 		NetworkCommand Command { get; }
 	}
 
+	// Note(Leo): Never send this over network, only use to communicate something went wrong
+	// Todo(Leo): Probably bad, maybe just use exceptions...
 	public struct InvalidCommandArgs : INetworkCommandArgs
 	{
 		public NetworkCommand Command { get; set; }

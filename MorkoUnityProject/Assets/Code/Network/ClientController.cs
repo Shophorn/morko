@@ -88,18 +88,18 @@ public partial class ClientController : MonoBehaviour
 	private INetworkSender sender;
 	private Dictionary<int, INetworkReceiver> receivers;
 
+	private TcpClient tcpClient;
+	private NetworkStream tcpStream;
+
 	private UdpClient udpClient;
 	public IPEndPoint CurrentEndPoint => udpClient.Client.LocalEndPoint as IPEndPoint;
 
-	private TcpClient tcpClient;
-
 	// Todo(Leo): Please just make these normal variables, so we can like check against null... 
-	private readonly ThreadControl detectServersThread = new ThreadControl();
-	private readonly ThreadControl receiveUpdateThread = new ThreadControl();
-	private readonly ThreadControl sendUpdateThread = new ThreadControl();
+	private ThreadControl receiveUpdateThread;
+	private ThreadControl sendUpdateThread;
 	private SendUpdateThread sendUpdateThreadRunner;
-
-	private bool doNetworkUpdate = false;
+	private ThreadControl tcpReceiveThread;
+	private ThreadControl listenServersThread;
 
 	// Event section
 	public event Action OnServerAbortGame;
@@ -131,11 +131,6 @@ public partial class ClientController : MonoBehaviour
 		receivers.Add(index, receivingPlayer);
 	}
 
-	public void StartNetworkUpdate()
-	{
-		doNetworkUpdate = true;
-	}
-
 	private ServerInfo [] GetServers()
 	{
 		var result = servers.Select(connection => connection.serverInfo).ToArray();
@@ -144,11 +139,11 @@ public partial class ClientController : MonoBehaviour
 
 	public void StartUpdate()
 	{
-		var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
-		udpClient = new UdpClient(localEndPoint);
-		udpClient.JoinMulticastGroup(multicastAddress);
+		Debug.Log("[CLIENT CONTROLLER]: Started game!");
 
-		Debug.Log($"Joined server = {joinedServer}");
+		var localEndPoint 	= new IPEndPoint(IPAddress.Any, multicastPort);
+		udpClient 			= new UdpClient(localEndPoint);
+		udpClient.JoinMulticastGroup(multicastAddress);
 
 		sendUpdateThreadRunner = new SendUpdateThread
 		{
@@ -157,41 +152,19 @@ public partial class ClientController : MonoBehaviour
 			endPoint 	= joinedServer.endPoint,
 			controller 	= this
 		};
-		sendUpdateThread.Start(sendUpdateThreadRunner);
+		sendUpdateThread = ThreadControl.Start(sendUpdateThreadRunner);
 		
-		receiveUpdateThread.Start(new ReceiveThread { connection = this });
+		receiveUpdateThread = ThreadControl.Start(new ReceiveUpdateThread { controller = this });
 	}
 
-	public void CreateHostingPlayerConnection()
-	{
-		var localEndPoint = new IPEndPoint(IPAddress.Any, multicastPort);
-		udpClient = new UdpClient(localEndPoint);
-		udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-		udpClient.JoinMulticastGroup(multicastAddress);
-	}
-
-	public void StartUpdateAsHostingPlayer()
-	{
-		// var serverEndPoint = new IPEndPoint(CurrentEndPoint.Address, Constants.serverReceivePort);
-		var serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), Constants.serverReceivePort);
-		sendUpdateThreadRunner = new SendUpdateThread
-		{
-			sendDelayMs = netUpdateIntervalMs,
-			udpClient 	= udpClient,
-			endPoint 	= serverEndPoint,
-			controller 	= this
-		};
-		sendUpdateThread.Start(sendUpdateThreadRunner);
-		
-		receiveUpdateThread.Start(new ReceiveThread { connection = this });
-	}
 
 	public void StopUpdate()
 	{
 		receiveUpdateThread.Stop();
-		doNetworkUpdate = false;
+		udpClient.Close();
 	}
 
+	#region MONOBEHAVIOUR METHODS
 	private void Update()
 	{
 		DateTime thresholdTime = DateTime.Now.AddSeconds(-connectionRetryTime);
@@ -207,56 +180,57 @@ public partial class ClientController : MonoBehaviour
 		}
 	}
 
+	private void OnDisable()
+	{
+		// Todo(Leo): Can we do and should we do StopAndWait also in a separate thread??
+		sendUpdateThread.StopAndWait();
+		receiveUpdateThread.StopAndWait();
+		tcpReceiveThread?.StopAndWait();
+		listenServersThread?.StopAndWait();
+
+		udpClient?.Close();
+		tcpClient?.Close();
+	}
+	#endregion
+
 	public void StartListenBroadcast()
 	{
-		udpClient = new UdpClient(broadcastPort);
-		detectServersThread.Start(new ReceiveThread {connection = this});
+		udpClient = new UdpClient(Constants.broadcastPort);
+		listenServersThread = ThreadControl.Start(new ListenServerBroadcastThread { controller = this });
 	}
 
 	public void StopListenBroadcast()
 	{
-		detectServersThread.StopAndWait();
-		udpClient?.Close();
+		listenServersThread.StopAndWait();
+		listenServersThread = null;
+		udpClient.Close();
 	}
 
-	private void OnDisable()
-	{
-		detectServersThread.StopAndWait();
-		sendUpdateThread.StopAndWait();
-		receiveUpdateThread.StopAndWait();
-
-		udpClient?.Close();
-	}
 
 	public void JoinSelectedServer()
 	{
 		requestedServer = servers[selectedServerIndex];
 
-		var tcpTestEndPoint = new IPEndPoint(requestedServer.endPoint.Address, Constants.serverTcpListenPort);
-		var tcpTestClient = new TcpClient();
-		tcpTestClient.Connect(tcpTestEndPoint);
+		tcpClient = new TcpClient();
+		tcpClient.Connect(new IPEndPoint(requestedServer.endPoint.Address, Constants.serverTcpListenPort));
 
-
-		NetworkStream stream = tcpTestClient.GetStream();
-		// StreamWriter sw = new StreamWriter(tcpTestClient.GetStream());
-		// sw.WriteLine("Hello from web");
-		// sw.Flush();
-
-
-		var arguments 	= new ClientRequestJoinArgs{ playerName = playerName };
-
-		// var data 		= Morko.Network.ProtocolFormat.MakeCommand(arguments);
-		var data = ProtocolFormat.MakeTcpMessage(arguments);
-		var endPoint 	= requestedServer.endPoint;
-
-		Thread.Sleep(100);
-
-
-		stream.Write(data, 0, data.Length);
-		stream.Write(data, 0, data.Length);
-		tcpTestClient.Close();
-
-		// int sentBytes = udpClient.Send(data, data.Length, endPoint);
-		// Debug.Log($"Sent {sentBytes} to {requestedServer.endPoint}");
+		tcpStream 			= tcpClient.GetStream();
+		tcpReceiveThread 	= ThreadControl.Start(new TcpReceiveThread { controller = this });
+		var arguments 		= new ClientRequestJoinArgs{ playerName = playerName };
+		tcpStream.WriteTcpMessage(arguments);
 	}
+
+	public void JoinLocalServer()
+	{
+		requestedServer = new ServerConnectionInfo { endPoint = new IPEndPoint(IPAddress.Loopback, Constants.serverReceivePort)};
+
+		tcpClient = new TcpClient();
+		tcpClient.Connect(IPAddress.Loopback, Constants.serverTcpListenPort);
+
+		tcpStream 			= tcpClient.GetStream();
+		tcpReceiveThread 	= ThreadControl.Start(new TcpReceiveThread { controller = this });
+		var arguments 		= new ClientRequestJoinArgs {playerName = playerName};
+		tcpStream.WriteTcpMessage(arguments);
+	}
+
 }
