@@ -41,9 +41,7 @@ public class ProtoGameCreator : MonoBehaviour
     public void StartScene()
     {
         var character = Instantiate(characterPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-        var camera = character.GetComponentInChildren<Camera>();
-        localController = LocalPlayerController.Create(character, camera, normalSettings, morkoSettings);
-        character.localController = localController;
+        localController = LocalPlayerController.Create(character, character.GetComponentInChildren<Camera>(), normalSettings, morkoSettings);
 
         // Note(Leo): SAMPO POISTIN NÄMÄ väliaikaisesti, KAMERA PITÄÄ SYÖTTÄÄ CREATEEN MYÖS
         // localController = LocalPlayerController.Create(character, normalSettings, morkoSettings);
