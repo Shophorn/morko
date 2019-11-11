@@ -4,7 +4,7 @@ using UnityEngine;
 public class LocalCameraController : MonoBehaviour
 {
 	public Transform target;
-	public Vector3 cameraDefaultPosition = new Vector3(0, 10, -5);
+	public Vector3 cameraDefaultPosition = new Vector3(0, 10, -10);
 	public float speed = 3;
 
 	[SerializeField]
