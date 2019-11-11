@@ -5,7 +5,8 @@ public class LocalCameraController : MonoBehaviour
 {
 	public Transform target;
 	public Vector3 cameraDefaultPosition = new Vector3(0, 10, -10);
-	public float speed = 3;
+	public float rotateCameraSpeed = 3;
+	public float pullCameraBackSpeed = 15;
 
 	[SerializeField]
 	private float minCameraXRotation;
@@ -14,7 +15,6 @@ public class LocalCameraController : MonoBehaviour
 	private Vector3 localPosition;
 	private Vector3 defaultPosition;
 	private Vector3 previousPosition;
-
 	private void Start()
 	{
 		localPosition = new Vector3(cameraDefaultPosition.x, cameraDefaultPosition.y, cameraDefaultPosition.z);
@@ -53,7 +53,7 @@ public class LocalCameraController : MonoBehaviour
 				bool negativeAngleFound = false;
 				var currentRotation = transform.eulerAngles.x;
 				
-				for (int angle = 0; currentRotation + angle < maxRotation; angle++)
+				for (int angle = 0; currentRotation + angle <= maxRotation; angle++)
 				{
 					Vector3 positive = Quaternion.AngleAxis(angle, Vector3.right) * (transform.position - target.position);
 					Vector3 negative = Quaternion.AngleAxis(-angle, Vector3.right) * (transform.position - target.position);
@@ -82,14 +82,13 @@ public class LocalCameraController : MonoBehaviour
 						}
 					}
 				}
-				
-				transform.RotateAround(target.position, Vector3.right, rotateAmount * speed * Time.deltaTime);
+
+				transform.RotateAround(target.position, Vector3.right, rotateAmount * rotateCameraSpeed * Time.deltaTime);
 				return transform.position;
 			}
 		}
-
-		transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(minRotation, 0f, 0f), speed * Time.deltaTime);
-		transform.position = Vector3.MoveTowards(transform.position, defaultPosition, speed * Time.deltaTime);
+		transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(minRotation, 0f, 0f), rotateCameraSpeed * Time.deltaTime);
+		transform.position = Vector3.MoveTowards(transform.position, defaultPosition, pullCameraBackSpeed * Time.deltaTime);
 		return transform.position;
 	}
 

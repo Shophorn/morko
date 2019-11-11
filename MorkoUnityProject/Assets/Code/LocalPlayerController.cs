@@ -404,5 +404,4 @@ public class LocalPlayerController : INetworkSender
 
 		return mouseRotation;
 	}
-	*/
 }
