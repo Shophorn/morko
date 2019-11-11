@@ -1,184 +1,159 @@
-using System.Numerics;
-using UnityEditor;
+using System;
 using UnityEngine;
-using Quaternion = UnityEngine.Quaternion;
-using Vector3 = UnityEngine.Vector3;
-using Vector4 = UnityEngine.Vector4;
 
 public class LocalCameraController : MonoBehaviour
 {
-	public Character character;
-	public Camera camera;
 	public Transform target;
-	public float distance = 10;
-	public float angle = 45;
-	public float speed = 5;
+	public Vector3 cameraDefaultPosition = new Vector3(0, 10, -5);
+	public float speed = 3;
 
-	public float pushDistance = 3f;
-	public float pushForwardTime = 5f;
-	public float pullBackTime = 1f;
-	private float pushForwardTimer = 0f;
-	private float pullBackTimer = 0f;
+	[SerializeField]
+	private float minCameraXRotation;
+	public float maxCameraXRotation = 90f;
 
-	public float minMouseDistance = 3f;
-	private LayerMask groundMask = 1 << 9;
-	private float previousTargetDistance = 0f;
-	
-	Quaternion quaternion = Quaternion.Euler(new Vector3(60, 0, 0));
-
-	public int lerpAmount = 10;
-	public float parabolaHeigh = 2f;
-
-	private Vector3 defaultPoss;
-	private Vector3[] points = new Vector3[10];
-	private Vector3 point;
+	private Vector3 localPosition;
+	private Vector3 defaultPosition;
 	private Vector3 previousPosition;
 
 	private void Start()
 	{
-		character = GetComponentInParent<Character>();
-		camera = GetComponent<Camera>();
+		localPosition = new Vector3(cameraDefaultPosition.x, cameraDefaultPosition.y, cameraDefaultPosition.z);
+		defaultPosition = target.position + localPosition;
+		previousPosition = defaultPosition;
+		minCameraXRotation = Vector3.Angle(target.position - defaultPosition, Vector3.forward);
 	}
 
 	private void LateUpdate()
 	{
-		float y = Mathf.Sin(angle) * distance;
-		float z = -Mathf.Cos(angle) * distance;
-
-		Vector3 localPosition = new Vector3(0, y, z);
-		Vector3 defaultPosition = target.position + localPosition;
-		defaultPoss = defaultPosition;
-
 		transform.position = previousPosition;
 
-		var cameraPos = MoveCameraIfPlayerNotVisible(defaultPosition);
-		point = cameraPos;
-
+		localPosition = new Vector3(cameraDefaultPosition.x, cameraDefaultPosition.y, cameraDefaultPosition.z);
+		defaultPosition = target.position + localPosition;
+		minCameraXRotation = Vector3.Angle(target.position - defaultPosition, Vector3.forward);
+		
+		var cameraPos = MoveCameraIfPlayerNotVisible(defaultPosition, minCameraXRotation, maxCameraXRotation);
 		transform.position = cameraPos;
-		previousPosition = cameraPos;
+		transform.position = new Vector3(target.position.x, transform.position.y, transform.position.z);
+		previousPosition = transform.position;
 		
 		transform.LookAt(target.position);
 	}
 
-	private Vector3 MoveCameraIfPlayerNotVisible(Vector3 defaultPosition)
+	private Vector3 MoveCameraIfPlayerNotVisible(Vector3 defaultPosition, float minRotation, float maxRotation)
 	{
-		var cameraCurrentPosition = transform.position;
 		var defaultForward = target.position - defaultPosition;
-		var cameraMaxPosition = new Vector3(target.transform.position.x, distance, target.transform.position.z);
-		var defaultToMaxVector = cameraMaxPosition - defaultPosition;
-		
-		Vector3[] vectorPoints = new Vector3[lerpAmount];
-		float iterator = 0f;
-		float iteratorAmount = 1f / lerpAmount;
-
-		for (int i = 0; i < lerpAmount; i++)
-		{
-			iterator += iteratorAmount;
-			iterator = Mathf.Clamp(iterator, 0, 1);
-			
-			vectorPoints[i] = defaultPosition + defaultToMaxVector * iterator;
-			vectorPoints[i].y += Mathf.Sin( iterator * Mathf.PI ) * parabolaHeigh;
-		}
-
-		points = vectorPoints;
 		RaycastHit hit;
 
 		if(Physics.Raycast(defaultPosition, defaultForward, out hit)) {
 
 			if (hit.collider.gameObject.CompareTag("Wall"))
 			{
-				foreach (var p in vectorPoints)
+				int rotateAmount = 0;
+				bool positiveAngleFound = false;
+				bool negativeAngleFound = false;
+				var currentRotation = transform.eulerAngles.x;
+				
+				for (int angle = 0; currentRotation + angle < maxRotation; angle++)
 				{
-					var direction = target.position - p;
-					if (Physics.Raycast(p, direction, out hit))
+					Vector3 positive = Quaternion.AngleAxis(angle, Vector3.right) * (transform.position - target.position);
+					Vector3 negative = Quaternion.AngleAxis(-angle, Vector3.right) * (transform.position - target.position);
+					
+					Vector3 positionPositive = target.position + positive;
+					Vector3 positionNegative = target.position + negative;
+					
+					var directionPositive = target.position - positionPositive;
+					var directionNegative = target.position - positionNegative;
+					
+					if (((currentRotation - angle) > minRotation) && Physics.Raycast(positionNegative, directionNegative, out hit))
 					{
 						if (!hit.collider.gameObject.CompareTag("Wall"))
 						{
-							transform.position = Vector3.MoveTowards(cameraCurrentPosition, p, speed * Time.deltaTime);
-							return transform.position;
+							rotateAmount = -angle;
+							negativeAngleFound = true;
+						}
+					}
+					
+					if (!negativeAngleFound && !positiveAngleFound && Physics.Raycast(positionPositive, directionPositive, out hit))
+					{
+						if (!hit.collider.gameObject.CompareTag("Wall"))
+						{
+							rotateAmount = angle;
+							positiveAngleFound = true;
 						}
 					}
 				}
+				
+				transform.RotateAround(target.position, Vector3.right, rotateAmount * speed * Time.deltaTime);
+				return transform.position;
 			}
 		}
-		
-		return defaultPosition;
+
+		transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(minRotation, 0f, 0f), speed * Time.deltaTime);
+		transform.position = Vector3.MoveTowards(transform.position, defaultPosition, speed * Time.deltaTime);
+		return transform.position;
 	}
 
-	private void OnDrawGizmosSelected()
-	{
-		Gizmos.color = Color.red;
-		Gizmos.DrawLine(defaultPoss, new Vector3(target.transform.position.x, distance, target.transform.position.z));
-		Gizmos.color = Color.blue;
-		foreach (var p in points)
-		{
-			Gizmos.DrawSphere(p, 0.05f);
-		}
-		Gizmos.color = Color.yellow;
-		Gizmos.DrawSphere(point, 0.15f);
-	}
-
-	private Vector3 CalculateCameraPosition(Vector3 cameraPosition, LocalPlayerController.MovementState state, float interpolate, float angle)
-	{
-
-		var rotationFactor = Mathf.Lerp(1f, 0f, Mathf.Clamp(angle / 3f, 0f, 1f));
-		
-		var desiredPosition = cameraPosition;
-		var targetMaxPositionRun = cameraPosition + target.forward * pushDistance;
-		
-		bool running = state == LocalPlayerController.MovementState.Run ||
-		               state == LocalPlayerController.MovementState.SidewaysRun ||
-		               state == LocalPlayerController.MovementState.BackwardsRun;
-
-		if (running)
-			desiredPosition = Vector3.Lerp(cameraPosition, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
-
-		return desiredPosition;
-	}
-
-	
-
-	private Vector3 CalculateCameraLookAtPosition(Vector3 targetPosition, LocalPlayerController.MovementState state, float interpolate)
-	{
-		var mouseDistanceFromTarget = CalculateMouseDistanceFromTarget(targetPosition);
-		bool mouseTooCloseToTarget = mouseDistanceFromTarget <= minMouseDistance;
-		var targetMaxPositionRun = targetPosition + target.forward * pushDistance;
-		var previousLookAtPosition = targetPosition + target.forward * previousTargetDistance;
-		bool running =  state == LocalPlayerController.MovementState.Run ||
-		                state == LocalPlayerController.MovementState.SidewaysRun ||
-		                state == LocalPlayerController.MovementState.BackwardsRun;
-
-		var lookAtPosition = targetPosition;
-
-		//if (running && mouseTooCloseToTarget)
-		//{
-		//	
-		//}
-		if (state == LocalPlayerController.MovementState.Run || state == LocalPlayerController.MovementState.SidewaysRun || state == LocalPlayerController.MovementState.BackwardsRun) //&& !mouseTooCloseToTarget)
-		{
-			lookAtPosition = Vector3.Lerp(targetPosition, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
-		}
-		//else if (hasVelocity && mouseTooCloseToTarget)
-		//{
-		//	var targetMaxPosition2 = targetPosition + target.forward * minMouseDistance;
-		//	var interpolate = Mathf.Clamp(mouseDistanceFromTarget / minMouseDistance, 0f, 1f);
-		//	lookAtPosition = Vector3.Lerp(targetPosition, targetMaxPosition2, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
-		//}
-		//else if(state == LocalPlayerController.MovementState.Walk || state == LocalPlayerController.MovementState.Sideways || state == LocalPlayerController.MovementState.Backwards)
-		//{
-		//	lookAtPosition = Vector3.Lerp(previousLookAtPosition, targetPosition, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
-		//}
-		
-		//Debug.Log(previousTargetDistance);
-		return lookAtPosition;
-	}
-	private float CalculateMouseDistanceFromTarget(Vector3 targetPosition)
-	{
-		Ray mouseRay = camera.ScreenPointToRay(Input.mousePosition);
-		RaycastHit hit;
-		Physics.Raycast(mouseRay, out hit, groundMask);
-		float mouseDistanceFromTarget = Vector3.Distance(targetPosition, hit.point);
-
-		return mouseDistanceFromTarget;
-	}
+	//private Vector3 CalculateCameraPosition(Vector3 cameraPosition, LocalPlayerController.MovementState state, float interpolate, float angle)
+	//{
+//
+	//	var rotationFactor = Mathf.Lerp(1f, 0f, Mathf.Clamp(angle / 3f, 0f, 1f));
+	//	
+	//	var desiredPosition = cameraPosition;
+	//	var targetMaxPositionRun = cameraPosition + target.forward * pushDistance;
+	//	
+	//	bool running = state == LocalPlayerController.MovementState.Run ||
+	//	               state == LocalPlayerController.MovementState.SidewaysRun ||
+	//	               state == LocalPlayerController.MovementState.BackwardsRun;
+//
+	//	if (running)
+	//		desiredPosition = Vector3.Lerp(cameraPosition, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
+//
+	//	return desiredPosition;
+	//}
+//
+	//
+//
+	//private Vector3 CalculateCameraLookAtPosition(Vector3 target.position, LocalPlayerController.MovementState state, float interpolate)
+	//{
+	//	var mouseDistanceFromTarget = CalculateMouseDistanceFromTarget(target.position);
+	//	bool mouseTooCloseToTarget = mouseDistanceFromTarget <= minMouseDistance;
+	//	var targetMaxPositionRun = target.position + target.forward * pushDistance;
+	//	var previousLookAtPosition = target.position + target.forward * previousTargetDistance;
+	//	bool running =  state == LocalPlayerController.MovementState.Run ||
+	//	                state == LocalPlayerController.MovementState.SidewaysRun ||
+	//	                state == LocalPlayerController.MovementState.BackwardsRun;
+//
+	//	var lookAtPosition = target.position;
+//
+	//	//if (running && mouseTooCloseToTarget)
+	//	//{
+	//	//	
+	//	//}
+	//	if (state == LocalPlayerController.MovementState.Run || state == LocalPlayerController.MovementState.SidewaysRun || state == LocalPlayerController.MovementState.BackwardsRun) //&& !mouseTooCloseToTarget)
+	//	{
+	//		lookAtPosition = Vector3.Lerp(target.position, targetMaxPositionRun, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
+	//	}
+	//	//else if (hasVelocity && mouseTooCloseToTarget)
+	//	//{
+	//	//	var targetMaxPosition2 = target.position + target.forward * minMouseDistance;
+	//	//	var interpolate = Mathf.Clamp(mouseDistanceFromTarget / minMouseDistance, 0f, 1f);
+	//	//	lookAtPosition = Vector3.Lerp(target.position, targetMaxPosition2, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
+	//	//}
+	//	//else if(state == LocalPlayerController.MovementState.Walk || state == LocalPlayerController.MovementState.Sideways || state == LocalPlayerController.MovementState.Backwards)
+	//	//{
+	//	//	lookAtPosition = Vector3.Lerp(previousLookAtPosition, target.position, Mathf.SmoothStep(0.0f, 1.0f, interpolate));
+	//	//}
+	//	
+	//	//Debug.Log(previousTargetDistance);
+	//	return lookAtPosition;
+	//}
+	//private float CalculateMouseDistanceFromTarget(Vector3 target.position)
+	//{
+	//	Ray mouseRay = camera.ScreenPointToRay(Input.mousePosition);
+	//	RaycastHit hit;
+	//	Physics.Raycast(mouseRay, out hit, groundMask);
+	//	float mouseDistanceFromTarget = Vector3.Distance(target.position, hit.point);
+//
+	//	return mouseDistanceFromTarget;
+	//}
 }
