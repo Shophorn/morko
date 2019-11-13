@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Numerics;
 using UnityEngine;
-using Morko.Network;
+// using Morko.Network;
 using Plane = UnityEngine.Plane;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 using Vector2 = UnityEngine.Vector2;
 
-public class LocalPlayerController : INetworkSender
+public class LocalPlayerController// : INetworkSender
 {
 	private Character character;
 	public bool isMorko = false;
@@ -126,15 +126,15 @@ public class LocalPlayerController : INetworkSender
 		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
 	}
 	
-	PlayerGameUpdatePackage INetworkSender.GetPackageToSend()
-	{
-		var package = new PlayerGameUpdatePackage
-		{
-			position = positionForNetwork.Value,
-			rotation = rotationForNetwork.Value
-		};
-		return package;
-	}
+	// PlayerGameUpdatePackage INetworkSender.GetPackageToSend()
+	// {
+	// 	var package = new PlayerGameUpdatePackage
+	// 	{
+	// 		position = positionForNetwork.Value,
+	// 		rotation = rotationForNetwork.Value
+	// 	};
+	// 	return package;
+	// }
 
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 	private void Move(Vector3 moveDirection, bool accelerateRun, bool hasMoved)
