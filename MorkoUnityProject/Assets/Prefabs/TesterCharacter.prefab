@@ -225,7 +225,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 25
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -264,8 +264,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1081713420466458088}
-  distance: 10
-  angle: 45
+  offset: {x: 0, y: 0.5, z: -0.5}
+  distance: 20
+  defaultAngle: 50
+  maxAngle: 90
+  angleIncrement: 0.25
 --- !u!1 &5656205786982962242
 GameObject:
   m_ObjectHideFlags: 0
@@ -315,6 +318,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 5931495741578049458}
+  animatorController: {fileID: 0}
 --- !u!143 &5931495741578049458
 CharacterController:
   m_ObjectHideFlags: 0
