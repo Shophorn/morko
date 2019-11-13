@@ -68,18 +68,16 @@ public interface INetworkSender
 public partial class ClientController : MonoBehaviour
 {
 	[Header("Network Configuration")]
-	public int netUpdateIntervalMs = 50;
+	public int networkSendUpdateInterval = 50;
 	public int connectionRetryTimeMs = 500;
 
-	private float netUpdateInterval => netUpdateIntervalMs / 1000f;
+	private float netUpdateInterval => networkSendUpdateInterval / 1000f;
 	private float nextNetUpdateTime;
 	private float connectionRetryTime => connectionRetryTimeMs / 1000f;
 	
-	[Header("Player info")]
-	[HideInInspector] public string playerName = "Default Player";
-	[HideInInspector] public int ClientId { get; set; } = -1;
-
-	[HideInInspector] public int selectedServerIndex;
+	public string PlayerName 		{ get; set; } = "Default Player";
+	public int ClientId 			{ get; set; } = -1;
+	public int SelectedServerIndex 	{ get; set; } = -1;
 
 	public List<ServerConnectionInfo> servers { get; }= new List<ServerConnectionInfo>();
 	private ServerConnectionInfo requestedServer;
@@ -108,7 +106,7 @@ public partial class ClientController : MonoBehaviour
 	public event Action OnJoinedServer;
 	public event Action OnQuitServer;
 
-	IClientNetControllable netControls;
+	private IClientNetControllable netControls;
 
 	private void Awake()
 	{
@@ -139,24 +137,15 @@ public partial class ClientController : MonoBehaviour
 
 	public void StartUpdate()
 	{
-		Debug.Log("[CLIENT CONTROLLER]: Started game!");
-
 		var localEndPoint 	= new IPEndPoint(IPAddress.Any, multicastPort);
 		udpClient 			= new UdpClient(localEndPoint);
 		udpClient.JoinMulticastGroup(multicastAddress);
 
-		sendUpdateThreadRunner = new SendUpdateThread
-		{
-			sendDelayMs = netUpdateIntervalMs,
-			udpClient 	= udpClient,
-			endPoint 	= joinedServer.endPoint,
-			controller 	= this
-		};
+		sendUpdateThreadRunner = new SendUpdateThread {controller = this};
 		sendUpdateThread = ThreadControl.Start(sendUpdateThreadRunner);
 		
 		receiveUpdateThread = ThreadControl.Start(new ReceiveUpdateThread { controller = this });
 	}
-
 
 	public void StopUpdate()
 	{
@@ -209,14 +198,14 @@ public partial class ClientController : MonoBehaviour
 
 	public void JoinSelectedServer()
 	{
-		requestedServer = servers[selectedServerIndex];
+		requestedServer = servers[SelectedServerIndex];
 
 		tcpClient = new TcpClient();
 		tcpClient.Connect(new IPEndPoint(requestedServer.endPoint.Address, Constants.serverTcpListenPort));
 
 		tcpStream 			= tcpClient.GetStream();
 		tcpReceiveThread 	= ThreadControl.Start(new TcpReceiveThread { controller = this });
-		var arguments 		= new ClientRequestJoinArgs{ playerName = playerName };
+		var arguments 		= new ClientRequestJoinArgs{ playerName = PlayerName };
 		tcpStream.WriteTcpMessage(arguments);
 	}
 
@@ -229,7 +218,7 @@ public partial class ClientController : MonoBehaviour
 
 		tcpStream 			= tcpClient.GetStream();
 		tcpReceiveThread 	= ThreadControl.Start(new TcpReceiveThread { controller = this });
-		var arguments 		= new ClientRequestJoinArgs {playerName = playerName};
+		var arguments 		= new ClientRequestJoinArgs {playerName = PlayerName};
 		tcpStream.WriteTcpMessage(arguments);
 	}
 

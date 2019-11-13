@@ -4,6 +4,7 @@ import sys
 
 files = [
 	"Server.cs",
+	"LockedList.cs",
 	"Threading.cs",
 	"Logger.cs",
 	"ProtocolFormat.cs",

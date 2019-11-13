@@ -25,6 +25,7 @@ namespace Morko.Network
 
 
 		// Note(Leo): Updates may have some data in addition to Args structure.
+		ServerLobbyUpdate,
 		ServerGameUpdate,
 		ClientGameUpdate,
 
@@ -35,23 +36,23 @@ namespace Morko.Network
 		NotSupported,
 	}
 
-	public static class NetworkCommandExtensions
-	{
-		public static int GetArgumentsSize(this NetworkCommand command)
-		{
-			// Note(Leo): This is only to shorten lines on following switch statement
-			int SizeOf<T>() => Marshal.SizeOf(default(T));
+	// public static class NetworkCommandExtensions
+	// {
+	// 	public static int GetArgumentsSize(this NetworkCommand command)
+	// 	{
+	// 		// Note(Leo): This is only to shorten lines on following switch statement
+	// 		int SizeOf<T>() => Marshal.SizeOf(default(T));
 
-			switch (command)
-			{
-				case NetworkCommand.ServerIntroduce: 	return SizeOf<ServerIntroduceArgs>();
-				case NetworkCommand.ServerConfirmJoin: 	return SizeOf<ServerConfirmJoinArgs>();
+	// 		switch (command)
+	// 		{
+	// 			case NetworkCommand.ServerIntroduce: 	return SizeOf<ServerIntroduceArgs>();
+	// 			case NetworkCommand.ServerConfirmJoin: 	return SizeOf<ServerConfirmJoinArgs>();
 
-				default:
-					throw new InvalidOperationException($"NetworkCommand '{command}' does not have arguments, or it is invalid");
-			}
-		}
-	}
+	// 			default:
+	// 				throw new InvalidOperationException($"NetworkCommand '{command}' does not have arguments, or it is invalid");
+	// 		}
+	// 	}
+	// }
 
 	public interface INetworkCommandArgs
 	{
@@ -126,12 +127,13 @@ namespace Morko.Network
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct ServerUpdatePlayersArgs : INetworkCommandArgs
+	public struct ServerLobbyUpdateArgs : INetworkCommandArgs
 	{
-		public NetworkCommand Command => NetworkCommand.ServerUpdatePlayers;
+		public NetworkCommand Command => NetworkCommand.ServerLobbyUpdate;
 
 		public int playerCount;
 	}
+
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

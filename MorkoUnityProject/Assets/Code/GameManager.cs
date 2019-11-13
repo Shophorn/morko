@@ -55,8 +55,8 @@ public class GameManager : 	MonoBehaviour,
 			return;
 		}
 
-		clientController.selectedServerIndex = joinInfo.selectedServerIndex;
-		clientController.playerName = joinInfo.playerName;
+		clientController.SelectedServerIndex = joinInfo.selectedServerIndex;
+		clientController.PlayerName = joinInfo.playerName;
 		Debug.Log($"Joined server as {joinInfo.playerName}, server index = {joinInfo.selectedServerIndex}");
 		clientController.JoinSelectedServer();
 	}

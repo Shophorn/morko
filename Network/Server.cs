@@ -33,6 +33,8 @@ internal class ClientInfo
 	public NetworkStream tcpStream;
 	public TcpClient tcpClient;
 	public IPEndPoint udpEndPoint;
+
+	public bool isReady;
 }
 
 namespace Morko.Network
@@ -47,7 +49,18 @@ namespace Morko.Network
 		public int broadcastDelayMs = 100;
 		public int gameUpdateThreadDelayMs = 50;
 
+		public int maxPlayers = 10;
+
 		public Action<string> logFunction;
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct PlayerLobbyInfo
+	{
+		public NetworkName name;
+
+		[MarshalAs(UnmanagedType.I1)]
+		public bool isReady;
 	}
 
 	public class Server
@@ -57,17 +70,17 @@ namespace Morko.Network
 		private int broadcastDelayMs;
 		private int gameUpdateThreadDelayMs;
 
-		private ThreadControl broadcastControl;// = new ThreadControl ();
-		private ThreadControl broadcastReceiveControl;// = new ThreadControl ();
-		private ThreadControl gameUpdateThreadControl;// = new ThreadControl ();
-		private ThreadControl gameUpdateReceiveThreadControl;// = new ThreadControl ();
+		private ThreadControl broadcastControl;
+		private ThreadControl broadcastReceiveControl;
+		private ThreadControl gameUpdateThreadControl;
+		private ThreadControl gameUpdateReceiveThreadControl;
 
 		private UdpClient senderClient;
 		private UdpClient responseClient;
 
 		/* Todo(Leo) IMPORTANT: THIS MUST BE THREAD SAFE. Or maybe not, if we only add from broadcast
 		listen thread and only loop all in gameupdate thread, which are not run simultaneously. */
-		private List<ClientInfo> players;
+		private LockedList<ClientInfo> players;
 		private int clientUpdatePackageSize;
 
 		public event Action OnPlayerAdded;
@@ -77,6 +90,8 @@ namespace Morko.Network
 		public int PlayerCount => players.Count;
 		public string [] PlayersNames => players.Select(player => player.name).ToArray();
 	 	
+
+		private int maxPlayers;
 
 		// Note(Leo): this disables the use of constructor outside class
 		private Server() {}
@@ -102,6 +117,7 @@ namespace Morko.Network
 				clientUpdatePackageSize = info.clientUpdatePackageSize,
 				broadcastDelayMs		= info.broadcastDelayMs,
 				gameUpdateThreadDelayMs	= info.gameUpdateThreadDelayMs,
+				maxPlayers				= info.maxPlayers,
 				Log 					= info.logFunction ?? Morko.Logging.Logger.Log,
 
 				senderClient 			= new UdpClient(0),
@@ -136,6 +152,18 @@ namespace Morko.Network
 			public void CleanUp() {}
 		}
 
+		private void SendClientLobbyUpdate()
+		{
+			var arguments = new ServerLobbyUpdateArgs {playerCount = players.Count};
+			byte[] data = players.Select(player => new PlayerLobbyInfo
+			{
+				name = player.name,
+				isReady = player.isReady
+			}).ToArray().ToBinary();
+
+			// foreach (var player in players)
+		}
+
 		private class BroadcastListenThread : IThreadRunner
 		{
 			public Server server;
@@ -157,14 +185,34 @@ namespace Morko.Network
 						var arguments = argumentsData.ToStructure<ClientRequestJoinArgs>();
 
 						int playerIndex = server.players.Count;
-						server.players.Add(new ClientInfo
-						{
-							name 		= arguments.playerName,
-							tcpClient 	= newPlayerClient,
-							tcpStream 	= newPlayerStream
-						});
-						server.players[playerIndex].tcpStream.WriteTcpMessage(new ServerConfirmJoinArgs { playerId = 0, accepted = true });
+						bool accepted = playerIndex < server.maxPlayers;
 
+						ServerConfirmJoinArgs response;
+						if (playerIndex < server.maxPlayers)
+						{
+							server.players.Add(new ClientInfo
+							{
+								name 		= arguments.playerName,
+								tcpClient 	= newPlayerClient,
+								tcpStream 	= newPlayerStream
+							});
+							
+							response = new ServerConfirmJoinArgs
+							{
+								playerId = playerIndex,
+								accepted = accepted
+							};
+						}
+						else
+						{
+							response = new ServerConfirmJoinArgs
+							{
+								playerId = -1,
+								accepted = false
+							};
+						}
+
+						server.players[playerIndex].tcpStream.WriteTcpMessage(response);
 						server.Log($"New player connected: {newPlayerClient.Client.LocalEndPoint} \"{arguments.playerName}\"");						
 					}
 				}
@@ -285,8 +333,8 @@ namespace Morko.Network
 										server.players[playerId].lastReceivedPackage);
 
 						server.senderClient.Send(data, data.Length, endPoint);
-						// server.Log($"first float = {BitConverter.ToSingle(server.players[playerId].lastReceivedPackage, 0)}");
 
+						server.Log($"Send {BitConverter.ToSingle(server.players[playerId].lastReceivedPackage, 0)}... to {endPoint}");
 					}
 
 					Thread.Sleep(server.gameUpdateThreadDelayMs);

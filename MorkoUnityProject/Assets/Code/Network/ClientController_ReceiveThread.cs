@@ -55,12 +55,6 @@ public partial class ClientController
 				endPoint 			= receiveEndPoint,
 				lastConnectionTime 	= DateTime.Now
 			});
-
-			if (selectedServerIndex < 0)
-			{
-				selectedServerIndex = 0;
-			}
-
 			netControls.UpdateServersList(GetServers());
 		}
 	}

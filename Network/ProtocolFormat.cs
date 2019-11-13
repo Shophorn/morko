@@ -109,8 +109,7 @@ namespace Morko.Network
 			}
 		}
 
-		// Todo(Leo): return value from here indicating connection is lost, or throw exception
-		public static void WriteTcpMessage<T>(this NetworkStream stream, T arguments, byte [] data = null)
+		public static byte [] MakeTcpMessage<T>(T arguments, byte [] data = null)
 			where T : struct, INetworkCommandArgs
 		{
 			/*
@@ -129,31 +128,83 @@ namespace Morko.Network
 
 
 			ushort contentLength = (ushort)(argumentLength + dataLength);
-			var package = new byte [8 + contentLength];
+			var message = new byte [8 + contentLength];
 			int packageIndex = 0;
 
 			// 1)
 			for (int idIndex = 0; idIndex < 5; idIndex++, packageIndex++)
-				package[packageIndex] = idBytes[idIndex];
+				message[packageIndex] = idBytes[idIndex];
 
 			// 2)
 			byte[] lengthBytes = BitConverter.GetBytes(contentLength);
 			for (int lengthIndex = 0; lengthIndex < 2; lengthIndex++, packageIndex++)
-				package[packageIndex] = lengthBytes[lengthIndex];
+				message[packageIndex] = lengthBytes[lengthIndex];
 
 			// 3)
-			package[packageIndex] = (byte)arguments.Command;
+			message[packageIndex] = (byte)arguments.Command;
 			packageIndex++;
 
 			// 4)
 			for (int argumentIndex = 0; argumentIndex < argumentLength; argumentIndex++, packageIndex++)
-				package[packageIndex] = argumentBytes[argumentIndex];
+				message[packageIndex] = argumentBytes[argumentIndex];
 
 			// 5)
 			if (data != null)
-				Array.Copy(data, 0, package, packageIndex, dataLength);
+				Array.Copy(data, 0, message, packageIndex, dataLength);
 
-			stream.Write(package, 0, package.Length);
+			return message;
+		}
+
+		// Todo(Leo): return value from here indicating connection is lost, or throw exception
+		public static void WriteTcpMessage<T>(this NetworkStream stream, T arguments, byte [] data = null)
+			where T : struct, INetworkCommandArgs
+		{
+			// /*
+			// 1)	5 bytes:	"MORKO", magic word.
+			// 2)	2 bytes:	length of arguments structure, NOT including header.
+			// 3)	1 byte:		instruction byte.
+			
+			// 4)	n bytes:	arguments structure, n is equal to length above.
+			// 5)	m bytes:	extra data such as info for each player's avatars
+			// */
+
+			// int dataLength = (data != null) ? data.Length : 0;
+
+			// byte[] argumentBytes = arguments.ToBinary();
+			// int argumentLength = argumentBytes.Length;
+
+
+			// ushort contentLength = (ushort)(argumentLength + dataLength);
+			// var package = new byte [8 + contentLength];
+			// int packageIndex = 0;
+
+			// // 1)
+			// for (int idIndex = 0; idIndex < 5; idIndex++, packageIndex++)
+			// 	package[packageIndex] = idBytes[idIndex];
+
+			// // 2)
+			// byte[] lengthBytes = BitConverter.GetBytes(contentLength);
+			// for (int lengthIndex = 0; lengthIndex < 2; lengthIndex++, packageIndex++)
+			// 	package[packageIndex] = lengthBytes[lengthIndex];
+
+			// // 3)
+			// package[packageIndex] = (byte)arguments.Command;
+			// packageIndex++;
+
+			// // 4)
+			// for (int argumentIndex = 0; argumentIndex < argumentLength; argumentIndex++, packageIndex++)
+			// 	package[packageIndex] = argumentBytes[argumentIndex];
+
+			// // 5)
+			// if (data != null)
+			// 	Array.Copy(data, 0, package, packageIndex, dataLength);
+			var message = MakeTcpMessage(arguments, data);
+			stream.Write(message, 0, message.Length);
+		}
+
+		public static void WriteTcpMessage(this NetworkStream stream, byte [] message)
+		{
+			stream.Write(message, 0, message.Length);
 		}
 
 		public static NetworkCommand ReadTcpMessage(this NetworkStream stream, out byte [] argumentsData)
