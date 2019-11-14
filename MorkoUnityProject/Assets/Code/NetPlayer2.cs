@@ -13,19 +13,19 @@ public class NetPlayer2 : MonoBehaviourPunCallbacks
 
 	public override void OnDisconnected (DisconnectCause cause)
 	{
-		Debug.Log($"[PHOTON]: Disconnect {cause}");
+		Debug.Log($"[PHOTON] Disconnect {cause}");
 	}
 
 	public override void OnConnectedToMaster()
 	{
-		Debug.Log("[PHOTON]: Connect");
+		Debug.Log("[PHOTON] Connect");
 		PhotonNetwork.JoinLobby();
 		connected = true;
 	}
 
 	public override void OnRoomListUpdate(List<RoomInfo> rooms)
 	{
-		Debug.Log("[PHOTON]: Roomlist updated");
+		Debug.Log("[PHOTON] Roomlist updated");
 		availableRooms = rooms;
 	}
 

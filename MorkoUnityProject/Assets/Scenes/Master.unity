@@ -1533,9 +1533,8 @@ GameObject:
   - component: {fileID: 942324879}
   - component: {fileID: 942324878}
   - component: {fileID: 942324877}
-  - component: {fileID: 942324880}
   - component: {fileID: 942324881}
-  - component: {fileID: 942324882}
+  - component: {fileID: 942324880}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1614,8 +1613,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiController: {fileID: 942324877}
-  serverController: {fileID: 0}
-  clientController: {fileID: 942324880}
   normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
   morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
   cameraControllerPrefab: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
@@ -1626,6 +1623,11 @@ MonoBehaviour:
     type: 3}
   remoteCharacterLayer: 11
   characterPrefabs: {fileID: 11400000, guid: ad712c776f7659d45bd3b64771bbb022, type: 2}
+  broadcastDelayMs: 100
+  gameUpdateThreadDelayMs: 50
+  characterPrefab: {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76,
+    type: 3}
+  levelName: Map01
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0
@@ -1649,13 +1651,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 942324876}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fc851065273bcd4e99186062d50835f, type: 3}
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  netUpdateIntervalMs: 50
-  connectionRetryTimeMs: 500
-  playerName: Default Player
-  selectedServerIndex: 0
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 0
+  OwnershipTransfer: 0
+  ObservedComponents:
+  - {fileID: 0}
+  viewIdField: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!114 &942324881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1668,35 +1676,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 607197596728a834b923de9062e98081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &942324882
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 942324876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 989abf42a35c5b2458d5b3417232a27b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  button: 0
-  servers:
-  - serverName: Nippon
-    hostingPlayerName: Guy
-    mapIndex: 0
-    maxPlayers: 0
-    gameDurationSeconds: 0
-  - serverName: Canada
-    hostingPlayerName: Bill Nyes
-    mapIndex: 0
-    maxPlayers: 0
-    gameDurationSeconds: 0
-  - serverName: Russkaja
-    hostingPlayerName: Jaques
-    mapIndex: 0
-    maxPlayers: 0
-    gameDurationSeconds: 0
 --- !u!1001 &1045603037
 PrefabInstance:
   m_ObjectHideFlags: 0

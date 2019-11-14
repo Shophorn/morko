@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+
+using Photon.Realtime;
+
 using Morko;
 
 public partial class UIController
@@ -40,13 +43,26 @@ public partial class UIController
 	{
 		joinView.view.OnShow += clientControls.BeginJoin;
 		// joinView.view.OnHide += clientControls.EndJoin;
-		
+	
+		joinView.availableServersSelector.OnSelectionChanged += (index) =>
+		{
+			joinView.selectedServerIndex = index;
+
+			RoomInfo selectedRoom = availableRooms[index];
+			// joinView.hostingPlayerNameText.text 	= selectedRoom.hostingPlayerName;
+
+			joinView.mapNameText.text 				= MapNameFromIndex((int)selectedRoom.CustomProperties["map"]);
+			joinView.joinedPlayersCountText.text 	= selectedRoom.MaxPlayers.ToString(); 
+			joinView.gameDurationText.text 			= TimeFormat.ToTimeFormat((int)selectedRoom.CustomProperties["time"]);			
+		};
+
 		joinView.requestJoinButton.onClick.AddListener (() => 
 		{
 			var info = new JoinInfo
 			{
 				playerName = joinView.playerNameField.text,
-				selectedServerIndex = joinView.selectedServerIndex
+				selectedServerIndex = joinView.selectedServerIndex,
+				selectedRoomInfo = availableRooms[joinView.selectedServerIndex]
 			};
 			clientControls.RequestJoin(info);
 

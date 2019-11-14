@@ -11,6 +11,9 @@ GameObject:
   - component: {fileID: 8115506030764263787}
   - component: {fileID: 5418861554833891349}
   - component: {fileID: 3311257126215873329}
+  - component: {fileID: 114353981944122392}
+  - component: {fileID: 114935891494484828}
+  - component: {fileID: 114010903419290506}
   m_Layer: 0
   m_Name: CharacterPrefab01
   m_TagString: Avatar
@@ -46,6 +49,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 3311257126215873329}
+  localController: {fileID: 0}
 --- !u!143 &3311257126215873329
 CharacterController:
   m_ObjectHideFlags: 0
@@ -64,6 +68,58 @@ CharacterController:
   m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114353981944122392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3593296432942239937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  ObservedComponents:
+  - {fileID: 114935891494484828}
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &114935891494484828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3593296432942239937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+--- !u!114 &114010903419290506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3593296432942239937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bf866dfd40b2ce43bfafd3d0661ea06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isMorko: 0
+  normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
+  morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
 --- !u!1 &6219680344758510604
 GameObject:
   m_ObjectHideFlags: 0

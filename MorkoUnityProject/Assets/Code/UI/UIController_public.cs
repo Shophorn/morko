@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+using Photon.Realtime;
 
 public interface IClientUIControllable
 {
@@ -31,12 +32,12 @@ public interface IAppUIControllable
 	void Quit();
 }
 
-public class JoinInfo
+public class JoinInfo 
 {
 	public string playerName;
 	public int selectedServerIndex;
+	public RoomInfo selectedRoomInfo;
 }
-
 
 /* Note(Leo): For clarity, public interface and MonoBehaviour internals
 are separated. Users only must depend on this public side. */
@@ -61,6 +62,7 @@ public partial class UIController
 	}
 
 	private ServerInfo [] availableServers;
+	private List<RoomInfo> availableRooms;
 
 	private string MapNameFromIndex(int mapIndex)
 	{
@@ -79,6 +81,14 @@ public partial class UIController
 		joinView.mapNameText.text = MapNameFromIndex(selectedServer.mapIndex);
 		joinView.joinedPlayersCountText.text = selectedServer.maxPlayers.ToString(); 
 		joinView.gameDurationText.text = TimeFormat.ToTimeFormat(selectedServer.gameDurationSeconds);
+	}
+
+	public void SetRooms(List<RoomInfo> rooms)
+	{
+		availableRooms = rooms;
+
+		string[] names = rooms.Select(room => room.Name).ToArray();
+		joinView.availableServersSelector.SetOptions(names);
 	}
 
 	public void SetServerList(ServerInfo [] servers)
