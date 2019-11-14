@@ -34,7 +34,7 @@ public partial class UIController
 	{
 		joinView.view.OnShow += clientControls.BeginJoin;
 		// joinView.view.OnHide += clientControls.EndJoin;
-		
+
 		joinView.requestJoinButton.onClick.AddListener (() => 
 		{
 			var info = new JoinInfo
@@ -45,6 +45,7 @@ public partial class UIController
 			clientControls.RequestJoin(info);
 			EventSystem.current.SetSelectedGameObject(clientLobbyView.readyButton.gameObject);
 			SetView(clientLobbyView);
+			UpdateJoinedPlayersList(info);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 

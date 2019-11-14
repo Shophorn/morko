@@ -67,7 +67,7 @@ public partial class ClientController
 				connection.servers.Add(new ServerConnectionInfo
 				{
 					serverInfo = new ServerInfo
-					{ 
+					{
 						serverName = arguments.serverName
 					},
 					endPoint 			= receiveEndPoint,

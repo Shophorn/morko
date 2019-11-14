@@ -8,6 +8,8 @@ public partial class UIController
 	[Serializable]
 	private struct HostView : IMenuLayout
 	{
+		public int serverIndex;
+
 		public MenuView view;
 
 		MenuView IMenuLayout.View => view;
@@ -22,7 +24,7 @@ public partial class UIController
 		public InputField serverNameField;
 		public DiscreteInputField playerCountField;
 		public DiscreteInputField gameDurationField;
-		public InfiniteScroll mapSelectionList;
+		public CircularScroll mapSelectionList;
 	}
 	[SerializeField] private HostView hostView;
 
@@ -34,14 +36,18 @@ public partial class UIController
 		{
 			var info = new ServerInfo
 			{
-				serverName			= hostView.serverNameField.text,
-				mapIndex 			= 0, //hostView.mapSelectionList.currentItem.ID,
-				maxPlayers 			= hostView.playerCountField.IntValue,
-				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
+				hostingPlayerName = hostView.playerNameField.text,
+				serverName = hostView.serverNameField.text,
+				mapIndex = 0, //hostView.mapSelectionList.currentItem.ID,
+				maxPlayers = hostView.playerCountField.IntValue,
+				gameDurationSeconds = hostView.gameDurationField.IntValue,
+				joinedPlayers = new JoinInfo[hostView.playerCountField.IntValue],
 			};
+
 			serverControls.CreateServer(info);
 			EventSystem.current.SetSelectedGameObject(hostLobbyView.startGameButton.gameObject);
 			SetView(hostLobbyView);
+			DisplayJoinedPlayersList(info);
 		});
 		hostView.cancelButton.onClick.AddListener(() =>
 		{
