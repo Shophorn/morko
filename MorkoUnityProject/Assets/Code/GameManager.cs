@@ -44,8 +44,8 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	private void Awake()
 	{
 		DontDestroyOnLoad(this);
-
 		PhotonNetwork.ConnectUsingSettings();
+		uiController.SetConnectingScreen();
 	}
 
 	public override void OnDisconnected (DisconnectCause cause)
@@ -57,6 +57,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	{
 		Debug.Log("[PHOTON]: Connect");
 		PhotonNetwork.JoinLobby();
+		uiController.SetMainView();
 	}
 
 	public override void OnRoomListUpdate(List<RoomInfo> rooms)

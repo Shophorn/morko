@@ -26,10 +26,16 @@ public partial class UIController : MonoBehaviour
 	 behind ScrollSelector etc. */
 	[SerializeField] private GameObject listItemContainer;
 
+	[SerializeField] private GameObject connectingScreen;
+	[SerializeField] private GameObject loadingScreen;
+
 	private MenuView currentView = null;
 
-	private void SetMainView()
+	public void SetMainView()
 	{
+		loadingScreen.SetActive(false);
+		connectingScreen.SetActive(false);
+
 		currentView?.Hide();
 		currentView = null;
 
@@ -38,10 +44,23 @@ public partial class UIController : MonoBehaviour
 
 	private void SetView(IMenuLayout layout)
 	{
+		if (layout == null)
+		{
+			mainView.view.Hide();
+			currentView?.Hide();
+			currentView = null;
+			return;
+		}
+
 		if(currentView == layout.View)
 			return;
 
+		loadingScreen.SetActive(false);
+		connectingScreen.SetActive(false);
+
 		currentView?.Hide();
+		currentView = null;
+
 
 		if (layout.BelongsToMainMenu)
 			SetMainView();
@@ -52,7 +71,7 @@ public partial class UIController : MonoBehaviour
 		currentView.Show();
 	}
 
-	private void Start()
+	private void Awake()
 	{
 		// Todo(Leo): These must be injected, since they might actually not be present here
 		clientControls 	= GetComponent<IClientUIControllable>();
@@ -66,8 +85,18 @@ public partial class UIController : MonoBehaviour
 		InitializeClientLobbyView();
 		InitializeOptionsView();
 		InitializeCreditsView();
+	}
 
-		mainView.view.Show();
+	public void SetConnectingScreen()
+	{
+		connectingScreen.SetActive(true);
+		SetView(null);
+	}
+
+	public void SetLoadingScreen()
+	{
+		loadingScreen.SetActive(true);
+		SetView(null);
 	}
 
 	//private void MenuNavigation()
