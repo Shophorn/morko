@@ -10,11 +10,8 @@ using Photon.Realtime;
 
 public interface IClientUIControllable
 {
-	void BeginJoin();
-	void EndJoin();
-
-	void OnClientReady();
 	void RequestJoin(JoinInfo joinInfo);
+	void OnPlayerReady();
 }
 
 public interface IServerUIControllable
@@ -70,6 +67,14 @@ public partial class UIController
 		return "Sad Moody Somber Bomber Suburbinator";
 	}
 
+	public void AddPlayer(int uniqueId, string name, PlayerNetworkStatus status)
+		=> roomView.playerNameList.AddPlayer(uniqueId, name, status);
+
+	public void RemovePlayer(int uniqueId)
+		=> roomView.playerNameList.RemovePlayer(uniqueId);
+
+	public void UpdatePlayerNetworkStatus(int uniqueId, PlayerNetworkStatus status)
+		=> roomView.playerNameList.SetStatus(uniqueId, status);
 
 	private void SetCurrentServer(int serverIndex)
 	{

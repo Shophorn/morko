@@ -33,12 +33,15 @@ public partial class UIController
 			var info = new ServerInfo
 			{
 				serverName			= hostView.serverNameField.text,
+				hostingPlayerName	= hostView.playerNameField.text,
 				mapIndex 			= 0,
 				maxPlayers 			= hostView.playerCountField.IntValue,
 				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
 			serverControls.CreateServer(info);
-			SetView(hostLobbyView);
+
+			SetRoomViewHost(true);
+			SetView(roomView);
 		});
 		hostView.cancelButton.onClick.AddListener(() => SetMainView());
 		hostView.playerNameField.text = HostView.defaultPlayerName;

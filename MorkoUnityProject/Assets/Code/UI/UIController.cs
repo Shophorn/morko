@@ -80,9 +80,8 @@ public partial class UIController : MonoBehaviour
 
 		InitializeMainView();
 		InitializeHostView();
-		InitializeHostLobbyView();
 		InitializeJoinView();
-		InitializeClientLobbyView();
+		InitializeRoomView();
 		InitializeOptionsView();
 		InitializeCreditsView();
 	}

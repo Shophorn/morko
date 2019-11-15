@@ -41,9 +41,6 @@ public partial class UIController
 
 	private void InitializeJoinView()
 	{
-		joinView.view.OnShow += clientControls.BeginJoin;
-		// joinView.view.OnHide += clientControls.EndJoin;
-	
 		joinView.availableServersSelector.OnSelectionChanged += (index) =>
 		{
 			joinView.selectedServerIndex = index;
@@ -66,13 +63,13 @@ public partial class UIController
 			};
 			clientControls.RequestJoin(info);
 
-			SetView(clientLobbyView);
+			SetRoomViewHost(false);
+			SetView(roomView);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 
 		joinView.cancelButton.onClick.AddListener(() =>
 		{
-			clientControls.EndJoin();
 			SetMainView();
 		});
 	}
