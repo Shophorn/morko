@@ -8,16 +8,15 @@ public class ScrollContent : MonoBehaviour
 	public ListItem listItem;
 	public ListItem[] listElements;
 
-	public string[] nimet;
-	public GameObject[] objektit;
+	//Just for testing purposes
+	//public string[] nimet;
+	//public GameObject[] objektit;
 
 	public ListItem currentItem;
 
 	public GameObject center;
 	public float radius;
 	public float angle;
-
-	public TextMesh nameLabel;
 
 	public int SelectedIndex { get => selectedItemIndex; }
 
@@ -26,14 +25,12 @@ public class ScrollContent : MonoBehaviour
 	[SerializeField]
 	private int selectedItemIndex;
 
-	private void OnEnable()
-	{
-
-		listElements = new ListItem[nimet.Length];
-
-
-		InstantiateContentCircular(nimet, objektit);
-	}
+	//Just for testing purposes
+	//private void OnEnable()
+	//{
+	//	listElements = new ListItem[nimet.Length];
+	//	InstantiateContentCircular(nimet, objektit);
+	//}
 	private void OnDisable()
 	{
 		ClearSelectionList();
@@ -87,8 +84,6 @@ public class ScrollContent : MonoBehaviour
 		if (tempIndex != selectedItemIndex)
 			OnSelectionChanged?.Invoke(selectedItemIndex);
 
-		nameLabel.text = currentItem.listItemName;
-
 		return currentItem;
 	}
 
@@ -108,8 +103,8 @@ public class ScrollContent : MonoBehaviour
 		}
 		ClearScrollingList();
 
-		listElements = new ListItem[nimet.Length];
-		InstantiateContentCircular(nimet,objektit);
+		listElements = new ListItem[names.Length];
+		InstantiateContentCircular(names,objects);
 
 		OnSelectionChanged += SetCurrentSelectionIndex;
 		currentItem = CheckCurrentItem();

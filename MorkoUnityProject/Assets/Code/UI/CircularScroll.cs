@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CircularScroll : Selectable ,IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler
+public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler*/
 {
 	public enum Direction { Left = -1, Right = 1}
 
@@ -22,23 +22,17 @@ public class CircularScroll : Selectable ,IBeginDragHandler, IDragHandler, IEndD
 
 	private Vector2 lastDragPosition;
 
+	public Text nameLabel;
+
 	protected override void Awake()
 	{
 		listElements = content.listElements;
 
 		scrollLeft.onClick.AddListener(delegate { StartCoroutine(Rotate(Direction.Left)); });
 		scrollRight.onClick.AddListener(delegate { StartCoroutine(Rotate(Direction.Right)); });
-	}
 
-	private void Update()
-	{
-		if (Input.GetAxis("Horizontal") > 0)
-		{
-			Debug.Log("JööpJööp");
-			currentDirection = Direction.Right;
-		}
-		else if (Input.GetAxis("Horizontal") < 0)
-			currentDirection = Direction.Left;
+		currentItem = content.CheckCurrentItem();
+		nameLabel.text = currentItem.listItemName;
 	}
 
 	private IEnumerator Rotate(Direction direction)
@@ -56,25 +50,34 @@ public class CircularScroll : Selectable ,IBeginDragHandler, IDragHandler, IEndD
 			yield return null;
 		}
 		currentItem = content.CheckCurrentItem();
-	}
-	public void OnBeginDrag(PointerEventData eventData)
-	{
-		lastDragPosition = eventData.position;
+		nameLabel.text = currentItem.listItemName;
 	}
 
-	public void OnEndDrag(PointerEventData eventData)
-	{
-		StartCoroutine(Rotate(currentDirection));
-	}
-	public void OnDrag(PointerEventData eventData)
-	{
-		currentDirection = eventData.position.x < lastDragPosition.x ? Direction.Right : Direction.Left;
-		lastDragPosition = eventData.position;
-	}
+	//Events suddenly stopped working for some reason.
+	//TODO (Joonas): Fix if necessary
 
-	public void OnScroll(PointerEventData eventData)
-	{
-		currentDirection = eventData.scrollDelta.y > 0 ?Direction.Right : Direction.Left;
-		StartCoroutine(Rotate(currentDirection));
-	}
+	//public void OnBeginDrag(PointerEventData eventData)
+	//{
+	//	Debug.Log("Begin Drag");
+	//	lastDragPosition = eventData.position;
+	//}
+
+	//public void OnEndDrag(PointerEventData eventData)
+	//{
+	//	Debug.Log("End Drag");
+	//	StartCoroutine(Rotate(currentDirection));
+	//}
+	//public void OnDrag(PointerEventData eventData)
+	//{
+	//	Debug.Log("Dragging");
+	//	currentDirection = eventData.position.x < lastDragPosition.x ? Direction.Right : Direction.Left;
+	//	lastDragPosition = eventData.position;
+	//}
+
+	//public void OnScroll(PointerEventData eventData)
+	//{
+	//	Debug.Log("Scrolling");
+	//	currentDirection = eventData.scrollDelta.y > 0 ?Direction.Right : Direction.Left;
+	//	StartCoroutine(Rotate(currentDirection));
+	//}
 }
