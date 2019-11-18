@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class MaskController : MonoBehaviour
 {
-
+    public NavMeshAgent navMeshAgent;
     public Transform p1;
     public Transform p2;
+    public Transform[] chracters;
     public float rotateTime;
     public float maskToTargetDuration;
 
@@ -15,14 +17,20 @@ public class MaskController : MonoBehaviour
 
     private void Start()
     {
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.Warp(transform.position);
         morko = p1;
         normal = p2;
         
-        MaskToHead(morko);
+        //SetMaskToHead(morko);
     }
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            FindStartingMorko(chracters, 2);
+        }
         if (Input.GetKeyDown(KeyCode.Space))
         {
             SwitchMorko(morko, normal);
@@ -33,12 +41,33 @@ public class MaskController : MonoBehaviour
         }
     }
 
+    public void FindStartingMorko(Transform[] characters, float timeBeforeFindingMorko)
+    {
+        
+        // sleep?
+        
+        float distance = 100000000000f;
+        Transform toMorko = chracters[Random.Range(0, chracters.Length - 1)];
+        
+        foreach (var c in characters)
+        {
+            var characterDistance = Vector3.Distance(transform.position, c.position);
+            if (characterDistance < distance)
+            {
+                distance = characterDistance;
+                toMorko = c;
+            }
+        }
+
+        navMeshAgent.destination = toMorko.position;
+    }
+
     public void SwitchMorko(Transform fromMorko, Transform toMorko)
     {
         MaskOffHead(fromMorko);
         MaskFliesOffHead(fromMorko);
         StartCoroutine(RotateMaskTowardsInSeconds(toMorko.position, rotateTime));
-        MaskToHead(toMorko);
+        SetMaskToHead(toMorko);
     }
     
     public void MaskOffHead(Transform fromMorko)
@@ -46,7 +75,7 @@ public class MaskController : MonoBehaviour
         transform.parent = null;
     }
 
-    public void MaskToHead(Transform toMorko)
+    public void SetMaskToHead(Transform toMorko)
     {
         var maskHolder = toMorko.transform.GetChild(0);
         transform.parent = maskHolder.transform;

@@ -1944,12 +1944,13 @@ GameObject:
   m_Component:
   - component: {fileID: 104060554}
   - component: {fileID: 104060555}
+  - component: {fileID: 104060556}
   m_Layer: 0
   m_Name: Mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &104060554
 Transform:
@@ -1978,11 +1979,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10db68964eb42024a97baa63057372cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  navMeshAgent: {fileID: 104060556}
   p1: {fileID: 59423729}
   p2: {fileID: 1872310856}
+  chracters:
+  - {fileID: 59423729}
+  - {fileID: 1872310856}
   rotateTime: 1
   maskToTargetDuration: 2
   morko: {fileID: 0}
+--- !u!195 &104060556
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104060553}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.36
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 0.6
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &114437736
 GameObject:
   m_ObjectHideFlags: 0
@@ -8081,7 +8108,7 @@ PrefabInstance:
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 22.39
+      value: 20.35
       objectReference: {fileID: 0}
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
@@ -8091,7 +8118,7 @@ PrefabInstance:
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -10.929625
+      value: -10.88
       objectReference: {fileID: 0}
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
@@ -14224,7 +14251,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &610299457
 Transform:
@@ -23944,7 +23971,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &861872488
 Transform:
@@ -24656,7 +24683,7 @@ PrefabInstance:
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 27.43
+      value: 28.64
       objectReference: {fileID: 0}
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
@@ -24666,7 +24693,7 @@ PrefabInstance:
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -10.929625
+      value: -10.958
       objectReference: {fileID: 0}
     - target: {fileID: 1081713420466458088, guid: d192a713fd87af24cbeee77cda48343f,
         type: 3}
@@ -25825,7 +25852,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &933367504
 Transform:
@@ -42783,7 +42810,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &1462313839
 Transform:
