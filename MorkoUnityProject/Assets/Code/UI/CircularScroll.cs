@@ -9,8 +9,6 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 
 	public GameObject listItemContainer;
 	public ListItem currentItem;
-	public GameObject centerObject;
-
 	public ListItem[] listElements;
 
 	public ScrollContent content;
@@ -48,7 +46,7 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 		{
 			for (int i = 0; i < listLength; i++)
 			{
-				listElements[i].transform.RotateAround(centerObject.transform.position, Vector3.up, factor * (int)direction);
+				listElements[i].transform.RotateAround(content.transform.position, Vector3.up, factor * (int)direction);
 			}
 			startAngle += factor;
 			yield return null;

@@ -46,13 +46,17 @@ public class ScrollContent : MonoBehaviour
 
 	private void InstantiateContentCircular(string[] names, GameObject[] objects)
 	{
-		angle = 360f / (float)listElements.Length;
-		for(int i = 0; i < listElements.Length; i++)
+		int listLength = listElements.Length;
+		if (listLength == 0)
+			listLength = 1;
+
+		angle = 360f / (float)listLength;
+		for(int i = 0; i < listLength; i++)
 		{
 			Quaternion rotation = Quaternion.AngleAxis(i * angle, Vector3.up);
 			Vector3 direction = rotation * Vector3.back;
 
-			Vector3 position = center.transform.position - (direction * radius);
+			Vector3 position = transform.position - (direction * radius);
 			listElements[i] = Instantiate(listItem, position,rotation);
 			listElements[i].transform.SetParent(transform);
 			listElements[i].listItemId = i;
@@ -65,7 +69,7 @@ public class ScrollContent : MonoBehaviour
 
 	public ListItem CheckCurrentItem()
 	{
-		Vector3 selectedPosition = new Vector3(0,center.transform.position.y,-180);
+		Vector3 selectedPosition = new Vector3(0,transform.position.y,-180);
 		float shortestDistance = 1000;
 		float distance = 0;
 		ListItem shortest = null;
