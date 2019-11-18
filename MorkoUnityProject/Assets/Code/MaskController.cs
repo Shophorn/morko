@@ -5,8 +5,11 @@ using UnityEngine.AI;
 public class MaskController : MonoBehaviour
 {
     public NavMeshAgent navMeshAgent;
-    public Transform[] chracters;
-    public float maskSpeed;
+    public Transform[] characters;
+    public float maskStartingSpeed;
+    public float maskChangingSpeed;
+    public float waitForSeconds;
+    public float minDistanceFromCharacter;
 
     public Transform p1;
     public Transform p2;
@@ -16,47 +19,52 @@ public class MaskController : MonoBehaviour
 
     [HideInInspector]
     public Transform morko;
+    private Transform toMorko;
     private Transform normal;
 
-    private bool firstMorkoFound = false;
+    private bool collisionDurationWait = true;
+    private bool startingDurationWait = true;
+    private bool lookingForStartingMorko = true;
+    private bool maskMovingToNewMorko = false;
 
     private void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.Warp(transform.position);
-        morko = p1;
-        normal = p2;
         
-        //SetMaskToHead(morko);
+        var closestCharacter = FindClosestCharacter(characters);
+        StartCoroutine(MoveMaskToTarget(closestCharacter, maskStartingSpeed, waitForSeconds, startingDurationWait));
+        
+        morko = p2;
+        normal = p1;
     }
 
     private void Update()
     {
-        //if (!firstMorkoFound)
-        //{
-        //    FindStartingMorko(chracters, maskSpeed);
-        //}
-        if (Input.GetKeyDown(KeyCode.S))
+        if (lookingForStartingMorko)
         {
-            FindStartingMorko(chracters, maskSpeed);
+            toMorko = FindClosestCharacter(characters);
+            StartCoroutine(MoveMaskToTarget(toMorko, maskStartingSpeed, waitForSeconds, startingDurationWait));
+            CheckMaskDistanceFromFallenCharacter(toMorko);
         }
+        
         if (Input.GetKeyDown(KeyCode.Space))
         {
             SwitchMorko(morko, normal);
-            
             var temp = normal;
             normal = morko;
             morko = temp;
         }
+
+        if (maskMovingToNewMorko)
+            CheckMaskDistanceFromFallenCharacter(toMorko);
     }
 
-    public void FindStartingMorko(Transform[] characters, float speed)
+    public Transform FindClosestCharacter(Transform[] characters)
     {
         
-        // sleep?
-        
         float distance = 100000000000f;
-        Transform toMorko = chracters[Random.Range(0, chracters.Length - 1)];
+        Transform closestCharacter = characters[Random.Range(0, characters.Length - 1)];
         
         foreach (var c in characters)
         {
@@ -64,33 +72,62 @@ public class MaskController : MonoBehaviour
             if (characterDistance < distance)
             {
                 distance = characterDistance;
-                toMorko = c;
+                closestCharacter = c;
             }
         }
+        return closestCharacter;
+    }
+    
+    IEnumerator MoveMaskToTarget(Transform target, float speed, float waitForSeonds, bool wait)
+    {
+        if (wait)
+            yield return new WaitForSeconds(waitForSeonds);
 
+        startingDurationWait = false;
+        
         navMeshAgent.speed = speed;
-        navMeshAgent.destination = toMorko.position;
+        navMeshAgent.destination = target.position;
+
+        maskMovingToNewMorko = true;
     }
 
-    public void SwitchMorko(Transform fromMorko, Transform toMorko)
+    private void CheckMaskDistanceFromFallenCharacter(Transform target)
     {
-        MaskOffHead(fromMorko);
-        MaskFliesOffHead(fromMorko);
-        StartCoroutine(RotateMaskTowardsInSeconds(toMorko.position, rotateTime));
-        SetMaskToHead(toMorko);
+        float distanceFromTarget = Vector3.Distance(transform.position, target.position);
+        if (distanceFromTarget <= minDistanceFromCharacter)
+            SetMaskToHead(target);
+    }
+
+    public void SwitchMorko(Transform oldMorko, Transform newMorko)
+    {
+        toMorko = newMorko;
+        maskMovingToNewMorko = true;
+        
+        MaskOffHead(oldMorko);
+        MaskFliesOffHead(oldMorko);
+        //play falling animation
+        //disable toMorko movement
+        StartCoroutine(MoveMaskToTarget(newMorko, maskChangingSpeed, waitForSeconds, true));
     }
     
     public void MaskOffHead(Transform fromMorko)
     {
+        navMeshAgent.baseOffset = 0;
         transform.parent = null;
     }
 
     public void SetMaskToHead(Transform toMorko)
     {
+        lookingForStartingMorko = false;
+        maskMovingToNewMorko = false;
+        
         var maskHolder = toMorko.transform.GetChild(0);
         transform.parent = maskHolder.transform;
         transform.localPosition = Vector3.zero;
         transform.forward = toMorko.forward;
+        navMeshAgent.baseOffset = 0.82f;
+
+        morko = toMorko;
     }
 
     public void MaskFliesOffHead(Transform fromMorko)
@@ -114,21 +151,10 @@ public class MaskController : MonoBehaviour
             yield return null;
         }
         
-        StartCoroutine(MoveMaskToTargetInSecods(target, maskToTargetDuration));
+        //StartCoroutine(MoveMaskToTarget(target, maskToTargetDuration));
     }
     
-    IEnumerator MoveMaskToTargetInSecods(Vector3 target, float duration)
-    {
-        float timer = 0f;
-        var startPos = transform.position;
-        while (timer <= duration)
-        {
-            timer += Time.deltaTime;
-            transform.position = Vector3.Lerp(startPos, target, timer / duration);
-            
-            yield return null;
-        }
-    }
+    
     
     private IEnumerator WaitForAnimation ( Animation animation )
     {
