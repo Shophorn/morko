@@ -37,12 +37,16 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 
 	private IEnumerator Rotate(Direction direction)
 	{
-		float factor = 5 / listElements.Length;
+		int listLength = listElements.Length;
+		if (listLength == 0)
+			listLength = 1; //Just to prevent dividing by 0
+
+		float factor = 5 / listLength;
 
 		float startAngle = 0f;
 		while (startAngle < content.angle)
 		{
-			for (int i = 0; i < listElements.Length; i++)
+			for (int i = 0; i < listLength; i++)
 			{
 				listElements[i].transform.RotateAround(centerObject.transform.position, Vector3.up, factor * (int)direction);
 			}
@@ -58,25 +62,21 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 
 	//public void OnBeginDrag(PointerEventData eventData)
 	//{
-	//	Debug.Log("Begin Drag");
 	//	lastDragPosition = eventData.position;
 	//}
 
 	//public void OnEndDrag(PointerEventData eventData)
 	//{
-	//	Debug.Log("End Drag");
 	//	StartCoroutine(Rotate(currentDirection));
 	//}
 	//public void OnDrag(PointerEventData eventData)
 	//{
-	//	Debug.Log("Dragging");
 	//	currentDirection = eventData.position.x < lastDragPosition.x ? Direction.Right : Direction.Left;
 	//	lastDragPosition = eventData.position;
 	//}
 
 	//public void OnScroll(PointerEventData eventData)
 	//{
-	//	Debug.Log("Scrolling");
 	//	currentDirection = eventData.scrollDelta.y > 0 ?Direction.Right : Direction.Left;
 	//	StartCoroutine(Rotate(currentDirection));
 	//}

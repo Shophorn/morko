@@ -16,9 +16,6 @@ public partial class UIController
 		public Button startGameButton;
 		public Button cancelButton;
 		public CircularScroll characterSelectionList;
-
-		public JoinedPlayersList joinedPlayersList;
-		public JoinedPlayer[] joinedPlayers;
 	}
 	[SerializeField] private HostLobbyView hostLobbyView;
 

@@ -57,7 +57,7 @@ public class ScrollContent : MonoBehaviour
 			listElements[i].transform.SetParent(transform);
 			listElements[i].listItemId = i;
 			listElements[i].listItemName = names[i];
-			objects[i].transform.localScale = new Vector3(30,30,30);
+			//objects[i].transform.localScale = new Vector3(30,30,30);
 			Instantiate(objects[i], listElements[i].transform.position, rotation).transform.SetParent(listElements[i].transform);
 		}
 		CheckCurrentItem();

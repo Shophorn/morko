@@ -45,7 +45,6 @@ public partial class UIController
 			clientControls.RequestJoin(info);
 			EventSystem.current.SetSelectedGameObject(clientLobbyView.readyButton.gameObject);
 			SetView(clientLobbyView);
-			UpdateJoinedPlayersList(info);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 

@@ -92,22 +92,4 @@ public partial class UIController
 		joinView.availableServersSelector.OnSelectionChanged += SetCurrentServer;
 		joinView.availableServersSelector.OnSelectionChanged?.Invoke(0);
 	}
-
-	public void UpdateJoinedPlayersList(JoinInfo info)
-	{
-		int index = availableServers[info.selectedServerIndex].joinedPlayers.Length;
-
-		availableServers[info.selectedServerIndex].joinedPlayers[index] = info;
-		DisplayJoinedPlayersList(availableServers[info.selectedServerIndex]);
-		hostLobbyView.joinedPlayers[index].playerName.text = info.playerName;
-		clientLobbyView.joinedPlayers[index].playerName.text = info.playerName;
-	}
-
-	public void DisplayJoinedPlayersList(ServerInfo server)
-	{
-		hostLobbyView.joinedPlayers = hostLobbyView.joinedPlayersList.InitializeJoinedPlayersList(server.maxPlayers);
-		hostLobbyView.joinedPlayers[0].playerName.text = server.hostingPlayerName;
-		clientLobbyView.joinedPlayers = hostLobbyView.joinedPlayersList.InitializeJoinedPlayersList(server.maxPlayers);
-		clientLobbyView.joinedPlayers[0].playerName.text = server.hostingPlayerName;
-	}
 }

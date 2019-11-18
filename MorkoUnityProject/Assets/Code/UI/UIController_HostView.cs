@@ -47,7 +47,6 @@ public partial class UIController
 			serverControls.CreateServer(info);
 			EventSystem.current.SetSelectedGameObject(hostLobbyView.startGameButton.gameObject);
 			SetView(hostLobbyView);
-			DisplayJoinedPlayersList(info);
 		});
 		hostView.cancelButton.onClick.AddListener(() =>
 		{
