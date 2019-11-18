@@ -1,18 +1,14 @@
-﻿using System;
-using System.Numerics;
+﻿using Photon.Pun;
+using System;
 using UnityEngine;
-using Morko.Network;
-using Plane = UnityEngine.Plane;
-using Quaternion = UnityEngine.Quaternion;
-using Vector3 = UnityEngine.Vector3;
-using Vector2 = UnityEngine.Vector2;
 
-public class LocalPlayerController : INetworkSender
+[RequireComponent(typeof(Character))]
+public class LocalPlayerController : MonoBehaviourPun
 {
 	private Character character;
 	public bool isMorko = false;
 	private Camera camera;
-	private Vector3 lastMousePosition = Input.mousePosition;
+	private Vector3 lastMousePosition;// Cannot call from field initializer = Input.mousePosition;
 	private LayerMask groundMask = 1 << 9;
 	private const float joystickMaxThreshold = 0.8f;
 	private const float joystickMinDeadzone = 0.2f;
@@ -26,8 +22,9 @@ public class LocalPlayerController : INetworkSender
 	bool mouseRotatedLast = true;
 	bool keyboardMove = true;
 	
-	PlayerSettings normalSettings;
-	PlayerSettings morkoSettings;
+	public PlayerSettings normalSettings;
+	public PlayerSettings morkoSettings;
+
 	PlayerSettings currentSettings => isMorko ? morkoSettings : normalSettings;
 	public MovementState currentMovementState = MovementState.Idle;
 	public float movementStateInterpolator = 1f;
@@ -79,6 +76,7 @@ public class LocalPlayerController : INetworkSender
 	{
 		isMorko = morko;
 	}
+
 	public void ChangeState()
 	{
 		isMorko = !isMorko;
@@ -101,26 +99,24 @@ public class LocalPlayerController : INetworkSender
 	private static void ToNormal()
 	{
 	}
-	
-	
-	public static LocalPlayerController Create(
-		Character character,
-		Camera camera,
-		PlayerSettings normalSettings,
-		PlayerSettings morkoSettings
-	){
-		var controller = new LocalPlayerController();
 
-		controller.normalSettings = normalSettings;
-		controller.morkoSettings = morkoSettings;
-		
-		controller.character = character;
-		controller.camera = camera;
+	private void Awake()
+	{
+		// Note(Leo): Destroy this controller component only if we are not the local player
+		if (photonView.IsMine == false)
+		{
+			Destroy(this);
+		}
 
-		return controller;
+		character = GetComponent<Character>();
 	}
 
-	public void Update()
+	public void SetCamera(Camera camera)
+	{
+		this.camera = camera;
+	}
+
+	private void Update()
 	{
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
@@ -137,9 +133,6 @@ public class LocalPlayerController : INetworkSender
 
 		Move(moveDirection, accelerateAndRun, hasMoved);
 		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
-
-		positionForNetwork.Value = character.transform.position;
-		rotationForNetwork.Value = Vector3.SignedAngle(Vector3.forward, character.transform.forward, Vector3.up);
 	}
 	
 	PlayerGameUpdatePackage INetworkSender.GetPackageToSend()

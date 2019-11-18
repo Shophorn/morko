@@ -1,23 +1,24 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System;
-
-using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 using Morko;
-using Morko.Network;
 
-public class GameManager : 	MonoBehaviour,
+/* Note(Leo): This was stupid namespace and also there is
+hashtable also in System.Collections. */
+using Hashtable = ExitGames.Client.Photon.Hashtable;
+
+public class GameManager : 	MonoBehaviourPunCallbacks,
 							IClientUIControllable,
-							IClientNetControllable,
 							IServerUIControllable,
 							IAppUIControllable
 {
 	public UIController uiController;
-	public ServerController serverController;
-	public ClientController clientController;
 
 	private bool isRunningServer 		= false;
 	private bool isListeningBroadcasts 	= false;
@@ -32,182 +33,124 @@ public class GameManager : 	MonoBehaviour,
 
 	public int remoteCharacterLayer;
 
-	private LocalPlayerController localPlayerController = null;
- 	private RemotePlayerController [] remotePlayerControllers = null;
-
  	public CharacterCollection characterPrefabs;
 
 	public int broadcastDelayMs = 100;
 	public int gameUpdateThreadDelayMs = 50;
 
+	public GameObject characterPrefab;
+	public string levelName;
+
+	private void Awake()
+	{
+		DontDestroyOnLoad(this);
+
+		PhotonNetwork.ConnectUsingSettings();
+	}
+
+	public override void OnDisconnected (DisconnectCause cause)
+	{
+		Debug.Log($"[PHOTON]: Disconnect {cause}");
+	}
+
+	public override void OnConnectedToMaster()
+	{
+		Debug.Log("[PHOTON]: Connect");
+		PhotonNetwork.JoinLobby();
+	}
+
+	public override void OnRoomListUpdate(List<RoomInfo> rooms)
+	{
+		Debug.Log("[PHOTON]: Roomlist updated");
+		uiController.SetRooms(rooms);
+	}
+
 	void IClientUIControllable.OnClientReady()
 	{
-		Debug.Log("Player is ready");
-		MainThreadWorker.AddJob(clientController.StartUpdate);
 	}
 
 	void IClientUIControllable.RequestJoin(JoinInfo joinInfo)
 	{
-		if (joinInfo == null)
-		{
-			Debug.LogError("No request join info provided");
-			return;
-		}
-
-		clientController.selectedServerIndex = joinInfo.selectedServerIndex;
-		clientController.playerName = joinInfo.playerName;
-		Debug.Log($"Joined server as {joinInfo.playerName}, server index = {joinInfo.selectedServerIndex}");
-		clientController.JoinSelectedServer();
+		PhotonNetwork.NickName = joinInfo.playerName;
+		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
 	}
 
-	void IClientNetControllable.StartGame(GameStartInfo gameStartInfo)
+	public override void OnJoinedRoom()
 	{
-		Debug.Log("Game manager starting game");
-		MainThreadWorker.AddJob(() => StartGame(gameStartInfo));
+		Debug.Log("We are in the room");
 	}
 
-	void IClientNetControllable.UpdateServersList(ServerInfo [] servers)
+	public override void OnJoinRoomFailed(short returnCode, string message)
 	{
-		MainThreadWorker.AddJob(() => uiController.SetServerList(servers));
+		Debug.Log($"Failed to join room ({returnCode}, {message})");
 	}
 
 	void IServerUIControllable.CreateServer(ServerInfo serverInfo)
 	{
-		if (isRunningServer)
+		PhotonNetwork.NickName = serverInfo.hostingPlayerName;
+		var options = new RoomOptions
 		{
-			Debug.LogError("Trying to start server while already hosting");
-			return;
-		}
-
-		isRunningServer = true;
-
-		serverController = gameObject.AddComponent<ServerController>();
-		var createInfo = new ServerCreateInfo
-		{
-			serverName 				= serverInfo.serverName,
-			clientUpdatePackageType = typeof(PlayerGameUpdatePackage),
-			clientUpdatePackageSize = Marshal.SizeOf(default(PlayerGameUpdatePackage)),
-			broadcastDelayMs 		= broadcastDelayMs,
-			gameUpdateThreadDelayMs = gameUpdateThreadDelayMs,
-			logFunction 			= Debug.Log
+			MaxPlayers = (byte)serverInfo.maxPlayers,
+			CustomRoomPropertiesForLobby = new string [] {"map", "time"},
+			CustomRoomProperties = new Hashtable
+			{
+				{"map", serverInfo.mapIndex},
+				{"time", serverInfo.gameDurationSeconds}
+			}
 		};
-		serverController.CreateServer(createInfo);
-		serverController.StartBroadcast();
-
-		 // Todo(Leo): Join itself to server
-		clientController.CreateHostingPlayerConnection();
-		int hostingPlayerId = serverController.AddHostingPlayer("Local player", clientController.CurrentEndPoint);
-		clientController.ClientId = hostingPlayerId;
+		PhotonNetwork.CreateRoom(serverInfo.serverName, options);
 	}
 
 	void IServerUIControllable.DestroyServer()
 	{
-		if (isRunningServer == false)
-		{
-			Debug.LogError("Trying to stop server while not hosting");
-			return;
-		}
-
-		isRunningServer = false;
-		serverController.CloseServer();
-		Destroy(serverController);
-		serverController = null;
 	}
 
 	void IServerUIControllable.StartGame()
 	{
-		Debug.Log("[GAMEMANAGER]: Starting game as hosting player");
-		clientController.StartUpdateAsHostingPlayer();
-		serverController.StartGame();
+		this.photonView.RPC("StartGame", RpcTarget.All);
 	}
+
+	[PunRPC]
+	void StartGame()
+	{
+		Debug.Log("Start loading scene");
+		PhotonNetwork.AutomaticallySyncScene = true;
+		PhotonNetwork.LoadLevel(levelName);
+
+		SceneManager.sceneLoaded += OnSceneLoaded;
+	}
+
+	private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		SceneManager.sceneLoaded -= OnSceneLoaded;
+
+		Vector3 startPosition 		= Vector3.zero;
+		Quaternion startRotation 	= Quaternion.identity;
+
+		var netCharacter 		= PhotonNetwork.Instantiate(characterPrefab.name,
+															startPosition,
+															startRotation);
+
+		var cameraController 	= Instantiate(cameraControllerPrefab);
+		cameraController.target = netCharacter.transform;
+		var camera 				= Instantiate(gameCameraPrefab, cameraController.transform);
+
+		netCharacter.GetComponent<LocalPlayerController>().SetCamera(camera.camMain);
+
+		uiController.Hide();
+	}
+
 
 	void IServerUIControllable.AbortGame()
 	{
-		serverController.AbortGame();
 	}
 
 	void IClientUIControllable.BeginJoin()
 	{
-		Debug.Log("[UI]: Begin join");
-		clientController.StartListenBroadcast();
 	}
 
 	void IClientUIControllable.EndJoin()
 	{
-		Debug.Log("[UI]: End join");	
-		clientController.StopListenBroadcast();
-	}
-
-	private void StartGame(GameStartInfo startInfo)
-	{
-		Debug.Log("Client says server starts the game :)");
-
-		uiController.Hide();
-		SceneManager.LoadScene("Map01", LoadSceneMode.Additive);
-		// TODO(Leo): clientController.SendSceneLoadedMessage();
-
-		int localPlayerId = clientController.ClientId;
-
-		var localPlayerInfo 	= startInfo.localPlayer;
-		var localPlayer 		= characterPrefabs.InstantiateOne(localPlayerInfo.avatarId);
-		var localCharacter 		= localPlayer.GetComponent<Character>();
-		
-		LocalCameraController cameraController = Instantiate(cameraControllerPrefab);
-		cameraController.target = localCharacter.transform;
-		PostFx gameCamera = Instantiate(	gameCameraPrefab,
-											Vector3.zero,
-											Quaternion.identity,
-											cameraController.transform);
-
-		localPlayerController 	= LocalPlayerController.Create(
-											localCharacter,
-											gameCamera.camMain,
-											normalSettings,
-											morkoSettings);
-
-		clientController.SetSender(localPlayerController);
-		Debug.Log("[GAME MANAGER]: Set sender to client controller");
-
-		var visibilityObject = Instantiate(	visibilityEffectPrefab,
-											Vector3.up * 1.0f,
-											Quaternion.identity,
-											localCharacter.transform.root);
-
-		clientController.InitializeReceivers();
-		int remotePlayerCount = startInfo.remotePlayers.Length;
-		remotePlayerControllers = new RemotePlayerController [remotePlayerCount];
-		for (int remotePlayerIndex = 0; remotePlayerIndex < remotePlayerCount; remotePlayerIndex++)
-		{
-			var info = startInfo.remotePlayers[remotePlayerIndex];
-
-			var remotePlayer 	= characterPrefabs.InstantiateOne(info.avatarId);
-			var remoteCharacter = remotePlayer.GetComponent<Character>();
-			remoteCharacter.gameObject.SetLayerRecursively(remoteCharacterLayer);
-
-			var remoteController = RemotePlayerController.Create(remoteCharacter);
-			clientController.SetReceiver(info.playerId, remoteController);
-
-			remotePlayerControllers[remotePlayerIndex] = remoteController;			
-		}
-
-		clientController.StartNetworkUpdate();
-
-		// Todo(Leo): Most definetly not like this
-		StartCoroutine(UpdateControllers());
-	}
-
-	private IEnumerator UpdateControllers()
-	{
-		while(true)
-		{
-			localPlayerController.Update();
-			foreach (var remoteController in remotePlayerControllers)
-			{
-				remoteController.Update();
-			}
-
-			yield return null;
-		}
 	}
 
 	void IAppUIControllable.Quit()

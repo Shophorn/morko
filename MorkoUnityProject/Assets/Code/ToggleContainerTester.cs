@@ -4,12 +4,12 @@ public class ToggleContainerTester : MonoBehaviour
 {
 	public bool button;
 
-	public ServerInfo [] servers;
+	// public ServerInfo [] servers;
 
 	private void DoTest()
 	{
-		var testSubject = GetComponent<IClientNetControllable>();
-		testSubject.UpdateServersList(servers);
+		// var testSubject = GetComponent<IClientNetControllable>();
+		// testSubject.UpdateServersList(servers);
 	// IClientNetControllable.UpdateServersList	
 	}
 
