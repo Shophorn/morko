@@ -1,20 +1,17 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Morko
+
+public class GamepadInputFieldHelper : MonoBehaviour
 {
-	public class GamepadInputFieldHelper : MonoBehaviour
+	public InputField inputField;
+
+	private void Update()
 	{
-		private InputField inputField;
-
-		private void Start()
+		if(inputField.name == EventSystem.current.currentSelectedGameObject.name)
 		{
-			inputField = GetComponent<InputField>();
-		}
-
-		private void Update()
-		{
-			if (Input.GetButtonUp("Cancel") || Input.GetButtonUp("Submit"))
+			if (Input.GetButtonUp("Submit") || Input.GetButtonUp("Cancel"))
 				inputField.DeactivateInputField();
 		}
 	}
