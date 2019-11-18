@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 using Morko;
-using Morko.Network;
 
 public partial class UIController : MonoBehaviour
 {
@@ -23,10 +22,20 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private GameObject uiMainGameObject;
 
+	/* Todo(Leo, Joonas): This does not really belong here, but should be hidden
+	 behind ScrollSelector etc. */
+	[SerializeField] private GameObject listItemContainer;
+
+	[SerializeField] private GameObject connectingScreen;
+	[SerializeField] private GameObject loadingScreen;
+
 	private MenuView currentView = null;
 
-	private void SetMainView()
+	public void SetMainView()
 	{
+		loadingScreen.SetActive(false);
+		connectingScreen.SetActive(false);
+
 		currentView?.Hide();
 		currentView = null;
 		EventSystem.current.firstSelectedGameObject = mainView.hostViewButton.gameObject;
@@ -35,10 +44,23 @@ public partial class UIController : MonoBehaviour
 
 	private void SetView(IMenuLayout layout)
 	{
+		if (layout == null)
+		{
+			mainView.view.Hide();
+			currentView?.Hide();
+			currentView = null;
+			return;
+		}
+
 		if(currentView == layout.View)
 			return;
 
+		loadingScreen.SetActive(false);
+		connectingScreen.SetActive(false);
+
 		currentView?.Hide();
+		currentView = null;
+
 
 		if (layout.BelongsToMainMenu)
 			SetMainView();
@@ -49,7 +71,7 @@ public partial class UIController : MonoBehaviour
 		currentView.Show();
 	}
 
-	private void Start()
+	private void Awake()
 	{
 		// Todo(Leo): These must be injected, since they might actually not be present here
 		clientControls 	= GetComponent<IClientUIControllable>();
@@ -58,12 +80,21 @@ public partial class UIController : MonoBehaviour
 
 		InitializeMainView();
 		InitializeHostView();
-		InitializeHostLobbyView();
 		InitializeJoinView();
-		InitializeClientLobbyView();
+		InitializeRoomView();
 		InitializeOptionsView();
 		InitializeCreditsView();
+	}
 
-		mainView.view.Show();
+	public void SetConnectingScreen()
+	{
+		connectingScreen.SetActive(true);
+		SetView(null);
+	}
+
+	public void SetLoadingScreen()
+	{
+		loadingScreen.SetActive(true);
+		SetView(null);
 	}
 }

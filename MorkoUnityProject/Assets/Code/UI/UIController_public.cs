@@ -6,16 +6,12 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-using Morko;
-using Morko.Network;
+using Photon.Realtime;
 
 public interface IClientUIControllable
 {
-	void BeginJoin();
-	void EndJoin();
-
-	void OnClientReady();
 	void RequestJoin(JoinInfo joinInfo);
+	void OnPlayerReady();
 }
 
 public interface IServerUIControllable
@@ -33,12 +29,12 @@ public interface IAppUIControllable
 	void Quit();
 }
 
-public class JoinInfo
+public class JoinInfo 
 {
 	public string playerName;
 	public int selectedServerIndex;
+	public RoomInfo selectedRoomInfo;
 }
-
 
 /* Note(Leo): For clarity, public interface and MonoBehaviour internals
 are separated. Users only must depend on this public side. */
@@ -63,12 +59,22 @@ public partial class UIController
 	}
 
 	private ServerInfo [] availableServers;
+	private List<RoomInfo> availableRooms;
 
 	private string MapNameFromIndex(int mapIndex)
 	{
 		// Todo(Leo): Obviously this is not correct, please fix
 		return "Somber Bomber Suburbinator";
 	}
+
+	public void AddPlayer(int uniqueId, string name, PlayerNetworkStatus status)
+		=> roomView.playerNameList.AddPlayer(uniqueId, name, status);
+
+	public void RemovePlayer(int uniqueId)
+		=> roomView.playerNameList.RemovePlayer(uniqueId);
+
+	public void UpdatePlayerNetworkStatus(int uniqueId, PlayerNetworkStatus status)
+		=> roomView.playerNameList.SetStatus(uniqueId, status);
 
 	private void SetCurrentServer(int serverIndex)
 	{
@@ -80,6 +86,14 @@ public partial class UIController
 		joinView.mapNameText.text = MapNameFromIndex(selectedServer.mapIndex);
 		joinView.joinedPlayersCountText.text = selectedServer.maxPlayers.ToString();
 		joinView.gameDurationText.text = TimeFormat.ToTimeFormat(selectedServer.gameDurationSeconds);
+	}
+
+	public void SetRooms(List<RoomInfo> rooms)
+	{
+		availableRooms = rooms;
+
+		string[] names = rooms.Select(room => room.Name).ToArray();
+		joinView.availableServersSelector.SetOptions(names);
 	}
 
 	public void SetServerList(ServerInfo [] servers)

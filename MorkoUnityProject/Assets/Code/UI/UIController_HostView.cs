@@ -36,17 +36,17 @@ public partial class UIController
 		{
 			var info = new ServerInfo
 			{
-				hostingPlayerName = hostView.playerNameField.text,
-				serverName = hostView.serverNameField.text,
-				mapIndex = 0, //hostView.mapSelectionList.currentItem.ID,
-				maxPlayers = hostView.playerCountField.IntValue,
-				gameDurationSeconds = hostView.gameDurationField.IntValue,
-				joinedPlayers = new JoinInfo[hostView.playerCountField.IntValue],
+				serverName			= hostView.serverNameField.text,
+				hostingPlayerName	= hostView.playerNameField.text,
+				mapIndex 			= 0,
+				maxPlayers 			= hostView.playerCountField.IntValue,
+				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
 
 			serverControls.CreateServer(info);
-			EventSystem.current.SetSelectedGameObject(hostLobbyView.startGameButton.gameObject);
-			SetView(hostLobbyView);
+
+			SetRoomViewHost(true);
+			SetView(roomView);
 		});
 		hostView.cancelButton.onClick.AddListener(() =>
 		{
