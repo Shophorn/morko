@@ -93,8 +93,7 @@ public class MaskController : MonoBehaviour
 
     private void CheckMaskDistanceFromFallenCharacter(Transform target)
     {
-        float distanceFromTarget = Vector3.Distance(transform.position, target.position);
-        if (distanceFromTarget <= minDistanceFromCharacter)
+        if (navMeshAgent.remainingDistance > navMeshAgent.stoppingDistance)
             SetMaskToHead(target);
     }
 
