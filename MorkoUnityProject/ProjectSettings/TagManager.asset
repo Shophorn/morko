@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Host Window
   - Lobby Window
+  - Avatar
   layers:
   - Default
   - TransparentFX
@@ -32,7 +33,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Player
   - 
   - 
   - 

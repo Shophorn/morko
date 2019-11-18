@@ -5,15 +5,20 @@ using UnityEngine.AI;
 public class MaskController : MonoBehaviour
 {
     public NavMeshAgent navMeshAgent;
+    public Transform[] chracters;
+    public float maskSpeed;
+
     public Transform p1;
     public Transform p2;
-    public Transform[] chracters;
+    
     public float rotateTime;
     public float maskToTargetDuration;
 
     [HideInInspector]
     public Transform morko;
     private Transform normal;
+
+    private bool firstMorkoFound = false;
 
     private void Start()
     {
@@ -27,9 +32,13 @@ public class MaskController : MonoBehaviour
 
     private void Update()
     {
+        //if (!firstMorkoFound)
+        //{
+        //    FindStartingMorko(chracters, maskSpeed);
+        //}
         if (Input.GetKeyDown(KeyCode.S))
         {
-            FindStartingMorko(chracters, 2);
+            FindStartingMorko(chracters, maskSpeed);
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -41,7 +50,7 @@ public class MaskController : MonoBehaviour
         }
     }
 
-    public void FindStartingMorko(Transform[] characters, float timeBeforeFindingMorko)
+    public void FindStartingMorko(Transform[] characters, float speed)
     {
         
         // sleep?
@@ -59,6 +68,7 @@ public class MaskController : MonoBehaviour
             }
         }
 
+        navMeshAgent.speed = speed;
         navMeshAgent.destination = toMorko.position;
     }
 
