@@ -8,6 +8,7 @@ public class LocalCameraController : MonoBehaviour
 	public float defaultAngle;
 	public float maxAngle = 90;
 	[Range(0, 0.3f)] public float angleIncrement;
+	public string[] tagsThatTriggerCameraPositionChange;
 
 	private Vector3 targetWithOffset => target.position + offset;
 	private float currentAngle;
@@ -28,7 +29,7 @@ public class LocalCameraController : MonoBehaviour
 	private void LateUpdate()
 	{
 		defaultCameraPosition = GetCameraPositionWithDistanceAndAngle(targetWithOffset, distance, defaultAngle);
-		newCameraPosition = MoveCameraIfCharacterNotVisible(newCameraPosition, defaultAngle, maxAngle);
+		newCameraPosition = GetNewCameraPositionIfCharacterNotVisible(newCameraPosition, defaultAngle, maxAngle);
 
 		transform.position = newCameraPosition;
 		transform.LookAt(targetWithOffset);
@@ -46,17 +47,17 @@ public class LocalCameraController : MonoBehaviour
 		return position;
 	}
 
-	private Vector3 MoveCameraIfCharacterNotVisible(Vector3 currentPosition, float minAngle, float maxAngle)
+	private Vector3 GetNewCameraPositionIfCharacterNotVisible(Vector3 currentPosition, float minAngle, float maxAngle)
 	{
 		Vector3 pointUnderDefault = new Vector3(currentPosition.x, currentPosition.y - offsetStart, currentPosition.z - offsetStart);
 		Vector3 pointUnderTarget = targetWithOffset - new Vector3(0, offsetEnd, 0);
 
-		bool targetVisibleFromDefault = IsTargetVisible(currentPosition, targetWithOffset);
-		bool targetVisibleFromCheckUpRay = IsTargetVisible(pointUnderDefault, pointUnderTarget);
+		bool targetVisibleFromDefaultPosition = IsTargetVisible(currentPosition, targetWithOffset, tagsThatTriggerCameraPositionChange);
+		bool targetVisibleFromCheckUpRay = IsTargetVisible(pointUnderDefault, pointUnderTarget, tagsThatTriggerCameraPositionChange);
 
 		if (targetVisibleFromCheckUpRay)
 			currentAngle -= angleIncrement;
-		else if (!targetVisibleFromDefault)
+		else if (!targetVisibleFromDefaultPosition)
 			currentAngle += angleIncrement;
 
 		currentAngle = Mathf.Clamp(currentAngle, minAngle, maxAngle);
@@ -65,15 +66,18 @@ public class LocalCameraController : MonoBehaviour
 		return newPosition;
 	}
 
-	private bool IsTargetVisible(Vector3 from, Vector3 target, string hitTag = "Wall")
+	private bool IsTargetVisible(Vector3 from, Vector3 target, string[] hitTags)
 	{
-		var forward = target - from;
-		RaycastHit hit;
+		var direction = target - from;
+		var distance = Vector3.Distance(from, target);
+		
+		RaycastHit[] hits;
+		hits = Physics.RaycastAll(from, direction, distance);
 
-		if (Physics.Raycast(from, forward, out hit))
-			if (hit.collider.gameObject.CompareTag(hitTag))
+		foreach (var hit in hits)
+			if (hit.collider.tag.Equals(hitTags))
 				return false;
-
+		
 		return true;
 	}
 }
