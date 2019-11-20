@@ -14,9 +14,6 @@ public class MaskController : MonoBehaviour
     public Transform p1;
     public Transform p2;
     
-    public float rotateTime;
-    public float maskToTargetDuration;
-
     [HideInInspector]
     public Transform morko;
     private Transform toMorko;
@@ -45,7 +42,7 @@ public class MaskController : MonoBehaviour
         {
             toMorko = FindClosestCharacter(characters);
             StartCoroutine(MoveMaskToTarget(toMorko, maskStartingSpeed, waitForSeconds, startingDurationWait));
-            CheckMaskDistanceFromFallenCharacter(toMorko);
+            CheckMaskDistanceFromCharacter(toMorko);
         }
         
         if (Input.GetKeyDown(KeyCode.Space))
@@ -57,12 +54,11 @@ public class MaskController : MonoBehaviour
         }
 
         if (maskMovingToNewMorko)
-            CheckMaskDistanceFromFallenCharacter(toMorko);
+            CheckMaskDistanceFromCharacter(toMorko);
     }
 
     public Transform FindClosestCharacter(Transform[] characters)
     {
-        
         float distance = 100000000000f;
         Transform closestCharacter = characters[Random.Range(0, characters.Length - 1)];
         
@@ -91,9 +87,10 @@ public class MaskController : MonoBehaviour
         maskMovingToNewMorko = true;
     }
 
-    private void CheckMaskDistanceFromFallenCharacter(Transform target)
+    private void CheckMaskDistanceFromCharacter(Transform target)
     {
-        if (navMeshAgent.remainingDistance > navMeshAgent.stoppingDistance)
+        var distance = Vector3.Distance(transform.position, target.position);
+        if (distance <= minDistanceFromCharacter)
             SetMaskToHead(target);
     }
 
