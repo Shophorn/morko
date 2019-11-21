@@ -10,11 +10,8 @@ using Photon.Realtime;
 
 public interface IClientUIControllable
 {
-	void BeginJoin();
-	void EndJoin();
-
-	void OnClientReady();
 	void RequestJoin(JoinInfo joinInfo);
+	void OnPlayerReady();
 }
 
 public interface IServerUIControllable
@@ -53,7 +50,7 @@ public partial class UIController
 
 	public void Show()
 	{
-		uiMainGameObject.SetActive(true);	
+		uiMainGameObject.SetActive(true);
 	}
 
 	public void Hide()
@@ -67,9 +64,17 @@ public partial class UIController
 	private string MapNameFromIndex(int mapIndex)
 	{
 		// Todo(Leo): Obviously this is not correct, please fix
-		return "Sad Moody Somber Bomber Suburbinator";
+		return "Somber Bomber Suburbinator";
 	}
 
+	public void AddPlayer(int uniqueId, string name, PlayerNetworkStatus status)
+		=> roomView.playerNameList.AddPlayer(uniqueId, name, status);
+
+	public void RemovePlayer(int uniqueId)
+		=> roomView.playerNameList.RemovePlayer(uniqueId);
+
+	public void UpdatePlayerNetworkStatus(int uniqueId, PlayerNetworkStatus status)
+		=> roomView.playerNameList.SetStatus(uniqueId, status);
 
 	private void SetCurrentServer(int serverIndex)
 	{
@@ -79,7 +84,7 @@ public partial class UIController
 
 		joinView.hostingPlayerNameText.text = selectedServer.hostingPlayerName;
 		joinView.mapNameText.text = MapNameFromIndex(selectedServer.mapIndex);
-		joinView.joinedPlayersCountText.text = selectedServer.maxPlayers.ToString(); 
+		joinView.joinedPlayersCountText.text = selectedServer.maxPlayers.ToString();
 		joinView.gameDurationText.text = TimeFormat.ToTimeFormat(selectedServer.gameDurationSeconds);
 	}
 
@@ -96,51 +101,9 @@ public partial class UIController
 		availableServers = servers;
 
 		string[] names = servers.Select(info => info.serverName).ToArray();
+		joinView.availableServersSelector.OnServerListUpdated += SetServerListNavigation;
 		joinView.availableServersSelector.SetOptions(names);
 		joinView.availableServersSelector.OnSelectionChanged += SetCurrentServer;
-
-		// /* Todo(Leo): keep track of selected server, as index is likely to change
-	 // 	For example, get current selected servers name, and in the end find if it 
-		// is in new ones, and set it as active */
-		
-		// Debug.Log("Server info updated");
-		// joinView.availableServersToggleParent.DestroyAllChildren();
-
-		// int serverCount = infos.Length;
-		// int toggleHeight = 20;
-		// for (int serverIndex = 0; serverIndex < serverCount; serverIndex++)
-		// {
-		// 	/* Note(Leo): this is done because in c# for loop keeps index as
-		// 	reference (or something), so it would keep increasing, and any calls
-		// 	after loop would point to value of last iteration (aka count - 1) */
-		// 	int selectedIndex = serverIndex;
-
-		// 	var toggleInstance = Instantiate(
-		// 							joinView.availableServersTogglePrefab,
-		// 							joinView.availableServersToggleParent);
-
-		// 	float yPosition = toggleHeight * selectedIndex;
-		// 	toggleInstance.transform.localPosition = new Vector3(0, yPosition, 0);
-
-		// 	toggleInstance.Label.text = infos[selectedIndex].serverName;
-		// 	toggleInstance.Toggle.group = joinView.availableServersToggleGroup;
-
-		// 	/* Note(Leo): Unity documentation on Toggle.onValueChanged was unclear
-		// 	about what does the bool argument represent, so it is ignored here. */
-		// 	void SetSelectedIndex (bool ignored)
-		// 	{
-		// 		if (toggleInstance.Toggle.isOn)
-		// 		{
-		// 			joinView.selectedServerIndex = selectedIndex;
-
-		// 			joinView.hostingPlayerNameText.text = "Hosting Player";
-		// 			joinView.mapNameText.text = MapNameFromIndex(infos[selectedIndex].mapIndex);
-		// 			joinView.joinedPlayersCountText.text = infos[selectedIndex].maxPlayers.ToString(); 
-		// 			joinView.gameDurationText.text = TimeFormat.ToTimeFormat(infos[selectedIndex].gameDurationSeconds);
-		// 		}
-		// 	}
-
-		// 	toggleInstance.Toggle.onValueChanged.AddListener(SetSelectedIndex);
-		// }
+		joinView.availableServersSelector.OnSelectionChanged?.Invoke(0);
 	}
 }
