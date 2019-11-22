@@ -188,8 +188,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public void ExitCurrentMatch()
 	{
-		PhotonNetwork.LeaveRoom();
-		uiController.SetMainView();
+		Debug.Log("Exited the current match");
+		//PhotonNetwork.LeaveRoom();
+		//uiController.SetMainView();
 	}
 
 

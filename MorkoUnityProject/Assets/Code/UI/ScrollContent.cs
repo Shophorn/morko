@@ -9,12 +9,11 @@ public class ScrollContent : MonoBehaviour
 	public ListItem[] listElements;
 
 	//Just for testing purposes
-	//public string[] nimet;
-	//public GameObject[] objektit;
+	public string[] nimet;
+	public GameObject[] objektit;
 
 	public ListItem currentItem;
 
-	public GameObject center;
 	public float radius;
 	public float angle;
 
@@ -26,11 +25,11 @@ public class ScrollContent : MonoBehaviour
 	private int selectedItemIndex;
 
 	//Just for testing purposes
-	//private void OnEnable()
-	//{
-	//	listElements = new ListItem[nimet.Length];
-	//	InstantiateContentCircular(nimet, objektit);
-	//}
+	private void OnEnable()
+	{
+		listElements = new ListItem[nimet.Length];
+		InstantiateContentCircular(nimet, objektit);
+	}
 	private void OnDisable()
 	{
 		ClearSelectionList();
@@ -46,25 +45,25 @@ public class ScrollContent : MonoBehaviour
 
 	private void InstantiateContentCircular(string[] names, GameObject[] objects)
 	{
-		int listLength = listElements.Length;
-		if (listLength == 0)
-			listLength = 1;
-
-		angle = 360f / (float)listLength;
-		for(int i = 0; i < listLength; i++)
+		angle = 360f / (float)listElements.Length;
+		if (listElements.Length != 0)
 		{
-			Quaternion rotation = Quaternion.AngleAxis(i * angle, Vector3.up);
-			Vector3 direction = rotation * Vector3.back;
+			for(int i = 0; i < listElements.Length; i++)
+			{
+				Quaternion rotation = Quaternion.AngleAxis(i * angle, Vector3.up);
+				Vector3 direction = rotation * Vector3.back;
 
-			Vector3 position = transform.position - (direction * radius);
-			listElements[i] = Instantiate(listItem, position,rotation);
-			listElements[i].transform.SetParent(transform);
-			listElements[i].listItemId = i;
-			listElements[i].listItemName = names[i];
-			//objects[i].transform.localScale = new Vector3(30,30,30);
-			Instantiate(objects[i], listElements[i].transform.position, rotation).transform.SetParent(listElements[i].transform);
+				Vector3 position = transform.position - (direction * radius);
+				listElements[i] = Instantiate(listItem, position,rotation);
+				listElements[i].transform.SetParent(transform);
+				listElements[i].listItemId = i;
+				listElements[i].listItemName = names[i];
+				//objects[i].transform.localScale = new Vector3(30,30,30);
+				Instantiate(objects[i], listElements[i].transform.position, rotation).transform.SetParent(listElements[i].transform);
+				listElements[i].transform.Rotate(0f, listElements[i].transform.rotation.y+180-(i*angle), 0f, 0f);
+			}
+			CheckCurrentItem();
 		}
-		CheckCurrentItem();
 	}
 
 	public ListItem CheckCurrentItem()

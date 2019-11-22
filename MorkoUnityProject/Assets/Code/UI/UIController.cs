@@ -111,5 +111,7 @@ public partial class UIController : MonoBehaviour
 		}
 		if(notPauseWindow != null)
 			exitMatchButton = notPauseWindow.GetComponentInChildren<Button>();
+
+		notPauseWindow.SetActive(false);
 	}
 }

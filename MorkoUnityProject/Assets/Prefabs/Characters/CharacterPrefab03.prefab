@@ -118,7 +118,7 @@ Transform:
   m_GameObject: {fileID: 3593296432942239937}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 30, y: 30, z: 30}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_Children:
   - {fileID: 8547460790587295749}
   - {fileID: 7676284586850773491}
@@ -139,6 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 3311257126215873329}
+  localController: {fileID: 0}
 --- !u!143 &3311257126215873329
 CharacterController:
   m_ObjectHideFlags: 0

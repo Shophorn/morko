@@ -47,6 +47,7 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 			for (int i = 0; i < listLength; i++)
 			{
 				listElements[i].transform.RotateAround(content.transform.position, Vector3.up, factor * (int)direction);
+				listElements[i].transform.Rotate(0f,-factor*(int)direction,0f);
 			}
 			startAngle += factor;
 			yield return null;
