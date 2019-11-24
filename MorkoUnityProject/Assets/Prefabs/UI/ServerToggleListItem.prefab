@@ -178,6 +178,7 @@ GameObject:
   - component: {fileID: 3160083575080690326}
   - component: {fileID: 114865294298606164}
   - component: {fileID: 114836259103543732}
+  - component: {fileID: 5631687662569039790}
   m_Layer: 5
   m_Name: ServerToggleListItem
   m_TagString: Untagged
@@ -284,3 +285,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   label: {fileID: 3117969507358726841}
   toggle: {fileID: 3160083575080690326}
+--- !u!114 &5631687662569039790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6651769153887501250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3086def76383b0f428eaa3348e084446, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: {fileID: 3117969507358726841}
+  secondaryText: {fileID: 0}
+  defaultColor: {r: 0.3254902, g: 0.6156863, b: 0.31764707, a: 1}
+  highlightColor: {r: 0.89411765, g: 0.9411765, b: 0.16078432, a: 1}

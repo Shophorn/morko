@@ -46,6 +46,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void Awake()
 	{
+
 		DontDestroyOnLoad(this);
 		PhotonNetwork.ConnectUsingSettings();
 		uiController.SetConnectingScreen();

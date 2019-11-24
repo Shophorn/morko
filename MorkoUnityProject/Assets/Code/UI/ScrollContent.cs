@@ -64,6 +64,7 @@ public class ScrollContent : MonoBehaviour
 			}
 			CheckCurrentItem();
 		}
+		Debug.Log("Stuff doned");
 	}
 
 	public ListItem CheckCurrentItem()
