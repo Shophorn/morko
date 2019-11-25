@@ -4,19 +4,24 @@ using UnityEngine.AI;
 
 public class MaskController : MonoBehaviour
 {
+    public Transform mask;
     public NavMeshAgent navMeshAgent;
     public Transform[] characters;
+    public float waitForSecondsBeforeMovingMask;
     public float maskStartingSpeed;
     public float maskChangingSpeed;
-    public float waitForSeconds;
     public float minDistanceFromCharacter;
+    public float landingRadius;
 
     public Transform p1;
     public Transform p2;
+
+    private Animator animator;
     
-    [HideInInspector]
+    [SerializeField]
     public Transform morko;
-    private Transform toMorko;
+    [SerializeField]
+    public Transform toMorko;
     private Transform normal;
 
     private bool collisionDurationWait = true;
@@ -26,11 +31,13 @@ public class MaskController : MonoBehaviour
 
     private void Start()
     {
-        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent = mask.GetComponent<NavMeshAgent>();
         navMeshAgent.Warp(transform.position);
+
+        animator = mask.GetComponent<Animator>();
         
         var closestCharacter = FindClosestCharacter(characters);
-        StartCoroutine(MoveMaskToTarget(closestCharacter, maskStartingSpeed, waitForSeconds, startingDurationWait));
+        StartCoroutine(MoveMaskToTarget(closestCharacter, maskStartingSpeed, waitForSecondsBeforeMovingMask, startingDurationWait));
         
         morko = p2;
         normal = p1;
@@ -41,11 +48,11 @@ public class MaskController : MonoBehaviour
         if (lookingForStartingMorko)
         {
             toMorko = FindClosestCharacter(characters);
-            StartCoroutine(MoveMaskToTarget(toMorko, maskStartingSpeed, waitForSeconds, startingDurationWait));
+            StartCoroutine(MoveMaskToTarget(toMorko, maskStartingSpeed, waitForSecondsBeforeMovingMask, startingDurationWait));
             CheckMaskDistanceFromCharacter(toMorko);
         }
         
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!maskMovingToNewMorko && Input.GetKeyDown(KeyCode.Space))
         {
             SwitchMorko(morko, normal);
             var temp = normal;
@@ -64,7 +71,7 @@ public class MaskController : MonoBehaviour
         
         foreach (var c in characters)
         {
-            var characterDistance = Vector3.Distance(transform.position, c.position);
+            var characterDistance = Vector3.Distance(mask.transform.position, c.position);
             if (characterDistance < distance)
             {
                 distance = characterDistance;
@@ -78,7 +85,8 @@ public class MaskController : MonoBehaviour
     {
         if (wait)
             yield return new WaitForSeconds(waitForSeonds);
-
+        
+        animator.SetBool("Snake", true);
         startingDurationWait = false;
         
         navMeshAgent.speed = speed;
@@ -89,9 +97,9 @@ public class MaskController : MonoBehaviour
 
     private void CheckMaskDistanceFromCharacter(Transform target)
     {
-        var distance = Vector3.Distance(transform.position, target.position);
+        var distance = Vector3.Distance(mask.transform.position, target.position);
         if (distance <= minDistanceFromCharacter)
-            SetMaskToHead(target);
+            MaskToHead(target);
     }
 
     public void SwitchMorko(Transform oldMorko, Transform newMorko)
@@ -99,55 +107,61 @@ public class MaskController : MonoBehaviour
         toMorko = newMorko;
         maskMovingToNewMorko = true;
         
-        MaskOffHead(oldMorko);
-        MaskFliesOffHead(oldMorko);
-        //play falling animation
+        MaskOffHead(oldMorko, toMorko);
         //disable toMorko movement
-        StartCoroutine(MoveMaskToTarget(newMorko, maskChangingSpeed, waitForSeconds, true));
+        StartCoroutine(MoveMaskToTarget(newMorko, maskChangingSpeed, waitForSecondsBeforeMovingMask, true));
     }
     
-    public void MaskOffHead(Transform fromMorko)
+    public void MaskOffHead(Transform fromMorko, Transform toMorko)
     {
+        animator.ResetTrigger("MaskOn");
+        animator.SetTrigger("MaskOff");
         navMeshAgent.baseOffset = 0;
-        transform.parent = null;
+        mask.transform.parent = null;
+        var direction = (toMorko.position - mask.position).normalized;
+        mask.rotation = Quaternion.LookRotation(direction);
+        //mask.position = GetMaskLandingPosition(fromMorko.position);
     }
 
-    public void SetMaskToHead(Transform toMorko)
+    public void MaskToHead(Transform toMorko)
     {
+        animator.SetTrigger("MaskOn");
+        animator.SetBool("Snake", false);
+
         lookingForStartingMorko = false;
         maskMovingToNewMorko = false;
         
         var maskHolder = toMorko.transform.GetChild(0);
-        transform.parent = maskHolder.transform;
-        transform.localPosition = Vector3.zero;
-        transform.forward = toMorko.forward;
+        mask.transform.parent = maskHolder.transform;
+        mask.transform.localPosition = Vector3.zero;
+        mask.transform.forward = toMorko.forward;
         navMeshAgent.baseOffset = 0.82f;
 
         morko = toMorko;
     }
 
-    public void MaskFliesOffHead(Transform fromMorko)
+    private Vector3 GetMaskLandingPosition(Vector3 currentPosition)
     {
-        transform.position = new Vector3(transform.position.x, fromMorko.position.y, transform.position.z);
+        Vector3 position = Random.insideUnitCircle * landingRadius;
+        Vector3 newPosition = new Vector3(currentPosition.x + position.x, currentPosition.y, currentPosition.z + position.y);
+        return newPosition;
     }
 
     IEnumerator RotateMaskTowardsInSeconds(Vector3 target, float duration)
     {
         float timer = 0f;
-        var startRotation = transform.rotation;
+        var startRotation = mask.transform.rotation;
         
         while (timer <= duration)
         {
             timer += Time.deltaTime;
 
-            var direction = (target - transform.position).normalized;
+            var direction = (target - mask.transform.position).normalized;
             var lookRotation = Quaternion.LookRotation(direction);
  
-            transform.rotation = Quaternion.Slerp(startRotation, lookRotation, timer / duration);
+            mask.transform.rotation = Quaternion.Slerp(startRotation, lookRotation, timer / duration);
             yield return null;
         }
-        
-        //StartCoroutine(MoveMaskToTarget(target, maskToTargetDuration));
     }
     
     
