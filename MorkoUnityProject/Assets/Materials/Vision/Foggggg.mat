@@ -66,8 +66,8 @@ Material:
     - _IntersectionThresholdMax: 0.2
     - _Metallic: 0
     - _Mode: 0
-    - _NoiseMorph: -6.55
-    - _NoiseOffset: 271.4
+    - _NoiseMorph: 230.8
+    - _NoiseOffset: 154.56
     - _NoiseScale: 0.8
     - _NoiseStr: 0.6
     - _OcclusionStrength: 1
@@ -78,5 +78,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.20399229, g: 0.20392157, b: 0.43529412, a: 1}
+    - _Color: {r: 0.20399225, g: 0.20392153, b: 0.4352941, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
