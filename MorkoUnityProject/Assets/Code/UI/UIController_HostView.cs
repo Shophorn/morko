@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -7,6 +8,8 @@ public partial class UIController
 	[Serializable]
 	private struct HostView : IMenuLayout
 	{
+		public int serverIndex;
+
 		public MenuView view;
 
 		MenuView IMenuLayout.View => view;
@@ -21,12 +24,13 @@ public partial class UIController
 		public InputField serverNameField;
 		public DiscreteInputField playerCountField;
 		public DiscreteInputField gameDurationField;
+		public CircularScroll mapSelectionList;
 	}
 	[SerializeField] private HostView hostView;
 
 	private void InitializeHostView()
 	{
-		hostView.view.OnShow += () => listItemContainer.SetActive(true);
+		hostView.view.OnShow += () => hostView.mapSelectionList.listItemContainer.SetActive(true);
 
 		hostView.createRoomButton.onClick.AddListener(() =>
 		{
@@ -38,12 +42,18 @@ public partial class UIController
 				maxPlayers 			= hostView.playerCountField.IntValue,
 				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
+
 			serverControls.CreateServer(info);
 
 			SetRoomViewHost(true);
 			SetView(roomView);
 		});
-		hostView.cancelButton.onClick.AddListener(() => SetMainView());
+		hostView.cancelButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
+			SetMainView();
+		});
+
 		hostView.playerNameField.text = HostView.defaultPlayerName;
 		hostView.serverNameField.text = HostView.defaultServerName;
 	}
