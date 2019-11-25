@@ -29,7 +29,6 @@ public class SelectableColorChange : MonoBehaviour, IPointerEnterHandler, IPoint
 
 	public void OnSelect(BaseEventData eventData)
 	{
-		Debug.Log("Jööp");
 		text.color = highlightColor;
 		if (secondaryText != null)
 			secondaryText.color = highlightColor;

@@ -43,8 +43,6 @@ public partial class UIController
 			RoomInfo selectedRoom = availableRooms[index];
 			// joinView.hostingPlayerNameText.text 	= selectedRoom.hostingPlayerName;
 
-			Debug.Log(MapNameFromIndex((int)selectedRoom.CustomProperties["map"]));
-
 			joinView.mapNameText.text 				= MapNameFromIndex((int)selectedRoom.CustomProperties["map"]);
 			joinView.joinedPlayersCountText.text 	= selectedRoom.MaxPlayers.ToString(); 
 			joinView.gameDurationText.text 			= TimeFormat.ToTimeFormat((int)selectedRoom.CustomProperties["time"]);			
