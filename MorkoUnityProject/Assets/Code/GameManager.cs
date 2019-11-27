@@ -30,7 +30,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	public PlayerSettings morkoSettings;
 
 	public LocalCameraController cameraControllerPrefab;
-	public PostFx gameCameraPrefab;
+	public MultiplayerVision gameCameraPrefab;
 	public GameObject visibilityEffectPrefab;
 
 	public int remoteCharacterLayer;
@@ -202,12 +202,12 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		var netCharacter 		= PhotonNetwork.Instantiate(characterPrefab.name,
 															startPosition,
 															startRotation);
-
+        Instantiate(visibilityEffectPrefab, netCharacter.transform);
 		var cameraController 	= Instantiate(cameraControllerPrefab);
 		cameraController.target = netCharacter.transform;
 		var camera 				= Instantiate(gameCameraPrefab, cameraController.transform);
 
-		netCharacter.GetComponent<LocalPlayerController>().SetCamera(camera.camMain);
+		netCharacter.GetComponent<LocalPlayerController>().SetCamera(camera.baseCamera);
 
 		uiController.Hide();
 	}
