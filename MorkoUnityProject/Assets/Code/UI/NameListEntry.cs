@@ -5,7 +5,7 @@ public class NameListEntry : MonoBehaviour
 {
     [SerializeField] private Text nameLabel;
     [SerializeField] private Text statusLabel;
-    [SerializeField] private Image statusImage;
+    //[SerializeField] private Image statusImage;
 
     [SerializeField] private Color statusWaitingColor;
     [SerializeField] private Color statusReadyColor;
@@ -22,11 +22,17 @@ public class NameListEntry : MonoBehaviour
         get => _status;
         set {
             _status = value;
-            statusLabel.text = _status.ToString();
+            statusLabel.text = _status.ToString().ToUpper();
             switch(_status)
             {
-                case PlayerNetworkStatus.Waiting: statusImage.color = statusWaitingColor; break;
-                case PlayerNetworkStatus.Ready: statusImage.color = statusReadyColor; break;
+                case PlayerNetworkStatus.Waiting:
+					statusLabel.color = statusWaitingColor;
+					nameLabel.color = statusWaitingColor;
+					break;
+                case PlayerNetworkStatus.Ready:
+					statusLabel.color = statusReadyColor;
+					nameLabel.color = statusReadyColor;
+					break;
             }
         }
     }

@@ -97,4 +97,21 @@ public partial class UIController : MonoBehaviour
 		loadingScreen.SetActive(true);
 		SetView(null);
 	}
+
+	public void SetNotPauseWindow(string level)
+	{
+		GameObject[] objectsOnScene = SceneManager.GetSceneByName(level).GetRootGameObjects();
+		foreach (GameObject go in objectsOnScene)
+		{
+			if(go.layer ==5)
+			{
+				notPauseWindow = go.transform.Find("NotPauseWindow").gameObject;
+				continue;
+			}
+		}
+		if(notPauseWindow != null)
+			exitMatchButton = notPauseWindow.GetComponentInChildren<Button>();
+
+		notPauseWindow.SetActive(false);
+	}
 }

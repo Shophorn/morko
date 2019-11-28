@@ -3,11 +3,12 @@ using UnityEngine.EventSystems;
 
 public class EventSystemFocusRegain : MonoBehaviour
 {
+	[SerializeField] GameObject firstSelectedUIElement;
 	private GameObject lastSelectedUIElemenent;
 
     void Start()
     {
-		lastSelectedUIElemenent = new GameObject();
+		lastSelectedUIElemenent = firstSelectedUIElement;
     }
 
     void Update()
