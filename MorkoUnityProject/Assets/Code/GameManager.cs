@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 //using Morko;
@@ -45,9 +46,21 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void Awake()
 	{
+
 		DontDestroyOnLoad(this);
 		PhotonNetwork.ConnectUsingSettings();
 		uiController.SetConnectingScreen();
+	}
+
+	private void Update()
+	{
+		if(uiController.notPauseWindow && Input.GetButtonUp("Cancel"))
+		{
+			EventSystem.current.firstSelectedGameObject = uiController.exitMatchButton.gameObject;
+			bool isPauseWindowActive;
+			isPauseWindowActive = uiController.notPauseWindow.activeInHierarchy? false:true;
+			uiController.notPauseWindow.SetActive(isPauseWindowActive);
+		}
 	}
 
 	public override void OnDisconnected (DisconnectCause cause)
@@ -112,8 +125,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 				}
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
-
-
 		}
 
 		Debug.Log("We are in the room");
@@ -173,9 +184,16 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		Debug.Log("Start loading scene");
 		PhotonNetwork.AutomaticallySyncScene = true;
 		PhotonNetwork.LoadLevel(levelName);
-
 		SceneManager.sceneLoaded += OnSceneLoaded;
 	}
+
+	public void ExitCurrentMatch()
+	{
+		Debug.Log("Exited the current match");
+		//PhotonNetwork.LeaveRoom();
+		//uiController.SetMainView();
+	}
+
 
 	public override void OnPlayerEnteredRoom(Player enteringPlayer)
 	{
@@ -208,6 +226,12 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		var camera 				= Instantiate(gameCameraPrefab, cameraController.transform);
 
 		netCharacter.GetComponent<LocalPlayerController>().SetCamera(camera.baseCamera);
+
+		uiController.SetNotPauseWindow(levelName);
+		uiController.exitMatchButton.onClick.AddListener(() =>
+		{
+			ExitCurrentMatch();
+		});
 
 		uiController.Hide();
 	}

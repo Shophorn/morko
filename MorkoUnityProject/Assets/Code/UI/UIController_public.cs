@@ -40,6 +40,9 @@ public class JoinInfo
 are separated. Users only must depend on this public side. */
 public partial class UIController
 {
+	public GameObject notPauseWindow;
+	public Button exitMatchButton;
+
 	public event Action OnExitHostWindow;
 	public event Action OnEnterHostLobbyWindow;
 	public event Action OnExitHostLobbyWindow;
