@@ -29,7 +29,7 @@
     {
         // No culling or depth
         Cull Off ZWrite Off ZTest Always
-
+		Tags { "LightMode" = "Deferred" }
         Pass
         {
 			Name "PrimoPass"
