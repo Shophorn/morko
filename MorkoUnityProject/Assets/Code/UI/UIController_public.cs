@@ -26,6 +26,7 @@ public interface IServerUIControllable
 
 public interface IAppUIControllable
 {
+	void ExitMatch();
 	void Quit();
 }
 
@@ -40,25 +41,23 @@ public class JoinInfo
 are separated. Users only must depend on this public side. */
 public partial class UIController
 {
-	public GameObject notPauseWindow;
-	public Button exitMatchButton;
-
-	public event Action OnExitHostWindow;
-	public event Action OnEnterHostLobbyWindow;
-	public event Action OnExitHostLobbyWindow;
-	public event Action OnEnterPlayerLobbyWindow;
-	public event Action OnExitPlayerLobbyWindow;
-	public event Action OnStartGame;
-	public event Action OnAbortGame;
-
 	public void Show()
 	{
-		uiMainGameObject.SetActive(true);
+		ToggleNotPauseMenu(forceActive: false);
+		
+		background.SetActive(true);
+		hidden = false;
+
+		Debug.Log("[UI]: Shown");
 	}
 
 	public void Hide()
 	{
-		uiMainGameObject.SetActive(false);	
+		SetView(null);
+		connectingScreen.SetActive(false);
+		loadingScreen.SetActive(false);
+		background.SetActive(false);
+		hidden = true;
 	}
 
 	private ServerInfo [] availableServers;

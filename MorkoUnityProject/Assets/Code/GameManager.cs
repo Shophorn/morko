@@ -34,13 +34,13 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	public MultiplayerVision gameCameraPrefab;
 	public GameObject visibilityEffectPrefab;
 
-	public int remoteCharacterLayer;
 
  	public CharacterCollection characterPrefabs;
 
 	public int broadcastDelayMs = 100;
 	public int gameUpdateThreadDelayMs = 50;
 
+	public int remoteCharacterLayer;
 	public GameObject characterPrefab;
 	public string levelName;
 
@@ -54,12 +54,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void Update()
 	{
-		if(uiController.notPauseWindow && Input.GetButtonUp("Cancel"))
+		if (Input.GetButtonDown("Cancel"))
 		{
-			EventSystem.current.firstSelectedGameObject = uiController.exitMatchButton.gameObject;
-			bool isPauseWindowActive;
-			isPauseWindowActive = uiController.notPauseWindow.activeInHierarchy? false:true;
-			uiController.notPauseWindow.SetActive(isPauseWindowActive);
+			uiController.ToggleNotPauseMenu();
 		}
 	}
 
@@ -184,14 +181,19 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		Debug.Log("Start loading scene");
 		PhotonNetwork.AutomaticallySyncScene = true;
 		PhotonNetwork.LoadLevel(levelName);
-		SceneManager.sceneLoaded += OnSceneLoaded;
+		SceneManager.sceneLoaded += OnMapSceneLoaded;
 	}
 
 	public void ExitCurrentMatch()
 	{
 		Debug.Log("Exited the current match");
-		//PhotonNetwork.LeaveRoom();
-		//uiController.SetMainView();
+		PhotonNetwork.LeaveRoom();
+		uiController.Show();
+		uiController.SetMainView();
+
+		PhotonNetwork.LoadLevel("EmptyScene");
+
+		// Todo(Leo): If we were master client remove or host migrate room
 	}
 
 
@@ -210,9 +212,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.RemovePlayer(leavingPlayer.ActorNumber);
 	}
 
-	private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+	private void OnMapSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
-		SceneManager.sceneLoaded -= OnSceneLoaded;
+		SceneManager.sceneLoaded -= OnMapSceneLoaded;
 
 		Vector3 startPosition 		= Vector3.zero;
 		Quaternion startRotation 	= Quaternion.identity;
@@ -220,25 +222,24 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		var netCharacter 		= PhotonNetwork.Instantiate(characterPrefab.name,
 															startPosition,
 															startRotation);
-        Instantiate(visibilityEffectPrefab, netCharacter.transform);
+        netCharacter.name 		= "Local Player";
 		var cameraController 	= Instantiate(cameraControllerPrefab);
 		cameraController.target = netCharacter.transform;
 		var camera 				= Instantiate(gameCameraPrefab, cameraController.transform);
+        Instantiate(visibilityEffectPrefab, netCharacter.transform);
 
 		netCharacter.GetComponent<LocalPlayerController>().SetCamera(camera.baseCamera);
-
-		uiController.SetNotPauseWindow(levelName);
-		uiController.exitMatchButton.onClick.AddListener(() =>
-		{
-			ExitCurrentMatch();
-		});
 
 		uiController.Hide();
 	}
 
-
 	void IServerUIControllable.AbortGame()
 	{
+	}
+
+	void IAppUIControllable.ExitMatch()
+	{
+		ExitCurrentMatch();
 	}
 
 	void IAppUIControllable.Quit()
