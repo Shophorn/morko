@@ -6,6 +6,8 @@ public class MultiplayerVision : MonoBehaviour
 {
     public Material visionEffectMaterial;
 
+    public Material visionTESTMAT;
+
     public Camera baseCamera;
     public Camera maskCamera;
     public Camera multiplayerCamera;
@@ -19,10 +21,12 @@ public class MultiplayerVision : MonoBehaviour
     RenderTexture baseColor;
     RenderTexture baseDepth;
 
+    /*
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         Graphics.Blit(source, destination, visionEffectMaterial);
     }
+    */
 
     IEnumerator Start()
     {
@@ -30,21 +34,23 @@ public class MultiplayerVision : MonoBehaviour
 
         Debug.Log("START POST FX");
 
+        /*
         visionEffectMaterial.EnableKeyword("_BaseColor");
         visionEffectMaterial.EnableKeyword("_BaseDepth");
         visionEffectMaterial.EnableKeyword("_MultiplayerColor");
         visionEffectMaterial.EnableKeyword("_MultiplayerDepth");
         visionEffectMaterial.EnableKeyword("_MaskColor");
         visionEffectMaterial.EnableKeyword("_MaskDepth");
-
+        */
         if (maskCamera.targetTexture != null)
             maskCamera.targetTexture.Release();
-        maskColor = new RenderTexture(Screen.width, Screen.height, 0);
-        maskDepth = new RenderTexture(Screen.width, Screen.height, 24,RenderTextureFormat.Depth);
         
-
-        maskCamera.SetTargetBuffers(maskColor.colorBuffer, maskDepth.depthBuffer);
-
+        maskColor = new RenderTexture(Screen.width, Screen.height ,0);
+        //maskDepth = new RenderTexture(Screen.width, Screen.height, 24,RenderTextureFormat.Depth);
+        maskCamera.targetTexture = maskColor;
+        
+        //maskCamera.SetTargetBuffers(maskColor.colorBuffer, maskDepth.depthBuffer);
+        /*
         if (multiplayerCamera.targetTexture != null)
             multiplayerCamera.targetTexture.Release();
         morkoColor = new RenderTexture(Screen.width, Screen.height, 24);
@@ -67,6 +73,8 @@ public class MultiplayerVision : MonoBehaviour
         visionEffectMaterial.SetTexture("_MaskDepth",maskDepth);
         visionEffectMaterial.SetTexture("_MultiplayerColor",morkoColor);
         visionEffectMaterial.SetTexture("_MultiplayerDepth",morkoDepth);
+        */
+        visionTESTMAT.SetTexture("_MaskTex", maskColor);
 
     }
 }

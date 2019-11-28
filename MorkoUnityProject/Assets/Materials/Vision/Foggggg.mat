@@ -66,8 +66,8 @@ Material:
     - _IntersectionThresholdMax: 0.2
     - _Metallic: 0
     - _Mode: 0
-    - _NoiseMorph: 58.803352
-    - _NoiseOffset: 1157.0645
+    - _NoiseMorph: 115.374146
+    - _NoiseOffset: 2288.5798
     - _NoiseScale: 0.8
     - _NoiseStr: 0.6
     - _OcclusionStrength: 1
