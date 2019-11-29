@@ -45,7 +45,7 @@ public class FieldOfView : MonoBehaviour
     private void LateUpdate()
     {
         DrawFieldOfView();
-        DrawFullCone();
+        // DrawFullCone();
     }
 
     void DrawFieldOfView()

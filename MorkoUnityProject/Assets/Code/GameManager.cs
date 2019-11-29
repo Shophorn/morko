@@ -21,6 +21,8 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 							IServerUIControllable,
 							IAppUIControllable
 {
+	private static GameManager instance;
+
 	public UIController uiController;
 
 	private bool isRunningServer 		= false;
@@ -32,6 +34,8 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public LocalCameraController cameraControllerPrefab;
 	public MultiplayerVision gameCameraPrefab;
+	private MultiplayerVision gameCamera = null;
+
 	public GameObject visibilityEffectPrefab;
 
 
@@ -46,6 +50,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void Awake()
 	{
+		this.MakeMonoBehaviourSingleton();
 
 		DontDestroyOnLoad(this);
 		PhotonNetwork.ConnectUsingSettings();
@@ -196,7 +201,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		// Todo(Leo): If we were master client remove or host migrate room
 	}
 
-
 	public override void OnPlayerEnteredRoom(Player enteringPlayer)
 	{
 		Debug.Log($"{enteringPlayer.NickName} entered room");
@@ -225,12 +229,30 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
         netCharacter.name 		= "Local Player";
 		var cameraController 	= Instantiate(cameraControllerPrefab);
 		cameraController.target = netCharacter.transform;
-		var camera 				= Instantiate(gameCameraPrefab, cameraController.transform);
+		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
+		gameCamera.CreateMask();
         Instantiate(visibilityEffectPrefab, netCharacter.transform);
 
-		netCharacter.GetComponent<LocalPlayerController>().SetCamera(camera.baseCamera);
+		// netCharacter.GetComponent<LocalPlayerController>().SetCamera(gameCamera.baseCamera);
+
+		// var characterPartRenderers = netCharacter.GetComponentsInChildren<Renderer>();
+		// foreach(var renderer in characterPartRenderers)
+		// {
+		// 	renderer.material.SetTexture("_VisibilityMask", gameCamera.MaskTexture);
+		// }
 
 		uiController.Hide();
+	}
+
+	public static void SetupVisibilityEffect(GameObject character)
+	{
+		character.GetComponent<LocalPlayerController>().SetCamera(instance.gameCamera.baseCamera);
+
+		var characterPartRenderers = character.GetComponentsInChildren<Renderer>();
+		foreach(var renderer in characterPartRenderers)
+		{
+			renderer.material.SetTexture("_VisibilityMask", instance.gameCamera.MaskTexture);
+		}
 	}
 
 	void IServerUIControllable.AbortGame()

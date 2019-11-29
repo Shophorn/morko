@@ -17,6 +17,8 @@ public class Character : MonoBehaviour
 
 	private void Start()
 	{
+		GameManager.SetupVisibilityEffect(gameObject);
+
 		characterController = GetComponent<CharacterController>();
 		disableMovement = GetComponent<DisableMovement>();
 	}

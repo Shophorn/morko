@@ -15,6 +15,12 @@ public static class UnityExtensions
 							"instance", 
 							BindingFlags.NonPublic | BindingFlags.Static);
 
+		if (fieldInfo == null)
+		{
+			Debug.LogError($"Cannot make instance of type {typeof(T)} singleton, because it does not have private static member 'instance' of type {typeof(T)}.");
+		}
+
+
 		T value = (T)fieldInfo.GetValue(instance);
 		if (value == null)
 		{
