@@ -8,13 +8,13 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-//using Morko;
 
-/* Note(Leo): This was stupid namespace and also there is
+/* Note(Leo): This was stupid long namespace and also there is
 hashtable also in System.Collections. */
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 using Player = Photon.Realtime.Player;
+using PhotonActorNumber = System.Int32;
 
 public class GameManager : 	MonoBehaviourPunCallbacks,
 							IClientUIControllable,
@@ -38,15 +38,40 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public GameObject visibilityEffectPrefab;
 
-
- 	public CharacterCollection characterPrefabs;
-
 	public int broadcastDelayMs = 100;
 	public int gameUpdateThreadDelayMs = 50;
 
 	public int remoteCharacterLayer;
 	public GameObject characterPrefab;
 	public string levelName;
+
+	private Dictionary<PhotonActorNumber, GameObject> connectedCharacters;
+	private PhotonActorNumber currentMorkoActorNumber;
+
+	[SerializeField] public TrackTransform maskTrackerPrefab;
+	private TrackTransform maskTracker;
+
+	public bool testMaskTracking = false;
+	private void OnValidate()
+	{
+		if (testMaskTracking)
+		{
+			testMaskTracking = false;
+			int randomIndex = UnityEngine.Random.Range(0, connectedCharacters.Count);
+
+			int counter = 0;
+			foreach(var pair in connectedCharacters)
+			{
+				if (counter == randomIndex)
+				{
+					int actorNumber = pair.Key;
+					photonView.RPC(nameof(SetMaskTargetPlayer), RpcTarget.All, actorNumber);
+				}
+			}
+
+
+		}
+	}
 
 	private void Awake()
 	{
@@ -123,13 +148,11 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 				if (player.CustomProperties.ContainsKey(PropertyKey.PlayerStatus))
 				{
 					status = (PlayerNetworkStatus)player.CustomProperties[PropertyKey.PlayerStatus];
-					Debug.Log($"Status read succesfully ({status})");
 				}
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
 		}
 
-		Debug.Log("We are in the room");
 	}
 
 	public override void OnJoinRoomFailed(short returnCode, string message)
@@ -182,8 +205,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	void StartGame()
 	{
 		uiController.SetLoadingScreen();
+		connectedCharacters = new Dictionary<PhotonActorNumber, GameObject>();
+		currentMorkoActorNumber = -1;
 
-		Debug.Log("Start loading scene");
 		PhotonNetwork.AutomaticallySyncScene = true;
 		PhotonNetwork.LoadLevel(levelName);
 		SceneManager.sceneLoaded += OnMapSceneLoaded;
@@ -223,36 +247,59 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		Vector3 startPosition 		= Vector3.zero;
 		Quaternion startRotation 	= Quaternion.identity;
 
-		var netCharacter 		= PhotonNetwork.Instantiate(characterPrefab.name,
-															startPosition,
-															startRotation);
-        netCharacter.name 		= "Local Player";
 		var cameraController 	= Instantiate(cameraControllerPrefab);
-		cameraController.target = netCharacter.transform;
 		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
 		gameCamera.CreateMask();
-        Instantiate(visibilityEffectPrefab, netCharacter.transform);
 
-		// netCharacter.GetComponent<LocalPlayerController>().SetCamera(gameCamera.baseCamera);
+		var localPlayer 		= PhotonNetwork.Instantiate(characterPrefab.name,
+															startPosition,
+															startRotation);
+        localPlayer.name 		= "Local Player";
+		cameraController.target = localPlayer.transform;
+        Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
-		// var characterPartRenderers = netCharacter.GetComponentsInChildren<Renderer>();
-		// foreach(var renderer in characterPartRenderers)
-		// {
-		// 	renderer.material.SetTexture("_VisibilityMask", gameCamera.MaskTexture);
-		// }
+        maskTracker = Instantiate(maskTrackerPrefab);
 
 		uiController.Hide();
 	}
 
-	public static void SetupVisibilityEffect(GameObject character)
+	public static void SetCharacterMorko(Character character)
 	{
-		character.GetComponent<LocalPlayerController>().SetCamera(instance.gameCamera.baseCamera);
+		instance.photonView.RPC(nameof(SetMaskTargetPlayer),
+								RpcTarget.All,
+								character.photonView.Owner.ActorNumber);
+	}
 
-		var characterPartRenderers = character.GetComponentsInChildren<Renderer>();
+	public static bool IsCharacterMorko(Character character)
+	{
+		bool result = character.photonView.Owner.ActorNumber == instance.currentMorkoActorNumber;
+		return result;
+	}
+
+	[PunRPC]
+	private void SetMaskTargetPlayer(int actorNumber)
+	{
+		if (currentMorkoActorNumber == actorNumber)
+			return;
+
+		currentMorkoActorNumber = actorNumber;
+		maskTracker.target = connectedCharacters[actorNumber].transform;
+	}
+
+
+	public static void RegisterPlayerController(LocalPlayerController playerController)
+	{
+		if (playerController.photonView.IsMine)
+			playerController.SetCamera(instance.gameCamera.baseCamera);
+
+		var characterPartRenderers = playerController.GetComponentsInChildren<Renderer>();
 		foreach(var renderer in characterPartRenderers)
 		{
 			renderer.material.SetTexture("_VisibilityMask", instance.gameCamera.MaskTexture);
 		}
+
+		int actorNumber = playerController.photonView.Owner.ActorNumber;
+		instance.connectedCharacters.Add(actorNumber, playerController.gameObject);
 	}
 
 	void IServerUIControllable.AbortGame()

@@ -1,13 +1,19 @@
 ﻿using Photon.Pun;
 using System;
+using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(Character))]
+[RequireComponent(typeof(CharacterController))]
 public class LocalPlayerController : MonoBehaviourPun
 {
-	private Character character;
+#if UNITY_EDITOR
+	public bool DEVELOPMENTForceControl = false;
+#endif
+	// private Character character;
+	private CharacterController characterController;
+
 	public bool isMorko = false;
-	private Camera camera;
+	public Camera camera;
 	private Vector3 lastMousePosition;// Cannot call from field initializer = Input.mousePosition;
 	private LayerMask groundMask = 1 << 9;
 	private const float joystickMaxThreshold = 0.8f;
@@ -53,6 +59,13 @@ public class LocalPlayerController : MonoBehaviourPun
 	private bool disableMovement = false;
 	private long lastMillis = 0;
 
+	[Header("Testing")]
+	public float jumpVelocity = 5.0f;
+	public float diveSpeed = 5.0f;
+	float diveDuration = 1.0f;
+	bool diving = false;
+	Vector3 diveDirection;
+
 	public void ChangeStateTo(bool morko)
 	{
 		isMorko = morko;
@@ -81,15 +94,36 @@ public class LocalPlayerController : MonoBehaviourPun
 	{
 	}
 
+	private void OnControllerColliderHit(ControllerColliderHit hit)
+	{
+		var character = hit.collider.GetComponent<Character>();
+
+		if (character != null)
+		{
+			if (GameManager.IsPlayerMorko(photonView))
+			{
+				GameManager.SetPlayerMorko(character.photonView);
+			}
+		}
+	}
+
 	private void Awake()
 	{
-		// Note(Leo): Destroy this controller component only if we are not the local player
+		GameManager.RegisterPlayerController(this);
+
+	// Note(Leo): Destroy this controller component when we are not the local player
+	#if UNITY_EDITOR
+		if(photonView.IsMine == false && DEVELOPMENTForceControl == false)
+		{
+			Destroy(this);
+		}
+	#else
 		if (photonView.IsMine == false)
 		{
 			Destroy(this);
 		}
-
-		character = GetComponent<Character>();
+	#endif
+		characterController = GetComponent<CharacterController>();
 	}
 
 	public void SetCamera(Camera camera)
@@ -108,19 +142,51 @@ public class LocalPlayerController : MonoBehaviourPun
 		
 		bool dive = Input.GetKeyDown(KeyCode.Space);
 		
+		if (dive && !diving)
+		{
+			diving = true;
+			this.InvokeAfter (()=> diving = false, diveDuration);
+
+			velocityY = jumpVelocity;
+			diveDirection = previousVelocityVector;
+			diveDirection.y = 0f;
+			diveDirection = diveDirection.normalized;
+		}
+
 		Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateZ"));
 		Vector3 currentMousePosition = Input.mousePosition;
 		Vector3 mouseDelta = currentMousePosition - lastMousePosition;
 
-		Move(moveDirection, accelerateAndRun, hasMoved);
-		Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
+		if (diving == false)
+		{
+			Move(moveDirection, accelerateAndRun, hasMoved);
+			Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
+		}
+		else
+		{
+			ApplyGravity();
+			characterController.Move(diveDirection * diveSpeed * Time.deltaTime);
+		}
 	}
 	
+	private void ApplyGravity()
+	{
+		if (velocityY < 0 && characterController.isGrounded)
+		{
+			velocityY = 0;
+		}
+		else
+		{
+			velocityY += gravity * Time.deltaTime;
+		}
+		characterController.Move(Vector3.up * velocityY * Time.deltaTime);
+	}
+
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 	private void Move(Vector3 moveDirection, bool accelerateRun, bool hasMoved)
 	{
-		lastPosition = character.gameObject.transform.position;
-		character.transform.position = new Vector3(character.transform.position.x, 0f, character.transform.position.z);
+		lastPosition = transform.position;
+		transform.position = new Vector3(transform.position.x, 0f, transform.position.z);
 		
 		bool joystickMaxed = moveDirection.magnitude >= joystickMaxThreshold;
 		bool sneakingSpeed = currentMovementSpeed <= sneakSpeed;
@@ -176,7 +242,7 @@ public class LocalPlayerController : MonoBehaviourPun
 		// Parallel == 1
 		// Perpendicular == 0
 		// Opposite == -1
-		float moveLookDotProduct = Vector3.Dot(moveDirection.normalized, character.transform.forward);
+		float moveLookDotProduct = Vector3.Dot(moveDirection.normalized, transform.forward);
 		
 		float decrease = 1f;
 		
@@ -210,7 +276,7 @@ public class LocalPlayerController : MonoBehaviourPun
 		Vector3 velocity = Vector3.ClampMagnitude(moveDirection, 1f) * finalSpeed + Vector3.up * velocityY;
 		
 		// Move
-		character.characterController.Move(velocity * Time.deltaTime);
+		characterController.Move(velocity * Time.deltaTime);
 		
 		float directionAngleChange = Vector3.Angle(velocity, previousVelocityVector);
 		float angleClamp = Mathf.Clamp(directionAngleChange, 0f, 180f);
@@ -220,7 +286,7 @@ public class LocalPlayerController : MonoBehaviourPun
 
 		previousVelocityVector = velocity;
 		
-		if (character.characterController.isGrounded)
+		if (characterController.isGrounded)
 			velocityY = 0f;
 	}
 
@@ -232,7 +298,7 @@ public class LocalPlayerController : MonoBehaviourPun
 		bool mouseOrLeftJoystickRotated = (mouseRotated && !rightJoystickRotated) || (!mouseRotated && rightJoystickRotated);
 		bool mouseAndJoystickRotated = mouseRotated && rightJoystickRotated;
 		
-		var targetRotation = character.transform.rotation;
+		var targetRotation = transform.rotation;
 
 		if (mouseOrLeftJoystickRotated)
 		{
@@ -270,21 +336,21 @@ public class LocalPlayerController : MonoBehaviourPun
 		else if (hasMoved && currentSettings.rotateTowardsMove)
 			targetRotation = Quaternion.LookRotation(moveDirection);
 
-		character.transform.rotation = targetRotation;
+		transform.rotation = targetRotation;
 	}
 
 	private Quaternion GetRotationToCursorPositionRelativeToCameraAndCharacterPosition()
 	{
-		Plane playerPlane = new Plane(Vector3.up, character.transform.position);
+		Plane playerPlane = new Plane(Vector3.up, transform.position);
 		Ray ray = camera.ScreenPointToRay (Input.mousePosition);
          
 		float distance = 0.0f;
-		var mouseRotation = character.transform.rotation;
+		var mouseRotation = transform.rotation;
          
 		if (playerPlane.Raycast (ray, out distance)) 
 		{
 			Vector3 targetPoint = ray.GetPoint(distance);
-			mouseRotation = Quaternion.LookRotation(targetPoint - character.transform.position);
+			mouseRotation = Quaternion.LookRotation(targetPoint - transform.position);
 		}
 
 		return mouseRotation;

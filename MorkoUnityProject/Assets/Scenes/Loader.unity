@@ -3659,13 +3659,14 @@ MonoBehaviour:
     type: 3}
   visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
     type: 3}
-  characterPrefabs: {fileID: 11400000, guid: ad712c776f7659d45bd3b64771bbb022, type: 2}
   broadcastDelayMs: 100
   gameUpdateThreadDelayMs: 50
   remoteCharacterLayer: 11
   characterPrefab: {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76,
     type: 3}
   levelName: Map01
+  maskTrackerPrefab: {fileID: 3236208552190008975, guid: acc761d2911b7db48aa9fef4cd06ca1d,
+    type: 3}
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0

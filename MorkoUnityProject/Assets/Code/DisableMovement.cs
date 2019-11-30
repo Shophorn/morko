@@ -1,47 +1,47 @@
-using System.Collections;
-using UnityEngine;
+    // using System.Collections;
+    // using UnityEngine;
 
-public class DisableMovement : MonoBehaviour
-{
-    private CharacterController characterController;
-    private Character character;
-    private Vector3 positionToHold;
-    private Quaternion rotationToHold;
-    public float duration;
-    private void Start()
-    {
-        positionToHold = transform.position;
-        rotationToHold = transform.rotation;
-        character = GetComponent<Character>();
+    // public class DisableMovement : MonoBehaviour
+    // {
+    //     private CharacterController characterController;
+    //     private Character character;
+    //     private Vector3 positionToHold;
+    //     private Quaternion rotationToHold;
+    //     public float duration;
+    //     private void Start()
+    //     {
+    //         positionToHold = transform.position;
+    //         rotationToHold = transform.rotation;
+    //         character = GetComponent<Character>();
+            
+    //         characterController = GetComponent<CharacterController>();
+    //         StartCoroutine(HoldPosition(duration));
+    //     }
+
         
-        characterController = GetComponent<CharacterController>();
-        StartCoroutine(HoldPosition(duration));
-    }
+    //     IEnumerator HoldPosition(float secondsToHold)
+    //     {
+            
+    //         characterController.enabled = false;
+    //         yield return new WaitForSeconds(secondsToHold);
+    //         characterController.enabled = true;
 
-    /*
-    IEnumerator HoldPosition(float secondsToHold)
-    {
+    //         enabled = false;
+    //     }
         
-        characterController.enabled = false;
-        yield return new WaitForSeconds(secondsToHold);
-        characterController.enabled = true;
+    //     IEnumerator HoldPosition(float secondsToHold)
+    //     {
 
-        enabled = false;
-    }
-    */
-    IEnumerator HoldPosition(float secondsToHold)
-    {
+    //         float timer = 0f;
 
-        float timer = 0f;
+    //         while (timer <= secondsToHold)
+    //         {
+    //             transform.position = positionToHold;
+    //             transform.rotation = rotationToHold;
+    //             timer += Time.deltaTime;
+    //             yield return null;
+    //         }
 
-        while (timer <= secondsToHold)
-        {
-            transform.position = positionToHold;
-            transform.rotation = rotationToHold;
-            timer += Time.deltaTime;
-            yield return null;
-        }
-
-        character.DisableDisableMovementScript();
-    }
-}
+    //         character.DisableDisableMovementScript();
+    //     }
+    // }
