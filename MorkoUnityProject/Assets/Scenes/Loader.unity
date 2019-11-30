@@ -3571,6 +3571,7 @@ GameObject:
   - component: {fileID: 942324881}
   - component: {fileID: 942324880}
   - component: {fileID: 942324882}
+  - component: {fileID: 942324883}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -3729,6 +3730,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   button: 0
+--- !u!114 &942324883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942324876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d1ecf33d023a2648896a0237bdef12b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mixer: {fileID: 24100000, guid: d8b05df30c704db48aab0335b91457ce, type: 2}
+  master: {fileID: 24300002, guid: d8b05df30c704db48aab0335b91457ce, type: 2}
+  game: {fileID: 243191619540873224, guid: d8b05df30c704db48aab0335b91457ce, type: 2}
+  ui: {fileID: 243166045324695306, guid: d8b05df30c704db48aab0335b91457ce, type: 2}
+  music: {fileID: 243560873874872472, guid: d8b05df30c704db48aab0335b91457ce, type: 2}
 --- !u!114 &943946787 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2959532556203373665, guid: 9ae0bfa9ae7ab92418dca2f94f00a2dd,
