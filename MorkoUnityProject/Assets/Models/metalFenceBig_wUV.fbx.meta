@@ -1,0 +1,169 @@
+fileFormatVersion: 2
+guid: 4012fa03ac2689e4a96c380a418a0e7d
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: fenceCorner001
+    100002: fenceCorner002
+    100004: fenceSpike001
+    100006: fenceSpike002
+    100008: fenceSpike003
+    100010: fenceSpike004
+    100012: fenceSpike005
+    100014: fenceSpike006
+    100016: fenceSpike008
+    100018: fenceSpike009
+    100020: fenceSpike010
+    100022: fenceSpike011
+    100024: //RootNode
+    100026: Sidebeam001
+    100028: Sidebeam002
+    100030: stoneFenceBase
+    400000: fenceCorner001
+    400002: fenceCorner002
+    400004: fenceSpike001
+    400006: fenceSpike002
+    400008: fenceSpike003
+    400010: fenceSpike004
+    400012: fenceSpike005
+    400014: fenceSpike006
+    400016: fenceSpike008
+    400018: fenceSpike009
+    400020: fenceSpike010
+    400022: fenceSpike011
+    400024: //RootNode
+    400026: Sidebeam001
+    400028: Sidebeam002
+    400030: stoneFenceBase
+    2100000: No Name
+    2300000: fenceCorner001
+    2300002: fenceCorner002
+    2300004: fenceSpike001
+    2300006: fenceSpike002
+    2300008: fenceSpike003
+    2300010: fenceSpike004
+    2300012: fenceSpike005
+    2300014: fenceSpike006
+    2300016: fenceSpike008
+    2300018: fenceSpike009
+    2300020: fenceSpike010
+    2300022: fenceSpike011
+    2300024: Sidebeam001
+    2300026: Sidebeam002
+    2300028: stoneFenceBase
+    3300000: fenceCorner001
+    3300002: fenceCorner002
+    3300004: fenceSpike001
+    3300006: fenceSpike002
+    3300008: fenceSpike003
+    3300010: fenceSpike004
+    3300012: fenceSpike005
+    3300014: fenceSpike006
+    3300016: fenceSpike008
+    3300018: fenceSpike009
+    3300020: fenceSpike010
+    3300022: fenceSpike011
+    3300024: Sidebeam001
+    3300026: Sidebeam002
+    3300028: stoneFenceBase
+    4300000: fenceSpike001
+    4300002: fenceCorner001
+    4300004: stoneFenceBase
+    4300006: fenceSpike003
+    4300008: Sidebeam001
+    4300010: fenceCorner002
+    4300012: fenceSpike006
+    4300014: Sidebeam002
+    4300016: fenceSpike002
+    4300018: fenceSpike004
+    4300020: fenceSpike005
+    4300022: fenceSpike008
+    4300024: fenceSpike011
+    4300026: fenceSpike009
+    4300028: fenceSpike010
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
