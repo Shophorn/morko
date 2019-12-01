@@ -14,7 +14,6 @@ public class RoomCreateInfo
 	public string hostingPlayerName;
 	public int mapIndex;
 	public int maxPlayers;
-	// public JoinInfo[] joinedPlayers;
 	public int gameDurationSeconds;
 }
 

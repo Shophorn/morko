@@ -50,23 +50,39 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	private PhotonActorNumber localCharacterActorNumber;
 	private bool localCharacterSpawned;
 
-	[SerializeField] public TrackTransform maskTrackerPrefab;
+	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
+
+	[SerializeField] private TrackTransform maskTrackerPrefab;
 	private TrackTransform maskTracker;
+
+	private bool isEndSceneCurrent = false;
 
 	[UnityEditor.MenuItem("GameManager/Spawn Mask")]
 	private static void SpawnMask()
 	{
-		// Debug.Log($"instance: {instance != null}");
-		// Debug.Log($"instance.photonView: {instance.photonView != null}");
-		// Debug.Log($"instance.photonView.Owner: {instance.photonView.Owner != null}");
-
 		if (instance == null)
 			return;
 
 		int actorNumber = instance.localCharacterActorNumber;
-		instance.photonView.RPC(nameof(SetMaskTargetPlayer), RpcTarget.All, actorNumber);
+		instance.photonView.RPC(nameof(SetCharacterMorkoRPC), RpcTarget.All, actorNumber);
+	}
 
-		// Debug.Log("Spawned Mask");
+	[UnityEditor.MenuItem("GameManager/End Game")]
+	private static void EndGame()
+	{
+		if (instance == null)
+			return;
+
+		instance.photonView.RPC(nameof(LoadEndScene), RpcTarget.All);
+	}
+
+	[PunRPC]
+	private void LoadEndScene()
+	{
+		isEndSceneCurrent = true;
+
+		PhotonNetwork.AutomaticallySyncScene = true;
+		PhotonNetwork.LoadLevel("EndScene");
 	}
 
 	private void Awake()
@@ -113,6 +129,8 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public override void OnJoinedRoom()
 	{
+		isEndSceneCurrent = false;
+
 		foreach (var player in PhotonNetwork.PlayerList)
 		{
 			if (player.IsLocal)
@@ -154,6 +172,16 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 			uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber,
 													(PlayerNetworkStatus)properties[PhotonPropertyKey.PlayerStatus]);
 		}
+	}
+
+	public static GameEndResult GetEndResult()
+	{
+		var endResult = new GameEndResult
+		{
+			characterCount = instance.connectedCharacters.Count,
+			winningCharacterIndex = 0
+		};
+		return endResult;
 	}
 
 	void IServerUIControllable.CreateRoom(RoomCreateInfo createInfo)
@@ -239,32 +267,40 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.Hide();
 	}
 
-	public static void SetCharacterMorko(Character character)
-	{
-		instance.photonView.RPC(nameof(SetMaskTargetPlayer),
-								RpcTarget.All,
-								character.photonView.Owner.ActorNumber);
-	}
-
 	public static bool IsCharacterMorko(Character character)
 	{
 		bool result = character.photonView.Owner.ActorNumber == instance.currentMorkoActorNumber;
 		return result;
 	}
 
+	public static void SetCharacterMorko(Character character)
+	{
+		instance.photonView.RPC(nameof(SetCharacterMorkoRPC),
+								RpcTarget.All,
+								character.photonView.Owner.ActorNumber);
+	}
+
 	[PunRPC]
-	private void SetMaskTargetPlayer(int actorNumber)
+	private void SetCharacterMorkoRPC(int actorNumber)
 	{
 		if (currentMorkoActorNumber == actorNumber)
 			return;
 
 		currentMorkoActorNumber = actorNumber;
 		maskTracker.target = connectedCharacters[actorNumber].transform;
+
+		connectedCharacters[actorNumber].FreezeForSeconds(3);
+		Vector3 effectPosition = maskTracker.target.transform.position + maskTracker.offset;
+		Instantiate(morkoChangeParticlesPrefab, effectPosition, Quaternion.identity);
 	}
 
 
 	public static void RegisterCharactcer(Character character)
 	{
+		// Todo(Leo): This is a hack
+		if (instance.isEndSceneCurrent)
+			return;
+
 		if (character.photonView.IsMine)
 			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
 

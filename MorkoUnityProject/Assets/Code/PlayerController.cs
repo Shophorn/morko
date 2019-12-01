@@ -136,6 +136,10 @@ public class PlayerController : MonoBehaviourPun
 
 	private void Update()
 	{
+		if (character.Frozen)
+			return;
+
+
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
 		
