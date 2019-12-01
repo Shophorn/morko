@@ -20,6 +20,10 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private GameObject uiMainGameObject;
 
+	/* Todo(Leo, Joonas): This does not really belong here, but should be hidden
+	 behind ScrollSelector etc. */
+	[SerializeField] private GameObject listItemContainer;
+
 	[SerializeField] private GameObject connectingScreen;
 	[SerializeField] private GameObject loadingScreen;
 
@@ -84,7 +88,6 @@ public partial class UIController : MonoBehaviour
 		InitializeRoomView();
 		InitializeOptionsView();
 		InitializeCreditsView();
-		InitializeHowToPlayView();
 
 		exitMatchButton.onClick.AddListener(appControls.ExitMatch);
 

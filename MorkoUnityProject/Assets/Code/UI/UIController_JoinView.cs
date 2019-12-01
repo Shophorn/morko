@@ -57,14 +57,12 @@ public partial class UIController
 			clientControls.RequestJoin(info);
 
 			SetRoomViewHost(false);
-			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);
 			SetView(roomView);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 
 		joinView.cancelButton.onClick.AddListener(() =>
 		{
-			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
 			SetMainView();
 		});
 	}
