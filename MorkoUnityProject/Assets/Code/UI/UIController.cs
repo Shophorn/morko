@@ -6,8 +6,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-//using Morko;
-
 public partial class UIController : MonoBehaviour
 {
 	private interface IMenuLayout
@@ -25,7 +23,13 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private GameObject connectingScreen;
 	[SerializeField] private GameObject loadingScreen;
 
+	[SerializeField] private GameObject notPauseWindow;
+	[SerializeField] private Button exitMatchButton;
+
+	[SerializeField] private GameObject background;
+
 	private MenuView currentView = null;
+	private bool hidden = false;
 
 	public void SetMainView()
 	{
@@ -81,6 +85,10 @@ public partial class UIController : MonoBehaviour
 		InitializeOptionsView();
 		InitializeCreditsView();
 		InitializeHowToPlayView();
+
+		exitMatchButton.onClick.AddListener(appControls.ExitMatch);
+
+		hidden = !uiMainGameObject.activeInHierarchy;
 	}
 
 	public void SetConnectingScreen()
@@ -95,20 +103,19 @@ public partial class UIController : MonoBehaviour
 		SetView(null);
 	}
 
-	public void SetNotPauseWindow(string level)
-	{
-		GameObject[] objectsOnScene = SceneManager.GetSceneByName(level).GetRootGameObjects();
-		foreach (GameObject go in objectsOnScene)
-		{
-			if(go.layer ==5)
-			{
-				notPauseWindow = go.transform.Find("NotPauseWindow").gameObject;
-				continue;
-			}
-		}
-		if(notPauseWindow != null)
-			exitMatchButton = notPauseWindow.GetComponentInChildren<Button>();
+	private bool notPauseMenuActive;
 
-		notPauseWindow.SetActive(false);
+	public void ToggleNotPauseMenu(bool? forceActive = null)
+	{
+		Debug.Log("Toggle pause menu");
+
+		if (forceActive != null)
+			notPauseMenuActive = (bool)forceActive;
+		else if (hidden == false)
+			notPauseMenuActive = false;
+		else
+			notPauseMenuActive = !notPauseMenuActive;
+
+		notPauseWindow.SetActive(notPauseMenuActive);
 	}
 }

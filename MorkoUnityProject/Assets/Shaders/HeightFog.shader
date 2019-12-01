@@ -25,19 +25,18 @@
 
 		   struct appdata
 		   {
-			   float3 worldPos : TEXCOORD1;
 			   float4 scrPos : TEXCOORD0;
+			   float3 worldPos : TEXCOORD1;
+			   
 			   float4 vertex : POSITION;
 		   };
 
 		   struct v2f
 		   {
-			   float3 worldPos : TEXCOORD1;
 			   float4 scrPos : TEXCOORD0;
-			   UNITY_FOG_COORDS(0)
-			   float4 vertex : SV_POSITION;
-
-			   
+			   float3 worldPos : TEXCOORD1; 
+			   UNITY_FOG_COORDS(2)
+			   float4 vertex : SV_POSITION;	   
 		   };
 
 		   sampler2D _CameraDepthTexture;

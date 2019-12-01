@@ -1,6 +1,0 @@
-Player names to lobby
-Visualize "Player Ready" in lobby
-Visualize "Server Confirmed Join" in lobby
-Key / Counter tracking with net messages
-
-Stop game and get back to menu and do it again

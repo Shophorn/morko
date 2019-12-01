@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2231597440789578189}
   - component: {fileID: 7488062332753491345}
   - component: {fileID: 8662202465542526109}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: EyeR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 665894401798212742}
   - component: {fileID: 1803157755525319003}
   - component: {fileID: 3499858195199175252}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: characterPH
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 3104561209456141771}
   - component: {fileID: 8369720637402066675}
   - component: {fileID: 5199672741208408402}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -277,7 +277,7 @@ GameObject:
   - component: {fileID: 1081713420466458088}
   - component: {fileID: 3787735081321669782}
   - component: {fileID: 5931495741578049458}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: TesterCharacter
   m_TagString: Avatar
   m_Icon: {fileID: 0}
@@ -315,6 +315,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 5931495741578049458}
+  localController: {fileID: 0}
 --- !u!143 &5931495741578049458
 CharacterController:
   m_ObjectHideFlags: 0
@@ -345,7 +346,7 @@ GameObject:
   - component: {fileID: 6423792436727359180}
   - component: {fileID: 1001484224671835065}
   - component: {fileID: 6143585525086119390}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: EyeL
   m_TagString: Untagged
   m_Icon: {fileID: 0}

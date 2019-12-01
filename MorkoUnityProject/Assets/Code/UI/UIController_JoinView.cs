@@ -5,8 +5,6 @@ using UnityEngine.UI;
 
 using Photon.Realtime;
 
-//using Morko;
-
 public partial class UIController
 {
 	[Serializable]
@@ -18,7 +16,7 @@ public partial class UIController
 		bool IMenuLayout.BelongsToMainMenu => true;
 
 		public const string defaultPlayerName = "Client Player";
-		public int 	selectedServerIndex;
+		public int 	selectedRoomIndex;
 
 		public AvailableServersSelector availableServersSelector;
 
@@ -38,14 +36,14 @@ public partial class UIController
 	{
 		joinView.availableServersSelector.OnSelectionChanged += (index) =>
 		{
-			joinView.selectedServerIndex = index;
+			joinView.selectedRoomIndex = index;
 
 			RoomInfo selectedRoom = availableRooms[index];
 			// joinView.hostingPlayerNameText.text 	= selectedRoom.hostingPlayerName;
 
-			joinView.mapNameText.text 				= MapNameFromIndex((int)selectedRoom.CustomProperties["map"]);
+			joinView.mapNameText.text 				= MapNameFromIndex((int)selectedRoom.CustomProperties[PhotonPropertyKey.RoomMapId]);
 			joinView.joinedPlayersCountText.text 	= selectedRoom.MaxPlayers.ToString(); 
-			joinView.gameDurationText.text 			= TimeFormat.ToTimeFormat((int)selectedRoom.CustomProperties["time"]);			
+			joinView.gameDurationText.text 			= TimeFormat.ToTimeFormat((int)selectedRoom.CustomProperties[PhotonPropertyKey.RoomGameDuration]);			
 		};
 
 		joinView.requestJoinButton.onClick.AddListener (() => 
@@ -53,8 +51,8 @@ public partial class UIController
 			var info = new JoinInfo
 			{
 				playerName = joinView.playerNameField.text,
-				selectedServerIndex = joinView.selectedServerIndex,
-				selectedRoomInfo = availableRooms[joinView.selectedServerIndex]
+				selectedRoomIndex = joinView.selectedRoomIndex,
+				selectedRoomInfo = availableRooms[joinView.selectedRoomIndex]
 			};
 			clientControls.RequestJoin(info);
 
