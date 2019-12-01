@@ -9,9 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: PP
   m_Shader: {fileID: 4800000, guid: e7fbd94d1f753ed438d97f93b2d6f76d, type: 3}
-  m_ShaderKeywords: _AlphaMask _BaseColor _BaseDepth _Destination _MaskColor _MaskColorFull
-    _MaskDepth _MaskDepthFull _Morko _MorkoColor _MorkoDepth _MultiplayerColor _MultiplayerDepth
-    _OriginColor _OriginDepth
+  m_ShaderKeywords: _AlphaMask _Destination _MaskColor _MaskColorFull _MaskDepth _MaskDepthFull
+    _Morko _MorkoColor _MorkoDepth _OriginColor _OriginDepth
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -23,14 +22,6 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _AlphaMask:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _BaseColor:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _BaseDepth:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -58,20 +49,12 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _Main:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _MainDepth:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 8400000, guid: d666152b44ac8264ea91fe95aec8cb6c, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Mane:
-        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskColor:
@@ -103,14 +86,6 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MorkoDepth:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MultiplayerColor:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MultiplayerDepth:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -149,7 +124,7 @@ Material:
     - _OcclusionStrength: 1
     - _OutsideBlur: 0
     - _Parallax: 0.02
-    - _Saturation: 1
+    - _Saturation: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1

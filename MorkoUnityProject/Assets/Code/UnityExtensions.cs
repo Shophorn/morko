@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Reflection;
 using UnityEngine;
 
@@ -17,12 +15,6 @@ public static class UnityExtensions
 							"instance", 
 							BindingFlags.NonPublic | BindingFlags.Static);
 
-		if (fieldInfo == null)
-		{
-			Debug.LogError($"Cannot make instance of type {typeof(T)} singleton, because it does not have private static member 'instance' of type {typeof(T)}.");
-		}
-
-
 		T value = (T)fieldInfo.GetValue(instance);
 		if (value == null)
 		{
@@ -38,7 +30,7 @@ public static class UnityExtensions
 	{
 		if (gameObject == null)
 		{
-			Debug.LogError("Cannot set layer to null GameObject");
+			Debug.LogError("Cannot set layer of 'null' GameObject");
 		}
 
 		gameObject.layer = layer;
@@ -47,22 +39,5 @@ public static class UnityExtensions
 		{
 			child.gameObject.SetLayerRecursively(layer);
 		}
-	}
-
-	public static void InvokeAfter(this MonoBehaviour host, Action operation, float timeToWait)
-	{
-		if (operation == null)
-		{
-			Debug.LogError("Trying to invoke null operation.");
-			return;
-		}
-
-		IEnumerator Invoker()
-		{
-			yield return new WaitForSeconds(timeToWait);
-			operation();
-		}
-
-		host.StartCoroutine(Invoker());
 	}
 }

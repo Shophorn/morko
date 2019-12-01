@@ -3,17 +3,27 @@
     Properties
     {
 		[HideInInspector]
-        _BaseColor ("", 2D) = "white" {}
+        _OriginColor ("", 2D) = "white" {}
 		[HideInInspector]
-		_BaseDepth ("", 2D) = "black" {}
+		_OriginDepth ("", 2D) = "black" {}
 		[HideInInspector]
 		_MaskColor ("", 2D) = "black" {}
 		[HideInInspector]
 		_MaskDepth ("",2D) = "black" {}
 		[HideInInspector]
-		_MultiplayerColor("",2D) = "black" {}
+		_MorkoColor("",2D) = "black" {}
 		[HideInInspector]
-		_MultiplayerDepth("",2D) = "black" {}
+		_MorkoDepth("",2D) = "black" {}
+		[HideInInspector]
+		_Destination("",2D) = "black" {}
+
+		//purkka fix
+		[HideInInspector]
+		_MainTex("",2D) = "white" {}
+
+
+
+
 
 		_EdgeBlur("Blur Distance",Range(0.0,0.02)) = 0.0
 		_OutsideBlur("Outside Blur Scale",Range(0.0,0.02)) = 0.0
@@ -23,13 +33,14 @@
 
 		_NearClipPlane ("Near clip plane",float) = 0.3
 		_FarClipPlane("Far clip plane",float) = 1000
-
+		
+		
     }
     SubShader
     {
         // No culling or depth
         Cull Off ZWrite Off ZTest Always
-		Tags { "LightMode" = "Deferred" }
+
         Pass
         {
 			Name "PrimoPass"
@@ -88,12 +99,14 @@
 			/*------------------------------------------------------------------------------------------------------*/
 			
 			
-            sampler2D _BaseColor;
-			sampler2D _BaseDepth;
+			sampler2D _MainTex;
+
+            sampler2D _OriginColor;
+			sampler2D _OriginDepth;
             sampler2D _MaskColor;
 			sampler2D _MaskDepth;
-			sampler2D _MultiplayerColor;
-			sampler2D _MultiplayerDepth;
+			sampler2D _MorkoColor;
+			sampler2D _MorkoDepth;
 			int _BlurFilterSize;
 			float _OutsideBlur;
 			float _Saturation;
@@ -133,41 +146,36 @@
 				float3 normalized = col / ((size * 2 + 1) * (size * 2 + 1));
 				return normalized;
 			}
-			struct output
-			{
-				float4 color : SV_Target;
-				float depth : SV_Depth;
-			};
 
-			output frag (v2f i)
+			float4 frag (v2f i) : SV_Target
             {
-				float baseDepth = tex2D(_BaseDepth, i.uv).r;
+                //float3 originalColor = tex2D(_OriginColor, i.uv).rgb;
+
+				float originalDepth = tex2D(_OriginDepth, i.uv).r;
 
 				float2 maskTex = BlurSampled(_MaskColor, i.uv, _EdgeBlur);
 
-				float3 baseColor = BlurMasked(_BaseColor, i.uv, _OutsideBlur, 1-max(maskTex.r,maskTex.g));
-				
+				//float3 originalColor = BlurMasked(_OriginColor, i.uv, _OutsideBlur, 1-max(maskTex.r,maskTex.g));
+				float3 originalColor = BlurMasked(_MainTex, i.uv, _OutsideBlur, 1-max(maskTex.r,maskTex.g));
+
 				float maskFull = maskTex.g;
 				float maskPartial = maskTex.r;
 				float maskDepth = tex2D(_MaskDepth, i.uv).r;
 
-				float3 morkoColor = tex2D(_MultiplayerColor, i.uv).rgb;
-				float morkoDepth = tex2D(_MultiplayerDepth, i.uv).r;
+				float3 morkoColor = tex2D(_MorkoColor, i.uv).rgb;
+				float morkoDepth = tex2D(_MorkoDepth, i.uv).r;
 
-				float depthTest = step(baseDepth - morkoDepth, 0);
-				float depthTest2 = 1-step(baseDepth - maskDepth, 0);
-				float3 inSight = lerp(baseColor, morkoColor, depthTest);
+				float depthTest = step(originalDepth - morkoDepth, 0);
+				float depthTest2 = 1-step(originalDepth - maskDepth, 0);
+				float3 inSight = lerp(originalColor, morkoColor, depthTest);
 
-				float3 darkening = baseColor * _BrightnessFactor;
+				float3 darkening = originalColor * _BrightnessFactor;
 				float3 outOfSight = lerp(darkening, Luminance(darkening).rrr, _Saturation);
 
 				float fullMask = max(maskFull * depthTest2, maskPartial);
-				float4 finalColor = fixed4(lerp(inSight, outOfSight, 1 - fullMask), 1);
-				output o;
-				o.color = finalColor;
-				o.depth = max(baseDepth,morkoDepth);
-				//o.color = float4(o.depth.rrr, 1);
-                return o;
+				float4 output = fixed4(lerp(inSight, outOfSight, 1 - fullMask), 1);
+
+                return output;
             }
             ENDCG
         }

@@ -34,16 +34,16 @@ public partial class UIController
 
 		hostView.createRoomButton.onClick.AddListener(() =>
 		{
-			var info = new RoomCreateInfo
+			var info = new ServerInfo
 			{
-				roomName			= hostView.serverNameField.text,
+				serverName			= hostView.serverNameField.text,
 				hostingPlayerName	= hostView.playerNameField.text,
 				mapIndex 			= 0,
 				maxPlayers 			= hostView.playerCountField.IntValue,
 				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
 
-			serverControls.CreateRoom(info);
+			serverControls.CreateServer(info);
 
 			SetRoomViewHost(true);
 			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);

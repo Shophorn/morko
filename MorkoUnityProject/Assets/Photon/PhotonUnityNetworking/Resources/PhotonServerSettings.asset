@@ -35,7 +35,5 @@ MonoBehaviour:
   - Fire
   - RespawnSpaceship
   - StartGame
-  - SetupPlayerEffects
-  - SetMaskTargetPlayer
   DisableAutoOpenWizard: 1
   ShowSettings: 0

@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Host Window
   - Lobby Window
-  - Avatar
   layers:
   - Default
   - TransparentFX
@@ -19,7 +18,7 @@ TagManager:
   - PostProcessing
   - Ground
   - VisionMask
-  - Multiplayer
+  - Morko
   - VisionMask2
   - Obstacle
   - 
