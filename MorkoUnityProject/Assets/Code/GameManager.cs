@@ -45,32 +45,28 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	public GameObject characterPrefab;
 	public string levelName;
 
-	private Dictionary<PhotonActorNumber, GameObject> connectedCharacters;
+	private Dictionary<PhotonActorNumber, Character> connectedCharacters;
 	private PhotonActorNumber currentMorkoActorNumber;
+	private PhotonActorNumber localCharacterActorNumber;
+	private bool localCharacterSpawned;
 
 	[SerializeField] public TrackTransform maskTrackerPrefab;
 	private TrackTransform maskTracker;
 
-	public bool testMaskTracking = false;
-	private void OnValidate()
+	[UnityEditor.MenuItem("GameManager/Spawn Mask")]
+	private static void SpawnMask()
 	{
-		if (testMaskTracking)
-		{
-			testMaskTracking = false;
-			int randomIndex = UnityEngine.Random.Range(0, connectedCharacters.Count);
+		// Debug.Log($"instance: {instance != null}");
+		// Debug.Log($"instance.photonView: {instance.photonView != null}");
+		// Debug.Log($"instance.photonView.Owner: {instance.photonView.Owner != null}");
 
-			int counter = 0;
-			foreach(var pair in connectedCharacters)
-			{
-				if (counter == randomIndex)
-				{
-					int actorNumber = pair.Key;
-					photonView.RPC(nameof(SetMaskTargetPlayer), RpcTarget.All, actorNumber);
-				}
-			}
+		if (instance == null)
+			return;
 
+		int actorNumber = instance.localCharacterActorNumber;
+		instance.photonView.RPC(nameof(SetMaskTargetPlayer), RpcTarget.All, actorNumber);
 
-		}
+		// Debug.Log("Spawned Mask");
 	}
 
 	private void Awake()
@@ -205,7 +201,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	void StartGame()
 	{
 		uiController.SetLoadingScreen();
-		connectedCharacters = new Dictionary<PhotonActorNumber, GameObject>();
+		connectedCharacters = new Dictionary<PhotonActorNumber, Character>();
 		currentMorkoActorNumber = -1;
 
 		PhotonNetwork.AutomaticallySyncScene = true;
@@ -287,20 +283,23 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	}
 
 
-	public static void RegisterPlayerController(LocalPlayerController playerController)
+	public static void RegisterCharactcer(Character character)
 	{
-		if (playerController.photonView.IsMine)
-			playerController.SetCamera(instance.gameCamera.baseCamera);
+		if (character.photonView.IsMine)
+			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
 
-		var characterPartRenderers = playerController.GetComponentsInChildren<Renderer>();
+		var characterPartRenderers = character.GetComponentsInChildren<Renderer>();
 		foreach(var renderer in characterPartRenderers)
 		{
 			renderer.material.SetTexture("_VisibilityMask", instance.gameCamera.MaskTexture);
 		}
 
-		int actorNumber = playerController.photonView.Owner.ActorNumber;
-		instance.connectedCharacters.Add(actorNumber, playerController.gameObject);
+		int actorNumber = character.photonView.Owner.ActorNumber;
+		instance.connectedCharacters.Add(actorNumber, character.gameObject);
 	}
+
+	public static Camera GetPlayerViewCamera()
+		=> instance.gameCamera.baseCamera;
 
 	void IServerUIControllable.AbortGame()
 	{

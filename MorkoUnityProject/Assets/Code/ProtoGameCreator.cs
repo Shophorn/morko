@@ -10,7 +10,7 @@ public class ProtoGameCreator : MonoBehaviour
     // public Character characterPrefab;
     public PlayerSettings normalSettings;
     public PlayerSettings morkoSettings;
-    private LocalPlayerController localController;
+    private PlayerController localController;
 
     // Note(Leo): SAMPO LISÄSIN TÄN, pitää kytkee inspectorissa 
     // // public CharacterCollection characterPrefabs;

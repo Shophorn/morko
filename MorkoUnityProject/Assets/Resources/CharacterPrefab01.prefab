@@ -9,11 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8115506030764263787}
-  - component: {fileID: 114010903419290506}
   - component: {fileID: 3311257126215873329}
   - component: {fileID: 114353981944122392}
   - component: {fileID: 114935891494484828}
   - component: {fileID: 7685343771109430989}
+  - component: {fileID: 2128388933653630375}
   m_Layer: 0
   m_Name: CharacterPrefab01
   m_TagString: Avatar
@@ -36,25 +36,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114010903419290506
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3593296432942239937}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9bf866dfd40b2ce43bfafd3d0661ea06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DEVELOPMENTForceControl: 0
-  isMorko: 0
-  camera: {fileID: 0}
-  normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
-  morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
-  jumpVelocity: 5
-  diveSpeed: 5
 --- !u!143 &3311257126215873329
 CharacterController:
   m_ObjectHideFlags: 0
@@ -122,6 +103,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b9d207adda53ed4991c9b285f63d126, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2128388933653630375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3593296432942239937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b87a67c47d850a4cac299943d1fb16d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DEVELOPMENTForceControl: 0
+  isMorko: 0
+  camera: {fileID: 0}
+  normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
+  morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
+  jumpVelocity: 5
+  diveSpeed: 10
 --- !u!1001 &3871464422472069053
 PrefabInstance:
   m_ObjectHideFlags: 0
