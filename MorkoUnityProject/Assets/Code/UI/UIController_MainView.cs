@@ -15,6 +15,7 @@ public partial class UIController
 		public Button creditsButton;
 		public Button optionsButton;
 		public Button quitButton;
+		public Button howToPlayButton;
 	}
 	[SerializeField] private MainView mainView;
 
@@ -22,7 +23,7 @@ public partial class UIController
 	{
 		mainView.hostViewButton.onClick.AddListener(() =>
 		{
-			EventSystem.current.SetSelectedGameObject(hostView.serverNameField.gameObject);
+			EventSystem.current.SetSelectedGameObject(hostView.mapSelectionList.scrollLeft.gameObject);
 			SetView(hostView);
 		});
 		mainView.joinViewButton.onClick.AddListener(() =>
@@ -39,6 +40,11 @@ public partial class UIController
 		{
 			EventSystem.current.SetSelectedGameObject(creditsView.cancelButton.gameObject);
 			SetView(creditsView);
+		});
+		mainView.howToPlayButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(howToPlayView.cancelButton.gameObject);
+			SetView(howToPlayView);
 		});
 
 		mainView.quitButton.onClick.AddListener(() => appControls.Quit());

@@ -16,11 +16,11 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 	public Button scrollLeft;
 	public Button scrollRight;
 
-	public Direction currentDirection;
-
 	private Vector2 lastDragPosition;
 
 	public Text nameLabel;
+
+	[SerializeField] private float baseSpeed;
 
 	protected override void Awake()
 	{
@@ -31,29 +31,29 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 
 		currentItem = content.CheckCurrentItem();
 		nameLabel.text = currentItem.listItemName;
+		baseSpeed = 5f;
 	}
 
 	private IEnumerator Rotate(Direction direction)
 	{
-		int listLength = listElements.Length;
-		if (listLength == 0)
-			listLength = 1; //Just to prevent dividing by 0
-
-		float factor = 5 / listLength;
-
 		float startAngle = 0f;
-		while (startAngle < content.angle)
+		float factor;
+		if(listElements.Length > 0)
 		{
-			for (int i = 0; i < listLength; i++)
+			factor = baseSpeed / listElements.Length;
+			while (startAngle < content.angle)
 			{
-				listElements[i].transform.RotateAround(content.transform.position, Vector3.up, factor * (int)direction);
-				listElements[i].transform.Rotate(0f,-factor*(int)direction,0f);
+				for (int i = 0; i < listElements.Length; i++)
+				{
+					listElements[i].transform.RotateAround(content.transform.position, Vector3.up, factor * (int)direction);
+					listElements[i].transform.Rotate(0f,-factor*(int)direction,0f);
+				}
+				startAngle += factor;
+				yield return null;
 			}
-			startAngle += factor;
-			yield return null;
+			currentItem = content.CheckCurrentItem();
+			nameLabel.text = currentItem.listItemName;
 		}
-		currentItem = content.CheckCurrentItem();
-		nameLabel.text = currentItem.listItemName;
 	}
 
 	//Events suddenly stopped working for some reason.
