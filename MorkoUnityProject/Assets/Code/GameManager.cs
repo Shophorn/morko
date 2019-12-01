@@ -295,7 +295,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		}
 
 		int actorNumber = character.photonView.Owner.ActorNumber;
-		instance.connectedCharacters.Add(actorNumber, character.gameObject);
+		instance.connectedCharacters.Add(actorNumber, character);
 	}
 
 	public static Camera GetPlayerViewCamera()
