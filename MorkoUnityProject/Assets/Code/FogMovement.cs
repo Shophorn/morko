@@ -10,6 +10,7 @@ public class FogMovement : MonoBehaviour
     public float noiseSpeedY = 1f;
     private float currentY;
 
+    public Renderer rend;
     public Material fogMat;
 
     private float startXZ = 1;
@@ -18,20 +19,24 @@ public class FogMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (fogMat == null)
-            Debug.LogError("FOG MATERIAL MISSING");
+        if (rend == null)
+        {
+            rend = GetComponent<Renderer>();
+            rend.material = fogMat;
+        }
+            
         else
         {
-            fogMat.SetFloat("_NoiseOffset", startXZ);
-            fogMat.SetFloat("_NoiseMorph", startY);
+            rend.material.SetFloat("_NoiseOffset", startXZ);
+            rend.material.SetFloat("_NoiseMorph", startY);
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        currentXZ = fogMat.GetFloat("_NoiseOffset");
-        currentY = fogMat.GetFloat("_NoiseMorph");
+        currentXZ = rend.material.GetFloat("_NoiseOffset");
+        currentY = rend.material.GetFloat("_NoiseMorph");
 
         currentXZ += Time.deltaTime * noiseSpeedXZ;
         currentY += Time.deltaTime * noiseSpeedY;
@@ -41,7 +46,7 @@ public class FogMovement : MonoBehaviour
         if (currentY > 100000)
             currentY = 1;
 
-        fogMat.SetFloat("_NoiseOffset", currentXZ);
-        fogMat.SetFloat("_NoiseMorph", currentY);
+        rend.material.SetFloat("_NoiseOffset", currentXZ);
+        rend.material.SetFloat("_NoiseMorph", currentY);
     }
 }

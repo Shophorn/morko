@@ -22739,6 +22739,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   noiseSpeedXZ: 4
   noiseSpeedY: 0.2
+  rend: {fileID: 871092162}
   fogMat: {fileID: 2100000, guid: d437a7c8a6a137f47b5cb183d3772b1f, type: 2}
 --- !u!23 &871092162
 MeshRenderer:
@@ -47124,6 +47125,16 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
+        type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 1553171833}
+    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
+        type: 3}
+      propertyPath: distance
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 2084330402427940860, guid: 92318f7ba1abdd742b81fbccb8ffff32,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -47178,16 +47189,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
-        type: 3}
-      propertyPath: target
-      value: 
-      objectReference: {fileID: 1553171833}
-    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
-        type: 3}
-      propertyPath: distance
-      value: 13
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 92318f7ba1abdd742b81fbccb8ffff32, type: 3}
