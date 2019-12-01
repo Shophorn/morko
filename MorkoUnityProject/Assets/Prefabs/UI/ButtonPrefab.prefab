@@ -128,7 +128,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   text: {fileID: 5325054328763326030}
-  secondaryText: {fileID: 0}
   defaultColor: {r: 0.3254902, g: 0.6156863, b: 0.31764707, a: 1}
   highlightColor: {r: 0.65882355, g: 0.20392157, b: 0.15686275, a: 1}
 --- !u!1 &5325054328763326032
@@ -190,7 +189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
