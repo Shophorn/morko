@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Foggggg
   m_Shader: {fileID: 4800000, guid: 9c483496a133190468b3811bd817a1e2, type: 3}
-  m_ShaderKeywords:
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -66,8 +66,8 @@ Material:
     - _IntersectionThresholdMax: 0.2
     - _Metallic: 0
     - _Mode: 0
-    - _NoiseMorph: 4.5682883
-    - _NoiseOffset: 72.36584
+    - _NoiseMorph: 46.87104
+    - _NoiseOffset: 918.42676
     - _NoiseScale: 0.8
     - _NoiseStr: 0.6
     - _OcclusionStrength: 1
