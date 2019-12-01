@@ -110,22 +110,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
 	}
 
-	public class PropertyKey
-	{
-		/*	
-		Note(Leo): Photon uses strings to identify custom properties and
-		also encourages the use of short words. Using this enum-like class
-		we get short strings and also compile errors if these do not match
-		unlike using actual string literals.
-		
-		When adding new ones, just make sure they are different from previous
-		ones, and if we run out of sensible 1 character strings, just use two
-		or more characters.
-		*/
-		public const string PlayerStatus = "s";
-		public const string RoomGameDuration = "d";
-		public const string RoomMapId = "m";
-	}
 
 	public override void OnJoinedRoom()
 	{
@@ -134,16 +118,16 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 			if (player.IsLocal)
 			{
 				var properties = new Hashtable ();
-				properties.Add(PropertyKey.PlayerStatus, (int)PlayerNetworkStatus.Waiting);
+				properties.Add(PhotonPropertyKey.PlayerStatus, (int)PlayerNetworkStatus.Waiting);
 				player.SetCustomProperties(properties);
 				uiController.AddPlayer(player.ActorNumber, player.NickName, PlayerNetworkStatus.Waiting);
 			}
 			else
 			{
 				var status = PlayerNetworkStatus.Waiting;
-				if (player.CustomProperties.ContainsKey(PropertyKey.PlayerStatus))
+				if (player.CustomProperties.ContainsKey(PhotonPropertyKey.PlayerStatus))
 				{
-					status = (PlayerNetworkStatus)player.CustomProperties[PropertyKey.PlayerStatus];
+					status = (PlayerNetworkStatus)player.CustomProperties[PhotonPropertyKey.PlayerStatus];
 				}
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
@@ -159,37 +143,33 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	void IClientUIControllable.OnPlayerReady()
 	{
 		var properties = new Hashtable();
-		properties.Add(PropertyKey.PlayerStatus, PlayerNetworkStatus.Ready);
+		properties.Add(PhotonPropertyKey.PlayerStatus, PlayerNetworkStatus.Ready);
 		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
 	}
 
 	public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable properties)
 	{
-		if (properties.ContainsKey(PropertyKey.PlayerStatus))
+		if (properties.ContainsKey(PhotonPropertyKey.PlayerStatus))
 		{
 			uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber,
-													(PlayerNetworkStatus)properties[PropertyKey.PlayerStatus]);
+													(PlayerNetworkStatus)properties[PhotonPropertyKey.PlayerStatus]);
 		}
 	}
 
-	void IServerUIControllable.CreateServer(ServerInfo serverInfo)
+	void IServerUIControllable.CreateRoom(RoomCreateInfo createInfo)
 	{
-		PhotonNetwork.NickName = serverInfo.hostingPlayerName;
+		PhotonNetwork.NickName = createInfo.hostingPlayerName;
 		var options = new RoomOptions
 		{
-			MaxPlayers = (byte)serverInfo.maxPlayers,
-			CustomRoomPropertiesForLobby = new string [] {PropertyKey.RoomMapId, PropertyKey.RoomGameDuration},
+			MaxPlayers = (byte)createInfo.maxPlayers,
+			CustomRoomPropertiesForLobby = new string [] {PhotonPropertyKey.RoomMapId, PhotonPropertyKey.RoomGameDuration},
 			CustomRoomProperties = new Hashtable
 			{
-				{PropertyKey.RoomMapId, serverInfo.mapIndex},
-				{PropertyKey.RoomGameDuration, serverInfo.gameDurationSeconds}
+				{PhotonPropertyKey.RoomMapId, createInfo.mapIndex},
+				{PhotonPropertyKey.RoomGameDuration, createInfo.gameDurationSeconds}
 			}
 		};
-		PhotonNetwork.CreateRoom(serverInfo.serverName, options);
-	}
-
-	void IServerUIControllable.DestroyServer()
-	{
+		PhotonNetwork.CreateRoom(createInfo.roomName, options);
 	}
 
 	void IServerUIControllable.StartGame()
@@ -301,9 +281,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	public static Camera GetPlayerViewCamera()
 		=> instance.gameCamera.baseCamera;
 
-	void IServerUIControllable.AbortGame()
-	{
-	}
 
 	void IAppUIControllable.ExitMatch()
 	{
@@ -323,4 +300,21 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 			Application.Quit();
 		#endif
 	}
+}
+
+public static class PhotonPropertyKey
+{
+	/*	
+	Note(Leo): Photon uses strings to identify custom properties and
+	also encourages the use of short words. Using this enum-like class
+	we get short strings and also compile errors if these do not match
+	unlike using actual string literals.
+	
+	When adding new ones, just make sure they are different from previous
+	ones, and if we run out of sensible 1 character strings, just use two
+	or more characters.
+	*/
+	public const string PlayerStatus = "s";
+	public const string RoomGameDuration = "d";
+	public const string RoomMapId = "m";
 }
