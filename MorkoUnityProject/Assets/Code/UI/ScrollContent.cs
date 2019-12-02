@@ -8,10 +8,6 @@ public class ScrollContent : MonoBehaviour
 	public ListItem listItem;
 	public ListItem[] listElements;
 
-	//Just for testing purposes
-	public string[] nimet;
-	public GameObject[] objektit;
-
 	public ListItem currentItem;
 
 	public float radius;
@@ -24,12 +20,11 @@ public class ScrollContent : MonoBehaviour
 	[SerializeField]
 	private int selectedItemIndex;
 
-	//Just for testing purposes
-	private void OnEnable()
+	private void Awake()
 	{
-		listElements = new ListItem[nimet.Length];
-		InstantiateContentCircular(nimet, objektit);
+		Debug.Log($"I have ScrollContent, I am {name}");
 	}
+
 	private void OnDisable()
 	{
 		ClearSelectionList();

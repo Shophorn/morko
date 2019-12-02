@@ -57,6 +57,10 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private bool isEndSceneCurrent = false;
 
+	public static IClientUIControllable clientUIControls => instance;
+	public static IServerUIControllable serverUIControls => instance;
+	public static IAppUIControllable appUIControls => instance;
+
 	[UnityEditor.MenuItem("GameManager/Spawn Mask")]
 	private static void SpawnMask()
 	{
@@ -91,6 +95,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 		DontDestroyOnLoad(this);
 		PhotonNetwork.ConnectUsingSettings();
+
+
+		uiController.Configure(this, this, this);
 		uiController.SetConnectingScreen();
 	}
 

@@ -73,12 +73,17 @@ public partial class UIController : MonoBehaviour
 		currentView.Show();
 	}
 
-	private void Awake()
+
+
+	// private void Awake()
+	public void Configure(	IClientUIControllable clientControls,
+							IServerUIControllable serverControls,
+							IAppUIControllable appControls)
 	{
 		// Todo(Leo): These must be injected, since they might actually not be present here
-		clientControls 	= GetComponent<IClientUIControllable>();
-		serverControls 	= GetComponent<IServerUIControllable>();
-		appControls 	= GetComponent<IAppUIControllable>();
+		this.clientControls = clientControls;// 	= GameManager.clientUIControls; //GetComponent<IClientUIControllable>();
+		this.serverControls = serverControls;// 	= GameManager.serverUIControls; //GetComponent<IServerUIControllable>();
+		this.appControls = appControls;// 	= GameManager.appUIControls; //GetComponent<IAppUIControllable>();
 
 		InitializeMainView();
 		InitializeHostView();
