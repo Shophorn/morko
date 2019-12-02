@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2430794394543775832}
   - component: {fileID: 5409560388733589895}
   - component: {fileID: 5851576398568757145}
-  - component: {fileID: 8044030149110280788}
+  - component: {fileID: 1158909554151309146}
   m_Layer: 5
   m_Name: AnimatedLabelPrefab
   m_TagString: Untagged
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &8044030149110280788
+--- !u!114 &1158909554151309146
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -112,4 +112,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textObject: {fileID: 5409560388733589895}
-  timeForCycle: 1
+  timeForCycle: 1.5
