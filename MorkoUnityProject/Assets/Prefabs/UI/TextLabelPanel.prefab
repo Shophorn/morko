@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7444605566472388290}
   - component: {fileID: 7444605566472388291}
-  - component: {fileID: 114586645191994318}
   - component: {fileID: 114977491364814118}
   m_Layer: 5
   m_Name: TextLabelPanel
@@ -63,20 +62,6 @@ MonoBehaviour:
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 1
---- !u!114 &114586645191994318
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7444605566472388301}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c68f70dc3b65c7a43ae030c3b7e51a1f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerName: {fileID: 1670652243563866939}
-  characterName: {fileID: 1670652243573323216}
 --- !u!114 &114977491364814118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,18 +217,6 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 7444605565403870206}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1670652243573323216 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8106431005443655214, guid: 263157673db04c848953f8ed3ee63a63,
-    type: 3}
-  m_PrefabInstance: {fileID: 7444605565403870206}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &7444605565415451925
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -379,15 +352,3 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 7444605565415451925}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1670652243563866939 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8106431005443655214, guid: 263157673db04c848953f8ed3ee63a63,
-    type: 3}
-  m_PrefabInstance: {fileID: 7444605565415451925}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

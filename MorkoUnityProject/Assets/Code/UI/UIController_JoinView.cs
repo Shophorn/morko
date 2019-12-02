@@ -16,7 +16,7 @@ public partial class UIController
 		bool IMenuLayout.BelongsToMainMenu => true;
 
 		public const string defaultPlayerName = "Client Player";
-		public int 	selectedRoomIndex;
+		public int 	selectedServerIndex;
 
 		public AvailableServersSelector availableServersSelector;
 
@@ -36,7 +36,7 @@ public partial class UIController
 	{
 		joinView.availableServersSelector.OnSelectionChanged += (index) =>
 		{
-			joinView.selectedRoomIndex = index;
+			joinView.selectedServerIndex = index;
 
 			RoomInfo selectedRoom = availableRooms[index];
 			// joinView.hostingPlayerNameText.text 	= selectedRoom.hostingPlayerName;
@@ -51,18 +51,20 @@ public partial class UIController
 			var info = new JoinInfo
 			{
 				playerName = joinView.playerNameField.text,
-				selectedRoomIndex = joinView.selectedRoomIndex,
-				selectedRoomInfo = availableRooms[joinView.selectedRoomIndex]
+				selectedRoomIndex = joinView.selectedServerIndex,
+				selectedRoomInfo = availableRooms[joinView.selectedServerIndex]
 			};
 			clientControls.RequestJoin(info);
 
 			SetRoomViewHost(false);
+			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);
 			SetView(roomView);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 
 		joinView.cancelButton.onClick.AddListener(() =>
 		{
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
 			SetMainView();
 		});
 	}

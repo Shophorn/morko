@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -18,8 +19,9 @@ public partial class UIController
 
         public Button readyButton;
         public Button cancelButton;
+		public CircularScroll characterSelectionList;
 
-        public bool IsHost { get; set; }
+		public bool IsHost { get; set; }
     }
     [SerializeField] private RoomView roomView;
 
@@ -37,8 +39,9 @@ public partial class UIController
 
         roomView.cancelButton.onClick.AddListener(() =>
         {
-            // Todo(Leo): Call some cancel callback, we need to cancel photon
-            SetMainView();
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
+			// Todo(Leo): Call some cancel callback, we need to cancel photon
+			SetMainView();
         });
     }
 

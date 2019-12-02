@@ -20,10 +20,6 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private GameObject uiMainGameObject;
 
-	/* Todo(Leo, Joonas): This does not really belong here, but should be hidden
-	 behind ScrollSelector etc. */
-	[SerializeField] private GameObject listItemContainer;
-
 	[SerializeField] private GameObject connectingScreen;
 	[SerializeField] private GameObject loadingScreen;
 
@@ -32,8 +28,10 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private GameObject background;
 
-	private MenuView currentView = null;
+	private bool notPauseMenuActive = false;
 	private bool hidden = false;
+
+	private MenuView currentView = null;
 
 	public void SetMainView()
 	{
@@ -88,6 +86,7 @@ public partial class UIController : MonoBehaviour
 		InitializeRoomView();
 		InitializeOptionsView();
 		InitializeCreditsView();
+		InitializeHowToPlayView();
 
 		exitMatchButton.onClick.AddListener(appControls.ExitMatch);
 
@@ -105,8 +104,6 @@ public partial class UIController : MonoBehaviour
 		loadingScreen.SetActive(true);
 		SetView(null);
 	}
-
-	private bool notPauseMenuActive;
 
 	public void ToggleNotPauseMenu(bool? forceActive = null)
 	{

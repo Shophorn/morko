@@ -46,6 +46,7 @@ public partial class UIController
 			serverControls.CreateRoom(info);
 
 			SetRoomViewHost(true);
+			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);
 			SetView(roomView);
 		});
 		hostView.cancelButton.onClick.AddListener(() =>
