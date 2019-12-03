@@ -62,11 +62,13 @@ public class PlayerController : MonoBehaviourPun
 	private long lastMillis = 0;
 
 	[Header("Testing")]
-	public float jumpVelocity = 5.0f;
-	public float diveSpeed = 5.0f;
-	float diveDuration = 1.0f;
-	bool diving = false;
-	Vector3 diveDirection;
+	//public float jumpVelocity = 5.0f;
+	public float sprintSpeed = 5.0f;
+	public float sprintDuration = 1.0f;
+	public float sprintCooldown = 1.0f;
+	bool isSprinting = false;
+	bool isSprintingCooldown = false;
+	Vector3 sprintDirection;
 
 	public void ChangeStateTo(bool morko)
 	{
@@ -147,32 +149,34 @@ public class PlayerController : MonoBehaviourPun
 		bool runningSpeed = currentMovementSpeed >= walkSpeed;
 		bool accelerateAndRun = runningInput && runningSpeed ? true : false;
 		
-		bool dive = Input.GetKeyDown(KeyCode.Space);
+		bool sprint = Input.GetKeyDown(KeyCode.Space);
 		
-		if (dive && !diving)
+		if (sprint && !isSprinting && !isSprintingCooldown)
 		{
-			diving = true;
-			this.InvokeAfter (()=> diving = false, diveDuration);
+			isSprinting = true;
+			isSprintingCooldown = true;
+			this.InvokeAfter (()=> isSprinting = false, sprintDuration);
+			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown);
 
-			velocityY = jumpVelocity;
-			diveDirection = previousVelocityVector;
-			diveDirection.y = 0f;
-			diveDirection = diveDirection.normalized;
+			//velocityY = jumpVelocity;
+			sprintDirection = previousVelocityVector;
+			sprintDirection.y = 0f;
+			sprintDirection = sprintDirection.normalized;
 		}
 
 		Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateZ"));
 		Vector3 currentMousePosition = Input.mousePosition;
 		Vector3 mouseDelta = currentMousePosition - lastMousePosition;
 
-		if (diving == false)
+		if (isSprinting == false)
 		{
 			Move(moveDirection, accelerateAndRun, hasMoved);
 			Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
 		}
 		else
 		{
-			ApplyGravity();
-			characterController.Move(diveDirection * diveSpeed * Time.deltaTime);
+			//ApplyGravity();
+			characterController.Move(sprintDirection * sprintSpeed * Time.deltaTime);
 		}
 	}
 	
