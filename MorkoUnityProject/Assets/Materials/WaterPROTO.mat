@@ -68,7 +68,7 @@ Material:
     - _NoiseMorph: 41.45
     - _NoiseOffset: -45.65
     - _NoiseScale: 0.1
-    - _NoiseStr: 0.67
+    - _NoiseStr: 0.8
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
