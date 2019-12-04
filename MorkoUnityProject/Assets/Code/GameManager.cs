@@ -16,6 +16,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Player = Photon.Realtime.Player;
 using PhotonActorNumber = System.Int32;
 
+[RequireComponent(typeof(AudioController))]
 public class GameManager : 	MonoBehaviourPunCallbacks,
 							IClientUIControllable,
 							IServerUIControllable,
@@ -97,7 +98,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		PhotonNetwork.ConnectUsingSettings();
 
 
-		uiController.Configure(this, this, this);
+		uiController.Configure(this, this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
 	}
 

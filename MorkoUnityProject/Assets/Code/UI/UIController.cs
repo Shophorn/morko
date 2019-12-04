@@ -6,8 +6,17 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+public interface IAudioUIControllable
+{
+	void SetMasterVolume(float value);
+	void SetMusicVolume(float value);
+	void SetCharacterVolume(float value);
+	void SetSfxVolume(float value);
+}
+
 public partial class UIController : MonoBehaviour
 {
+
 	private interface IMenuLayout
 	{
 		MenuView View { get; }
@@ -17,6 +26,8 @@ public partial class UIController : MonoBehaviour
 	private IClientUIControllable clientControls;
 	private IServerUIControllable serverControls;
 	private IAppUIControllable appControls;
+	public IAudioUIControllable soundControllable;
+
 
 	[SerializeField] private GameObject uiMainGameObject;
 
@@ -78,12 +89,13 @@ public partial class UIController : MonoBehaviour
 	// private void Awake()
 	public void Configure(	IClientUIControllable clientControls,
 							IServerUIControllable serverControls,
-							IAppUIControllable appControls)
+							IAppUIControllable appControls,
+							IAudioUIControllable soundControllable)
 	{
-		// Todo(Leo): These must be injected, since they might actually not be present here
-		this.clientControls = clientControls;// 	= GameManager.clientUIControls; //GetComponent<IClientUIControllable>();
-		this.serverControls = serverControls;// 	= GameManager.serverUIControls; //GetComponent<IServerUIControllable>();
-		this.appControls = appControls;// 	= GameManager.appUIControls; //GetComponent<IAppUIControllable>();
+		this.clientControls = clientControls;
+		this.serverControls = serverControls;
+		this.appControls = appControls;
+		this.soundControllable = soundControllable;
 
 		InitializeMainView();
 		InitializeHostView();
