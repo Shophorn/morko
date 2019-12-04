@@ -1,36 +1,38 @@
-using System;
-using UnityEngine;
-using UnityEngine.UI;
+// using System;
+// using UnityEngine;
+// using UnityEngine.UI;
 
-public partial class UIController
-{
-	[Serializable]
-	private struct ClientLobbyView : IMenuLayout
-	{
-		public MenuView view;
+// public partial class UIController
+// {
+// 	[Serializable]
+// 	private struct ClientLobbyView : IMenuLayout
+// 	{
+// 		public MenuView view;
 
-		MenuView IMenuLayout.View => view;
-		bool IMenuLayout.BelongsToMainMenu => false;
+// 		MenuView IMenuLayout.View => view;
+// 		bool IMenuLayout.BelongsToMainMenu => false;
 
-		public Button readyButton;
-		public Button cancelButton;
-	}
-	[SerializeField] private ClientLobbyView clientLobbyView;
+// 		public PlayerNameList playerNameList;
 
-	private void InitializeClientLobbyView()
-	{
-		clientLobbyView.view.OnShow += () => clientLobbyView.readyButton.enabled = true;
-		clientLobbyView.view.OnShow += () => listItemContainer.SetActive(true);
+// 		public Button readyButton;
+// 		public Button cancelButton;
+// 	}
+// 	[SerializeField] private ClientLobbyView clientLobbyView;
 
-		clientLobbyView.readyButton.onClick.AddListener(() => 
-		{
-			clientControls.OnClientReady();
-			clientLobbyView.readyButton.enabled = false;
-		});
+// 	private void InitializeClientLobbyView()
+// 	{
+// 		clientLobbyView.view.OnShow += () => clientLobbyView.readyButton.enabled = true;
+// 		clientLobbyView.view.OnShow += () => listItemContainer.SetActive(true);
 
-		clientLobbyView.cancelButton.onClick.AddListener(() =>
-		{
-			SetMainView();
-		});
-	}
-}
+// 		clientLobbyView.readyButton.onClick.AddListener(() => 
+// 		{
+// 			clientControls.OnClientReady();
+// 			clientLobbyView.readyButton.enabled = false;
+// 		});
+
+// 		clientLobbyView.cancelButton.onClick.AddListener(() =>
+// 		{
+// 			SetMainView();
+// 		});
+// 	}
+// }

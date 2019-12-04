@@ -1,53 +1,27 @@
-﻿using System;
+﻿using Photon.Pun;
 using UnityEngine;
+using System.Collections;
 
-public class Character : MonoBehaviour
+public class Character : MonoBehaviourPun
 {
-	public CharacterController characterController;
-	[HideInInspector]
-	public LocalPlayerController localController;
+	public bool Frozen { get; private set; }
+	private float freezeEndTime;
 
-	private DisableMovement disableMovement;
-
-	private LocalPlayerController lc
+	public void FreezeForSeconds(float seconds)
 	{
-		get => localController;
-		set => localController = value;
+		freezeEndTime = Time.time + seconds;
+
+		StopAllCoroutines();
+		StartCoroutine(FreezingRoutine());
 	}
 
-	private void Start()
+	private IEnumerator FreezingRoutine()
 	{
-		characterController = GetComponent<CharacterController>();
-		disableMovement = GetComponent<DisableMovement>();
-	}
-
-	private void OnControllerColliderHit(ControllerColliderHit hit)
-	{
-		if (hit.collider.CompareTag("Avatar"))
+		Frozen = true;
+		while(Time.time < freezeEndTime)
 		{
-			/*
-			LocalPlayerController hitCharacterLocalPlayerController = hit.collider.GetComponent<Character>().localController;
-			
-			if (!localController.isMorko && !hitCharacterLocalPlayerController.isMorko) return;
-			
-			// TODO (Sampo/Leo): Both characters are morko, conflict
-			if (localController.isMorko && hitCharacterLocalPlayerController.isMorko)
-				throw new NotImplementedException();
-
-			localController.ChangeState();
-			hitCharacterLocalPlayerController.ChangeState();
-			*/
-			localController.ChangeState();
+			yield return null;
 		}
-	}
-
-	public void EnableDisableMovementScript()
-	{
-		disableMovement.enabled = true;
-	}
-	
-	public void DisableDisableMovementScript()
-	{
-		disableMovement.enabled = false;
+		Frozen = false;
 	}
 }

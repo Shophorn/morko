@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
+
 
 public class DiscreteInputField : Selectable
 {
@@ -7,6 +9,9 @@ public class DiscreteInputField : Selectable
 
 	public Button decrementButton;
 	public Button incrementButton;
+
+	[System.Serializable] public class FloatEvent : UnityEvent<float> {}
+	public FloatEvent OnValueChanged;
 
 	[SerializeField] private float _value;
 	public float Value
@@ -85,6 +90,8 @@ public class DiscreteInputField : Selectable
 				valueDisplay.text = _value.ToString();
 				break;
 		}
+
+		OnValueChanged?.Invoke(_value);
 	}
 
 	#if UNITY_EDITOR

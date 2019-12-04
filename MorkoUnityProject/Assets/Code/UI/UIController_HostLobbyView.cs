@@ -1,35 +1,37 @@
-using System;
-using UnityEngine;
-using UnityEngine.UI;
+// using System;
+// using UnityEngine;
+// using UnityEngine.UI;
 
-public partial class UIController
-{
-	[Serializable]
-	private struct HostLobbyView : IMenuLayout
-	{
-		public MenuView view;
+// public partial class UIController
+// {
+// 	[Serializable]
+// 	private struct HostLobbyView : IMenuLayout
+// 	{
+// 		public MenuView view;
 
-		MenuView IMenuLayout.View => view;
-		bool IMenuLayout.BelongsToMainMenu => false;
+// 		MenuView IMenuLayout.View => view;
+// 		bool IMenuLayout.BelongsToMainMenu => false;
 
-		public Button startGameButton;
-		public Button cancelButton;
-	}
-	[SerializeField] private HostLobbyView hostLobbyView;
+// 		public PlayerNameList playerNameList;
 
-	private void InitializeHostLobbyView()
-	{
-		hostLobbyView.view.OnShow += () => listItemContainer.SetActive(true);
+// 		public Button startGameButton;
+// 		public Button cancelButton;
+// 	}
+// 	[SerializeField] private HostLobbyView hostLobbyView;
 
-		hostLobbyView.startGameButton.onClick.AddListener(() =>
-		{
-			serverControls.StartGame();
-		});
+// 	private void InitializeHostLobbyView()
+// 	{
+// 		hostLobbyView.view.OnShow += () => listItemContainer.SetActive(true);
 
-		hostLobbyView.cancelButton.onClick.AddListener(() =>
-		{
-			serverControls.AbortGame();
-			SetMainView();
-		});
-	}
-}
+// 		hostLobbyView.startGameButton.onClick.AddListener(() =>
+// 		{
+// 			serverControls.StartGame();
+// 		});
+
+// 		hostLobbyView.cancelButton.onClick.AddListener(() =>
+// 		{
+// 			serverControls.AbortGame();
+// 			SetMainView();
+// 		});
+// 	}
+// }

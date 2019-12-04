@@ -27,9 +27,9 @@ public class FieldOfView : MonoBehaviour
         viewMesh.name = "View Mesh";
         viewMeshFilter.mesh = viewMesh;
 
-        fullMesh = new Mesh();
-        fullMesh.name = "Full Mesh";
-        fullMeshFilter.mesh = fullMesh;
+        //fullMesh = new Mesh();
+        //fullMesh.name = "Full Mesh";
+        //fullMeshFilter.mesh = fullMesh;
     }
 
     public Vector3 DirFromAngle(float degreeAngle, bool globalAngle)
@@ -45,7 +45,7 @@ public class FieldOfView : MonoBehaviour
     private void LateUpdate()
     {
         DrawFieldOfView();
-        DrawFullCone();
+        // DrawFullCone();
     }
 
     void DrawFieldOfView()

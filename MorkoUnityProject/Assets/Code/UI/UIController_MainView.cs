@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class UIController
@@ -14,15 +15,42 @@ public partial class UIController
 		public Button creditsButton;
 		public Button optionsButton;
 		public Button quitButton;
+		public Button howToPlayButton;
 	}
 	[SerializeField] private MainView mainView;
 
 	private void InitializeMainView()
 	{
-		mainView.hostViewButton.onClick.AddListener(() => SetView(hostView));
-		mainView.joinViewButton.onClick.AddListener(() => SetView(joinView));
-		mainView.optionsButton.onClick.AddListener(() => SetView(optionsView));
-		mainView.creditsButton.onClick.AddListener(() => SetView(creditsView));
+		mainView.view.OnShow += () =>
+		{
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
+		};
+
+		mainView.hostViewButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(hostView.mapSelectionList.scrollLeft.gameObject);
+			SetView(hostView);
+		});
+		mainView.joinViewButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(joinView.playerNameField.gameObject);
+			SetView(joinView);
+		});
+		mainView.optionsButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(optionsView.cancelButton.gameObject);
+			SetView(optionsView);
+		});
+		mainView.creditsButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(creditsView.cancelButton.gameObject);
+			SetView(creditsView);
+		});
+		mainView.howToPlayButton.onClick.AddListener(() =>
+		{
+			EventSystem.current.SetSelectedGameObject(howToPlayView.cancelButton.gameObject);
+			SetView(howToPlayView);
+		});
 
 		mainView.quitButton.onClick.AddListener(() => appControls.Quit());
 	}
