@@ -285,7 +285,7 @@ MonoBehaviour:
   remoteCharacterLayer: 11
   characterPrefab: {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76,
     type: 3}
-  levelName: Map01
+  mapSceneName: Map01
   morkoChangeParticlesPrefab: {fileID: 7047622455447796930, guid: 2f14f840dee18984d99bf4bfc002cd6a,
     type: 3}
   maskTrackerPrefab: {fileID: 3236208552190008975, guid: acc761d2911b7db48aa9fef4cd06ca1d,

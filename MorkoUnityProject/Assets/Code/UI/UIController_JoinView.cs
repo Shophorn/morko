@@ -41,9 +41,9 @@ public partial class UIController
 			RoomInfo selectedRoom = availableRooms[index];
 			// joinView.hostingPlayerNameText.text 	= selectedRoom.hostingPlayerName;
 
-			joinView.mapNameText.text 				= MapNameFromIndex((int)selectedRoom.CustomProperties[PhotonPropertyKey.RoomMapId]);
+			joinView.mapNameText.text 				= MapNameFromIndex((int)selectedRoom.CustomProperties[RoomProperty.MapId]);
 			joinView.joinedPlayersCountText.text 	= selectedRoom.MaxPlayers.ToString(); 
-			joinView.gameDurationText.text 			= TimeFormat.ToTimeFormat((int)selectedRoom.CustomProperties[PhotonPropertyKey.RoomGameDuration]);			
+			joinView.gameDurationText.text 			= TimeFormat.ToTimeFormat((int)selectedRoom.CustomProperties[RoomProperty.GameDuration]);			
 		};
 
 		joinView.requestJoinButton.onClick.AddListener (() => 

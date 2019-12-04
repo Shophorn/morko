@@ -43,7 +43,9 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public int remoteCharacterLayer;
 	public GameObject characterPrefab;
-	public string levelName;
+	public string mapSceneName;
+
+	private float gameEndTime;
 
 	private Dictionary<int, Character> connectedCharacters;
 	private int currentMorkoActorNumber;
@@ -78,15 +80,23 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 		uiController.Configure(this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
-
-		// SceneManager.
 	}
 
 	private void Update()
 	{
+		if (sceneState == SceneState.Menu)
+			return;
+
 		if (Input.GetButtonDown("Cancel"))
 		{
 			uiController.ToggleNotPauseMenu();
+		}
+
+		if (PhotonNetwork.IsMasterClient 
+			&& sceneState == SceneState.Map
+			&& gameEndTime < Time.time)
+		{
+			photonView.RPC(nameof(EndGameRPC), RpcTarget.All);
 		}
 	}
 
@@ -115,16 +125,16 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 			if (player.IsLocal)
 			{
 				var properties = new Hashtable ();
-				properties.Add(PhotonPropertyKey.PlayerStatus, (int)PlayerNetworkStatus.Waiting);
+				properties.Add(PlayerProperty.Status, (int)PlayerNetworkStatus.Waiting);
 				player.SetCustomProperties(properties);
 				uiController.AddPlayer(player.ActorNumber, player.NickName, PlayerNetworkStatus.Waiting);
 			}
 			else
 			{
 				var status = PlayerNetworkStatus.Waiting;
-				if (player.CustomProperties.ContainsKey(PhotonPropertyKey.PlayerStatus))
+				if (player.CustomProperties.ContainsKey(PlayerProperty.Status))
 				{
-					status = (PlayerNetworkStatus)player.CustomProperties[PhotonPropertyKey.PlayerStatus];
+					status = (PlayerNetworkStatus)player.CustomProperties[PlayerProperty.Status];
 				}
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
@@ -142,10 +152,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable properties)
 	{
-		if (properties.ContainsKey(PhotonPropertyKey.PlayerStatus))
+		if (properties.ContainsKey(PlayerProperty.Status))
 		{
 			uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber,
-													(PlayerNetworkStatus)properties[PhotonPropertyKey.PlayerStatus]);
+													(PlayerNetworkStatus)properties[PlayerProperty.Status]);
 		}
 	}
 
@@ -169,7 +179,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	void INetUIControllable.OnPlayerReady()
 	{
 		var properties = new Hashtable();
-		properties.Add(PhotonPropertyKey.PlayerStatus, PlayerNetworkStatus.Ready);
+		properties.Add(PlayerProperty.Status, PlayerNetworkStatus.Ready);
 		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
 	}
 
@@ -179,11 +189,11 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		var options = new RoomOptions
 		{
 			MaxPlayers = (byte)createInfo.maxPlayers,
-			CustomRoomPropertiesForLobby = new string [] {PhotonPropertyKey.RoomMapId, PhotonPropertyKey.RoomGameDuration},
+			CustomRoomPropertiesForLobby = new string [] {RoomProperty.MapId, RoomProperty.GameDuration},
 			CustomRoomProperties = new Hashtable
 			{
-				{PhotonPropertyKey.RoomMapId, createInfo.mapIndex},
-				{PhotonPropertyKey.RoomGameDuration, createInfo.gameDurationSeconds}
+				{RoomProperty.MapId, createInfo.mapIndex},
+				{RoomProperty.GameDuration, createInfo.gameDurationSeconds}
 			}
 		};
 		PhotonNetwork.CreateRoom(createInfo.roomName, options);
@@ -216,7 +226,14 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		connectedCharacters = new Dictionary<int, Character>();
 		currentMorkoActorNumber = -1;
 
-		LoadScene(SceneLoader.Photon, levelName, OnMapSceneLoaded);
+		LoadScene(SceneLoader.Photon, mapSceneName, OnMapSceneLoaded);
+	}
+
+	[PunRPC]
+	void EndGameRPC()
+	{
+		// Todo(Leo): Any other functionality, like sound effects, animation triggers, etc
+		LoadScene(SceneLoader.Photon, endSceneName, OnEndSceneLoaded);
 	}
 
 	void INetUIControllable.LeaveRoom()
@@ -289,6 +306,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
         Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
         maskTracker = Instantiate(maskTrackerPrefab);
+        gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
 
 		uiController.Hide();
 	}
@@ -372,19 +390,23 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	}
 }
 
-public static class PhotonPropertyKey
+/*	
+Note(Leo): Photon uses strings to identify custom properties and
+also encourages the use of short words. Using these enum-like class
+we get short strings and also compile errors if these do not match
+unlike using actual string literals.
+
+When adding new ones, just make sure they are different from previous
+ones, and if we run out of sensible 1 character strings, just use two
+or more characters.
+*/
+public static class RoomProperty
 {
-	/*	
-	Note(Leo): Photon uses strings to identify custom properties and
-	also encourages the use of short words. Using this enum-like class
-	we get short strings and also compile errors if these do not match
-	unlike using actual string literals.
-	
-	When adding new ones, just make sure they are different from previous
-	ones, and if we run out of sensible 1 character strings, just use two
-	or more characters.
-	*/
-	public const string PlayerStatus = "s";
-	public const string RoomGameDuration = "d";
-	public const string RoomMapId = "m";
+	public const string GameDuration = "d";
+	public const string MapId = "m";
+}
+
+public static class PlayerProperty
+{
+	public const string Status = "s";
 }

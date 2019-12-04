@@ -41,5 +41,7 @@ MonoBehaviour:
   - LoadEndScene
   - LoadEndSceneRPC
   - StartGameRPC
+  - EndGameRPC
+  - SetEndTimer
   DisableAutoOpenWizard: 1
   ShowSettings: 0

@@ -16,6 +16,7 @@ public partial class GameManager
 		if (instance == null)
 			return;
 
-		instance.photonView.RPC(nameof(LoadEndSceneRPC), Photon.Pun.RpcTarget.All);
+		// instance.photonView.RPC(nameof(LoadEndSceneRPC), Photon.Pun.RpcTarget.All);
+		instance.photonView.RPC(nameof(EndGameRPC), Photon.Pun.RpcTarget.All);
 	}
 }
