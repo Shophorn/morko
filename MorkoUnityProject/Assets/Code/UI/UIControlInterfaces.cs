@@ -4,6 +4,9 @@ public interface IAudioUIControllable
 	void SetMusicVolume(float value);
 	void SetCharacterVolume(float value);
 	void SetSfxVolume(float value);
+    void OnLoadingStart();
+    void OnGameStart();
+    void OnGameEnd();
 }
 
 public interface INetUIControllable
