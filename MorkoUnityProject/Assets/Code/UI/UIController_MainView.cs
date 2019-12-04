@@ -21,6 +21,11 @@ public partial class UIController
 
 	private void InitializeMainView()
 	{
+		mainView.view.OnShow += () =>
+		{
+			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
+		};
+
 		mainView.hostViewButton.onClick.AddListener(() =>
 		{
 			EventSystem.current.SetSelectedGameObject(hostView.mapSelectionList.scrollLeft.gameObject);

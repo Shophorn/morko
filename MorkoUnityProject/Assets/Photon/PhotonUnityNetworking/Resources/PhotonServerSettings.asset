@@ -39,5 +39,7 @@ MonoBehaviour:
   - SetMaskTargetPlayer
   - SetCharacterMorkoRPC
   - LoadEndScene
+  - LoadEndSceneRPC
+  - StartGameRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0

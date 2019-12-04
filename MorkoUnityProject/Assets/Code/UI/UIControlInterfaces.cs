@@ -11,6 +11,7 @@ public interface INetUIControllable
 	void RequestJoin(JoinInfo joinInfo);
 	void OnPlayerReady();
 	void CreateRoom(RoomCreateInfo createInfo);
+	void LeaveRoom();
 	void StartGame();
 }
 

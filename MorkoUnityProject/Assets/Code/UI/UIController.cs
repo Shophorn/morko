@@ -42,6 +42,7 @@ public partial class UIController : MonoBehaviour
 	[SerializeField] private GameObject uiMainGameObject;
 
 	[SerializeField] private GameObject connectingScreen;
+	[SerializeField] private GameObject joiningScreen;
 	[SerializeField] private GameObject loadingScreen;
 
 	[SerializeField] private GameObject notPauseWindow;
@@ -57,6 +58,7 @@ public partial class UIController : MonoBehaviour
 	public void SetMainView()
 	{
 		loadingScreen.SetActive(false);
+		joiningScreen.SetActive(false);
 		connectingScreen.SetActive(false);
 
 		currentView?.Hide();
@@ -78,7 +80,9 @@ public partial class UIController : MonoBehaviour
 		if(currentView == layout.View)
 			return;
 
+		// Todo(Leo): Make these IMenuLayout too
 		loadingScreen.SetActive(false);
+		joiningScreen.SetActive(false);
 		connectingScreen.SetActive(false);
 
 		currentView?.Hide();
@@ -118,9 +122,20 @@ public partial class UIController : MonoBehaviour
 		hidden = !uiMainGameObject.activeInHierarchy;
 	}
 
+	public void SetRoomView ()
+	{
+		SetView(roomView);
+	}
+
 	public void SetConnectingScreen()
 	{
 		connectingScreen.SetActive(true);
+		SetView(null);
+	}
+
+	public void SetJoiningScreen()
+	{
+		joiningScreen.SetActive(true);
 		SetView(null);
 	}
 
