@@ -42,6 +42,9 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     }
     void IAudioUIControllable.SetCharacterVolume(float value) { /* Todo: Add functionality */ }
     void IAudioUIControllable.SetSfxVolume(float value) { /* Todo: Add functionality */ }
+    void IAudioUIControllable.OnGameStart() { }
+    void IAudioUIControllable.OnLoadingStart() { }
+    void IAudioUIControllable.OnGameEnd() { }
 
 
     private void Awake()
