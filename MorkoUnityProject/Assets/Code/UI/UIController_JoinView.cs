@@ -54,7 +54,7 @@ public partial class UIController
 				selectedRoomIndex = joinView.selectedServerIndex,
 				selectedRoomInfo = availableRooms[joinView.selectedServerIndex]
 			};
-			clientControls.RequestJoin(info);
+			netControls.RequestJoin(info);
 
 			SetRoomViewHost(false);
 			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);

@@ -29,12 +29,12 @@ public partial class UIController
     {
         roomView.hostStartGameButton.onClick.AddListener(() =>
         {
-            serverControls.StartGame();
+            netControls.StartGame();
         });
 
         roomView.readyButton.onClick.AddListener(() => 
         {
-            clientControls.OnPlayerReady();
+            netControls.OnPlayerReady();
         });
 
         roomView.cancelButton.onClick.AddListener(() =>

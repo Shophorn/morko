@@ -14,13 +14,11 @@ hashtable also in System.Collections. */
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 using Player = Photon.Realtime.Player;
-using PhotonActorNumber = System.Int32;
 
 [RequireComponent(typeof(AudioController))]
-public class GameManager : 	MonoBehaviourPunCallbacks,
-							IClientUIControllable,
-							IServerUIControllable,
-							IAppUIControllable
+public partial class GameManager : 	MonoBehaviourPunCallbacks,
+									INetUIControllable,
+									IAppUIControllable
 {
 	private static GameManager instance;
 
@@ -46,9 +44,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	public GameObject characterPrefab;
 	public string levelName;
 
-	private Dictionary<PhotonActorNumber, Character> connectedCharacters;
-	private PhotonActorNumber currentMorkoActorNumber;
-	private PhotonActorNumber localCharacterActorNumber;
+	private Dictionary<int, Character> connectedCharacters;
+	private int currentMorkoActorNumber;
+	private int localCharacterActorNumber;
 	private bool localCharacterSpawned;
 
 	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
@@ -58,31 +56,8 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private bool isEndSceneCurrent = false;
 
-	public static IClientUIControllable clientUIControls => instance;
-	public static IServerUIControllable serverUIControls => instance;
-	public static IAppUIControllable appUIControls => instance;
-
-	[UnityEditor.MenuItem("GameManager/Spawn Mask")]
-	private static void SpawnMask()
-	{
-		if (instance == null)
-			return;
-
-		int actorNumber = instance.localCharacterActorNumber;
-		instance.photonView.RPC(nameof(SetCharacterMorkoRPC), RpcTarget.All, actorNumber);
-	}
-
-	[UnityEditor.MenuItem("GameManager/End Game")]
-	private static void EndGame()
-	{
-		if (instance == null)
-			return;
-
-		instance.photonView.RPC(nameof(LoadEndScene), RpcTarget.All);
-	}
-
 	[PunRPC]
-	private void LoadEndScene()
+	private void LoadEndSceneRPC()
 	{
 		isEndSceneCurrent = true;
 
@@ -98,7 +73,7 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		PhotonNetwork.ConnectUsingSettings();
 
 
-		uiController.Configure(this, this, this, GetComponent<AudioController>());
+		uiController.Configure(this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
 	}
 
@@ -128,11 +103,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.SetRooms(rooms);
 	}
 
-	void IClientUIControllable.RequestJoin(JoinInfo joinInfo)
-	{
-		PhotonNetwork.NickName = joinInfo.playerName;
-		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
-	}
 
 
 	public override void OnJoinedRoom()
@@ -158,7 +128,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
 		}
-
 	}
 
 	public override void OnJoinRoomFailed(short returnCode, string message)
@@ -166,12 +135,6 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		Debug.LogError($"Failed to join room ({returnCode}, {message})");
 	}
 
-	void IClientUIControllable.OnPlayerReady()
-	{
-		var properties = new Hashtable();
-		properties.Add(PhotonPropertyKey.PlayerStatus, PlayerNetworkStatus.Ready);
-		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
-	}
 
 	public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable properties)
 	{
@@ -192,7 +155,20 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		return endResult;
 	}
 
-	void IServerUIControllable.CreateRoom(RoomCreateInfo createInfo)
+	void INetUIControllable.RequestJoin(JoinInfo joinInfo)
+	{
+		PhotonNetwork.NickName = joinInfo.playerName;
+		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
+	}
+
+	void INetUIControllable.OnPlayerReady()
+	{
+		var properties = new Hashtable();
+		properties.Add(PhotonPropertyKey.PlayerStatus, PlayerNetworkStatus.Ready);
+		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+	}
+
+	void INetUIControllable.CreateRoom(RoomCreateInfo createInfo)
 	{
 		PhotonNetwork.NickName = createInfo.hostingPlayerName;
 		var options = new RoomOptions
@@ -208,16 +184,17 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		PhotonNetwork.CreateRoom(createInfo.roomName, options);
 	}
 
-	void IServerUIControllable.StartGame()
+	void INetUIControllable.StartGame()
 	{
-		this.photonView.RPC("StartGame", RpcTarget.All);
+		this.photonView.RPC(nameof(StartGameRPC), RpcTarget.All);
 	}
 
+
 	[PunRPC]
-	void StartGame()
+	void StartGameRPC()
 	{
 		uiController.SetLoadingScreen();
-		connectedCharacters = new Dictionary<PhotonActorNumber, Character>();
+		connectedCharacters = new Dictionary<int, Character>();
 		currentMorkoActorNumber = -1;
 
 		PhotonNetwork.AutomaticallySyncScene = true;

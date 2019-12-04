@@ -24,10 +24,10 @@ public partial class UIController
 
 	private void InitializeOptionsView()
 	{
-		optionsView.masterVolumeField.OnValueChanged.AddListener(soundControllable.SetMasterVolume);
-		optionsView.musicVolumeField.OnValueChanged.AddListener(soundControllable.SetMusicVolume);
-		optionsView.characterVolumeField.OnValueChanged.AddListener(soundControllable.SetCharacterVolume);
-		optionsView.sfxVolumeField.OnValueChanged.AddListener(soundControllable.SetSfxVolume);
+		optionsView.masterVolumeField.OnValueChanged.AddListener(soundControls.SetMasterVolume);
+		optionsView.musicVolumeField.OnValueChanged.AddListener(soundControls.SetMusicVolume);
+		optionsView.characterVolumeField.OnValueChanged.AddListener(soundControls.SetCharacterVolume);
+		optionsView.sfxVolumeField.OnValueChanged.AddListener(soundControls.SetSfxVolume);
 
 		optionsView.cancelButton.onClick.AddListener (() =>
 		{
