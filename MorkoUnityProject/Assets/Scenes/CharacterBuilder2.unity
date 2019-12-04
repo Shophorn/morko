@@ -312,6 +312,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: LocalCameraController
       objectReference: {fileID: 0}
+    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
+        type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 1815531723}
     - target: {fileID: 2084330402427940860, guid: 92318f7ba1abdd742b81fbccb8ffff32,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -367,11 +372,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
-        type: 3}
-      propertyPath: target
-      value: 
-      objectReference: {fileID: 1815531723}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 92318f7ba1abdd742b81fbccb8ffff32, type: 3}
 --- !u!1 &857165653
@@ -618,7 +618,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a6c97de180444a34da35990206636d23, type: 2}
+  - {fileID: 2100000, guid: f37ba4e726adedf4292550aee5eb44bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
