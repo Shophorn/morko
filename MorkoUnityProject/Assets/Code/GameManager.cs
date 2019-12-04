@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
@@ -54,15 +55,18 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	[SerializeField] private TrackTransform maskTrackerPrefab;
 	private TrackTransform maskTracker;
 
-	private bool isEndSceneCurrent = false;
+
+	private enum SceneState { Menu, Map, End }
+	private SceneState sceneState;
+
+	private static readonly string menuSceneName = "EmptyScene";
+	private static readonly string endSceneName = "EndScene";
+
 
 	[PunRPC]
 	private void LoadEndSceneRPC()
 	{
-		isEndSceneCurrent = true;
-
-		PhotonNetwork.AutomaticallySyncScene = true;
-		PhotonNetwork.LoadLevel("EndScene");
+		LoadScene(SceneLoader.Photon, endSceneName, OnEndSceneLoaded);
 	}
 
 	private void Awake()
@@ -72,9 +76,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		DontDestroyOnLoad(this);
 		PhotonNetwork.ConnectUsingSettings();
 
-
 		uiController.Configure(this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
+
+		// SceneManager.
 	}
 
 	private void Update()
@@ -103,12 +108,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.SetRooms(rooms);
 	}
 
-
-
 	public override void OnJoinedRoom()
 	{
-		isEndSceneCurrent = false;
-
 		foreach (var player in PhotonNetwork.PlayerList)
 		{
 			if (player.IsLocal)
@@ -128,11 +129,14 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
 		}
+		uiController.SetRoomView();
 	}
 
 	public override void OnJoinRoomFailed(short returnCode, string message)
 	{
+		// Todo(Leo): Inform user that connection failed
 		Debug.LogError($"Failed to join room ({returnCode}, {message})");
+		uiController.SetMainView();
 	}
 
 
@@ -159,6 +163,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	{
 		PhotonNetwork.NickName = joinInfo.playerName;
 		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
+		uiController.SetJoiningScreen();
 	}
 
 	void INetUIControllable.OnPlayerReady()
@@ -189,31 +194,6 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		this.photonView.RPC(nameof(StartGameRPC), RpcTarget.All);
 	}
 
-
-	[PunRPC]
-	void StartGameRPC()
-	{
-		uiController.SetLoadingScreen();
-		connectedCharacters = new Dictionary<int, Character>();
-		currentMorkoActorNumber = -1;
-
-		PhotonNetwork.AutomaticallySyncScene = true;
-		PhotonNetwork.LoadLevel(levelName);
-		SceneManager.sceneLoaded += OnMapSceneLoaded;
-	}
-
-	public void ExitCurrentMatch()
-	{
-		Debug.Log("Exited the current match");
-		PhotonNetwork.LeaveRoom();
-		uiController.Show();
-		uiController.SetMainView();
-
-		PhotonNetwork.LoadLevel("EmptyScene");
-
-		// Todo(Leo): If we were master client remove or host migrate room
-	}
-
 	public override void OnPlayerEnteredRoom(Player enteringPlayer)
 	{
 		Debug.Log($"{enteringPlayer.NickName} entered room");
@@ -229,9 +209,70 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.RemovePlayer(leavingPlayer.ActorNumber);
 	}
 
+	[PunRPC]
+	void StartGameRPC()
+	{
+		uiController.SetLoadingScreen();
+		connectedCharacters = new Dictionary<int, Character>();
+		currentMorkoActorNumber = -1;
+
+		LoadScene(SceneLoader.Photon, levelName, OnMapSceneLoaded);
+	}
+
+	void INetUIControllable.LeaveRoom()
+	{
+		PhotonNetwork.LeaveRoom();
+		uiController.SetMainView();
+	}
+
+	public void ExitCurrentMatch()
+	{
+		Debug.Log("Exited the current match");
+		PhotonNetwork.LeaveRoom();
+		uiController.Show();
+		uiController.SetMainView();
+
+		LoadScene(SceneLoader.Photon, menuSceneName, OnMenuSceneLoaded);
+
+		// Todo(Leo): If we were master client remove or host migrate room
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	///                SCENE LOAD CALLBACKS                                 ///
+	///////////////////////////////////////////////////////////////////////////
+	private enum SceneLoader { Photon, UnityEngine }
+
+	private void LoadScene(SceneLoader sceneLoader, string sceneName, UnityAction<Scene, LoadSceneMode> callback)
+	{
+		SceneManager.sceneLoaded += callback;
+		switch (sceneLoader)
+		{
+			case SceneLoader.Photon: 
+				PhotonNetwork.AutomaticallySyncScene = true;
+				PhotonNetwork.LoadLevel(sceneName);
+				break;
+
+			case SceneLoader.UnityEngine:
+				SceneManager.LoadScene(sceneName);
+				break;
+
+			default:
+				Debug.LogError("Invalid scene loader");
+				SceneManager.sceneLoaded -= callback;
+				break;
+		}
+	}
+
+	private void OnMenuSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		SceneManager.sceneLoaded -= OnMenuSceneLoaded;
+		sceneState = SceneState.Menu;
+	}
+
 	private void OnMapSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
 		SceneManager.sceneLoaded -= OnMapSceneLoaded;
+		sceneState = SceneState.Map;
 
 		Vector3 startPosition 		= Vector3.zero;
 		Quaternion startRotation 	= Quaternion.identity;
@@ -251,6 +292,14 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 		uiController.Hide();
 	}
+
+	private void OnEndSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		SceneManager.sceneLoaded -= OnEndSceneLoaded;
+		sceneState = SceneState.End;
+	}
+
+	///---------------------------------------------------------------------///
 
 	public static bool IsCharacterMorko(Character character)
 	{
@@ -282,8 +331,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public static void RegisterCharactcer(Character character)
 	{
-		// Todo(Leo): This is a hack
-		if (instance.isEndSceneCurrent)
+		// Todo(Leo): Make different settings for when sceneState is End
+		if (instance.sceneState != SceneState.Map)
 			return;
 
 		if (character.photonView.IsMine)
