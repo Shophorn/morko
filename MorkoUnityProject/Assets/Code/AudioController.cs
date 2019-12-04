@@ -20,7 +20,6 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     compiler error if the interface changes anytime */
     void IAudioUIControllable.SetMasterVolume(float value)
     {
-
         float volume = 0;
 
         if (value > 0.999f)
@@ -29,9 +28,18 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
             volume += value * 4f;
         }
         master.audioMixer.SetFloat("MasterVolume", volume);
-        Debug.Log("volume set to: " + volume);
     }
-    void IAudioUIControllable.SetMusicVolume(float value) { /* Todo: Add functionality */ }
+    void IAudioUIControllable.SetMusicVolume(float value)
+    {
+        float volume = 0;
+
+        if (value > 0.999f)
+        {
+            volume = -40f;
+            volume += value * 4f;
+        }
+        master.audioMixer.SetFloat("MusicVolume", volume);
+    }
     void IAudioUIControllable.SetCharacterVolume(float value) { /* Todo: Add functionality */ }
     void IAudioUIControllable.SetSfxVolume(float value) { /* Todo: Add functionality */ }
 

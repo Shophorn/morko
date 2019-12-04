@@ -785,5 +785,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 177153581360334368, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: m_Text
+      value: MUSIC VOLUME
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf8fe42012c8b3e4abab233defd3faef, type: 3}
