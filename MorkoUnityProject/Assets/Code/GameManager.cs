@@ -1,6 +1,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -25,10 +26,6 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public UIController uiController;
 
-	private bool isRunningServer 		= false;
-	private bool isListeningBroadcasts 	= false;
-	private bool isConnectedToServer 	= false;
-
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
 
@@ -38,24 +35,19 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public GameObject visibilityEffectPrefab;
 
-	public int broadcastDelayMs = 100;
-	public int gameUpdateThreadDelayMs = 50;
-
 	public GameObject[] characterPrefabs;
-	public string mapSceneName;
+	public static GameObject [] GetCharacterPrefabs => instance.characterPrefabs;
 
+	public string mapSceneName;
 	private float gameEndTime;
 
 	private Dictionary<int, Character> connectedCharacters;
 	private int currentMorkoActorNumber;
 	private int localCharacterActorNumber;
-	private bool localCharacterSpawned;
 
 	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
-
 	[SerializeField] private TrackTransform maskTrackerPrefab;
 	private TrackTransform maskTracker;
-
 
 	private enum SceneState { Menu, Map, End }
 	private SceneState sceneState;
@@ -96,23 +88,44 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 		uiController.Configure(this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
+
+		LoadScene(SceneLoader.UnityEngine, menuSceneName, OnMenuSceneLoaded);
 	}
 
 	private void Update()
 	{
-		if (sceneState == SceneState.Menu)
-			return;
-
-		if (Input.GetButtonDown("Cancel"))
-		{
-			uiController.ToggleNotPauseMenu();
+		void DoInGameMenu() {
+			if (Input.GetButtonDown("Cancel"))
+				uiController.ToggleNotPauseMenu();
 		}
 
-		if (PhotonNetwork.IsMasterClient 
-			&& sceneState == SceneState.Map
-			&& gameEndTime < Time.time)
+		switch (sceneState)
 		{
-			photonView.RPC(nameof(EndGameRPC), RpcTarget.All);
+			case SceneState.Menu:
+				break;
+
+			case SceneState.Map:
+			{
+				if (currentMorkoActorNumber == localCharacterActorNumber)
+				{
+					var properties = PhotonNetwork.LocalPlayer.CustomProperties;
+					float currentMorkoLevel = (float) properties[PlayerProperty.MorkoLevel];
+					currentMorkoLevel += Time.deltaTime;
+					properties[PlayerProperty.MorkoLevel] = currentMorkoLevel;
+					PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+				}
+
+				DoInGameMenu();
+				if (PhotonNetwork.IsMasterClient && gameEndTime < Time.time)
+				{
+					photonView.RPC(nameof(EndGameRPC), RpcTarget.All);
+				}
+			} break;
+
+
+			case SceneState.End:
+				DoInGameMenu();
+				break;
 		}
 	}
 
@@ -140,8 +153,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		{
 			if (player.IsLocal)
 			{
-				var properties = new Hashtable ();
+				// var properties = new Hashtable ();
+				var properties = new Hashtable();
 				properties.Add(PlayerProperty.Status, (int)PlayerNetworkStatus.Waiting);
+				properties.Add(PlayerProperty.MorkoLevel, 0.0f);
+				properties.Add(PlayerProperty.AvatarId, UnityEngine.Random.Range(0, characterPrefabs.Length));
+
 				player.SetCustomProperties(properties);
 				uiController.AddPlayer(player.ActorNumber, player.NickName, PlayerNetworkStatus.Waiting);
 			}
@@ -168,19 +185,58 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable properties)
 	{
-		if (properties.ContainsKey(PlayerProperty.Status))
+		string allKeys = "";
+		foreach (var pair in properties)
 		{
-			uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber,
-													(PlayerNetworkStatus)properties[PlayerProperty.Status]);
+			switch (pair.Key)
+			{
+				case PlayerProperty.Status:
+					uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber, (PlayerNetworkStatus)pair.Value);
+					break;
+
+				case PlayerProperty.AvatarId:
+					break;
+
+				case PlayerProperty.MorkoLevel:
+					connectedCharacters[targetPlayer.ActorNumber].SetMorkoLevel((float)pair.Value);
+					break;
+			}
+			allKeys += pair.Key + ", ";
 		}
+		Debug.Log("UPDATED PLAYER PROPERTIES: " + allKeys);
 	}
 
 	public static GameEndResult GetEndResult()
 	{
+		var players 		= PhotonNetwork.CurrentRoom.Players;
+		var sortedPlayers 	= players.OrderBy(entry => entry.Key);
+		var avatarIds 		= new int [players.Count];
+
+		int runningIndex = 0;
+		int winningIndex = -1;
+		float winningPlayerMorkoLevel = float.MaxValue;
+
+		foreach (var entry in sortedPlayers)
+		{	
+			var player = entry.Value;
+			var properties = player.CustomProperties;
+			var morkoLevel = (float)properties[PlayerProperty.MorkoLevel];
+
+			if (morkoLevel < winningPlayerMorkoLevel)
+			{
+				winningIndex = runningIndex;
+				winningPlayerMorkoLevel = morkoLevel;
+			}
+
+			avatarIds [runningIndex] = (int)properties[PlayerProperty.AvatarId];
+			runningIndex++;
+		}
+
 		var endResult = new GameEndResult
 		{
 			characterCount = instance.connectedCharacters.Count,
-			winningCharacterIndex = 0
+			winningCharacterIndex = winningIndex,
+			playerAvatarIds = avatarIds
 		};
 		return endResult;
 	}
@@ -190,6 +246,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		PhotonNetwork.NickName = joinInfo.playerName;
 		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
 		uiController.SetJoiningScreen();
+
+		PhotonNetwork.LocalPlayer.CustomProperties.Add(PlayerProperty.MorkoLevel, 10);
 	}
 
 	void INetUIControllable.OnPlayerReady()
@@ -314,7 +372,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
 		gameCamera.CreateMask();
 
-		int characterIndex 		= UnityEngine.Random.Range(0, characterPrefabs.Length);
+		int characterIndex 		= (int)PhotonNetwork.LocalPlayer.CustomProperties[PlayerProperty.AvatarId];
 		string prefabName 		= characterPrefabs[characterIndex].name;
 		var localPlayer 		= PhotonNetwork.Instantiate(prefabName,
 															startPosition,
@@ -355,6 +413,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	{
 		if (currentMorkoActorNumber == actorNumber)
 			return;
+
+		// Todo(Leo): Unset current character
 
 		currentMorkoActorNumber = actorNumber;
 		maskTracker.target = connectedCharacters[actorNumber].transform;
@@ -415,8 +475,8 @@ we get short strings and also compile errors if these do not match
 unlike using actual string literals.
 
 When adding new ones, just make sure they are different from previous
-ones, and if we run out of sensible 1 character strings, just use two
-or more characters.
+ones (so that they are unique when both are combined), and if we run
+out of sensible 1 character strings, just use two or more characters.
 */
 public static class RoomProperty
 {
@@ -427,4 +487,6 @@ public static class RoomProperty
 public static class PlayerProperty
 {
 	public const string Status = "s";
+	public const string AvatarId = "a";
+	public const string MorkoLevel = "l";
 }
