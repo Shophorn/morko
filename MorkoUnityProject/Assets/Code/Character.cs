@@ -24,4 +24,9 @@ public class Character : MonoBehaviourPun
 		}
 		Frozen = false;
 	}
+
+	public void SetMorkoLevel(float level)
+	{
+		transform.localScale = Vector3.one * (1.0f + level);
+	}
 }
