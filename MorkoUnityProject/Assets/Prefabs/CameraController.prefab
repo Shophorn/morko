@@ -50,4 +50,4 @@ MonoBehaviour:
   maxAngle: 90
   angleIncrement: 0.3
   tagsThatTriggerCameraPositionChange:
-  - Obstacle
+  - Default
