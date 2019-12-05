@@ -1,6 +1,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -25,10 +26,6 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public UIController uiController;
 
-	private bool isRunningServer 		= false;
-	private bool isListeningBroadcasts 	= false;
-	private bool isConnectedToServer 	= false;
-
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
 
@@ -38,27 +35,19 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public GameObject visibilityEffectPrefab;
 
-	public int broadcastDelayMs = 100;
-	public int gameUpdateThreadDelayMs = 50;
-
 	public GameObject[] characterPrefabs;
 	public static GameObject [] GetCharacterPrefabs => instance.characterPrefabs;
 
 	public string mapSceneName;
-
 	private float gameEndTime;
 
 	private Dictionary<int, Character> connectedCharacters;
 	private int currentMorkoActorNumber;
 	private int localCharacterActorNumber;
 
-
-
 	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
-
 	[SerializeField] private TrackTransform maskTrackerPrefab;
 	private TrackTransform maskTracker;
-
 
 	private enum SceneState { Menu, Map, End }
 	private SceneState sceneState;
@@ -99,6 +88,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 		uiController.Configure(this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
+
+		LoadScene(SceneLoader.UnityEngine, menuSceneName, OnMenuSceneLoaded);
 	}
 
 	private void Update()
@@ -115,16 +106,14 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 			case SceneState.Map:
 			{
-
-				if (PhotonNetwork.IsMasterClient && Input.GetKey(KeyCode.O))
+				if (currentMorkoActorNumber == localCharacterActorNumber)
 				{
 					var properties = PhotonNetwork.LocalPlayer.CustomProperties;
-					var currentMorkoLevel = (float)properties[PlayerProperty.MorkoLevel];
-					currentMorkoLevel += 0.1f * Time.deltaTime;
+					float currentMorkoLevel = (float) properties[PlayerProperty.MorkoLevel];
+					currentMorkoLevel += Time.deltaTime;
 					properties[PlayerProperty.MorkoLevel] = currentMorkoLevel;
 					PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
 				}
-
 
 				DoInGameMenu();
 				if (PhotonNetwork.IsMasterClient && gameEndTime < Time.time)
@@ -219,37 +208,29 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public static GameEndResult GetEndResult()
 	{
-		var players = PhotonNetwork.CurrentRoom.Players;
-
-		var avatarIds = new int [players.Count];
+		var players 		= PhotonNetwork.CurrentRoom.Players;
+		var sortedPlayers 	= players.OrderBy(entry => entry.Key);
+		var avatarIds 		= new int [players.Count];
 
 		int runningIndex = 0;
 		int winningIndex = -1;
 		float winningPlayerMorkoLevel = float.MaxValue;
-		int winningPlayerActorNumber = int.MaxValue;
 
-		foreach (var entry in players)
+		foreach (var entry in sortedPlayers)
 		{	
 			var player = entry.Value;
-			var morkoLevel = (float)player.CustomProperties[PlayerProperty.MorkoLevel];
+			var properties = player.CustomProperties;
+			var morkoLevel = (float)properties[PlayerProperty.MorkoLevel];
+
 			if (morkoLevel < winningPlayerMorkoLevel)
 			{
 				winningIndex = runningIndex;
 				winningPlayerMorkoLevel = morkoLevel;
-				winningPlayerActorNumber = entry.Key;
-
-				if (entry.Value.ActorNumber != winningPlayerActorNumber)
-				{
-					Debug.Log($"I've got it all wrong, {winningPlayerActorNumber}, {entry.Value.ActorNumber}");
-				}
 			}
 
-			avatarIds [runningIndex] = (int)player.CustomProperties[PlayerProperty.AvatarId];
+			avatarIds [runningIndex] = (int)properties[PlayerProperty.AvatarId];
 			runningIndex++;
 		}
-
-		Debug.Log($"[GAME MANAGER]: Winner index is {winningIndex}, actor number is {winningPlayerActorNumber}");
-
 
 		var endResult = new GameEndResult
 		{
