@@ -41,8 +41,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	public int broadcastDelayMs = 100;
 	public int gameUpdateThreadDelayMs = 50;
 
-	public int remoteCharacterLayer;
-	public GameObject characterPrefab;
+	public GameObject[] characterPrefabs;
 	public string mapSceneName;
 
 	private float gameEndTime;
@@ -64,6 +63,23 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	private static readonly string menuSceneName = "EmptyScene";
 	private static readonly string endSceneName = "EndScene";
 
+
+	public static GameObject[] GetCharecterModelsForSelection()
+	{
+		if (instance = null)
+			return new GameObject[0];
+
+		int count = instance.characterPrefabs.Length;
+		var results = new GameObject [count];
+		for (int i = 0; i < count; i++)
+		{
+			results[i] = Instantiate(instance.characterPrefabs[i], Vector3.zero, Quaternion.identity);
+			Destroy(results[i].GetComponent<PlayerController>());
+			Destroy(results[i].GetComponent<Character>());
+		}
+
+		return results;
+	}
 
 	[PunRPC]
 	private void LoadEndSceneRPC()
@@ -298,7 +314,9 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
 		gameCamera.CreateMask();
 
-		var localPlayer 		= PhotonNetwork.Instantiate(characterPrefab.name,
+		int characterIndex 		= UnityEngine.Random.Range(0, characterPrefabs.Length);
+		string prefabName 		= characterPrefabs[characterIndex].name;
+		var localPlayer 		= PhotonNetwork.Instantiate(prefabName,
 															startPosition,
 															startRotation);
         localPlayer.name 		= "Local Player";
