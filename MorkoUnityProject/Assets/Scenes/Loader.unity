@@ -112,6 +112,18 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &462797108 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
+    type: 3}
+  m_PrefabInstance: {fileID: 177153581458217515}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2a4da44dc6367d40be7bdec2455c715, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &689338670 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 177153581040214789, guid: cf8fe42012c8b3e4abab233defd3faef,
@@ -284,9 +296,15 @@ MonoBehaviour:
     type: 3}
   broadcastDelayMs: 100
   gameUpdateThreadDelayMs: 50
-  remoteCharacterLayer: 11
-  characterPrefab: {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76,
-    type: 3}
+  characterPrefabs:
+  - {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76, type: 3}
+  - {fileID: 1640491983170310785, guid: 6cc2d8bb6baf4e448ada5008178ef215, type: 3}
+  - {fileID: 234821723986386015, guid: 6e6a59d35b8bce4479fdd7800b6d46aa, type: 3}
+  - {fileID: 5235448602837677702, guid: 5ab5c47f4658e294895472050527ecfe, type: 3}
+  - {fileID: 1511368844325654495, guid: ed15ca5ae50c30c468300814f8e863ac, type: 3}
+  - {fileID: 7403688484484138542, guid: c5c13ed61d89e20479f19b1099dfd980, type: 3}
+  - {fileID: 8156152407627671174, guid: a84a1b13435240c40a043ca039d66176, type: 3}
+  - {fileID: 3463886530874104888, guid: 26221c3ec66399a499d9b7aa4e5ebadb, type: 3}
   mapSceneName: Map01
   morkoChangeParticlesPrefab: {fileID: 7047622455447796930, guid: 2f14f840dee18984d99bf4bfc002cd6a,
     type: 3}
@@ -700,6 +718,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIMainGameObject
       objectReference: {fileID: 0}
+    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: listItemContainer
+      value: 
+      objectReference: {fileID: 820101729}
+    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: content
+      value: 
+      objectReference: {fileID: 999229554}
     - target: {fileID: 177153581040214789, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -755,6 +783,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 177153581040214788, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: roomView.characterSelector
+      value: 
+      objectReference: {fileID: 462797108}
     - target: {fileID: 2995813997645047576, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_IsActive
@@ -770,16 +803,11 @@ PrefabInstance:
       propertyPath: content
       value: 
       objectReference: {fileID: 999229554}
-    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
+    - target: {fileID: 7802742229366912511, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
-      propertyPath: listItemContainer
-      value: 
-      objectReference: {fileID: 820101729}
-    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
-        type: 3}
-      propertyPath: content
-      value: 
-      objectReference: {fileID: 999229554}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 177153580263926345, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_IsActive
