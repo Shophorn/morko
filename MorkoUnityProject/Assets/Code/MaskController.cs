@@ -6,67 +6,84 @@ public class MaskController : MonoBehaviour
 {
     public Transform mask;
     public NavMeshAgent navMeshAgent;
+    // Note(Sampo): Leo character lista saadaan varmaan GameManagerista
     public Transform[] characters;
-    public float waitForSecondsBeforeMovingMask;
+    public float secondsBeforeMaskMovesAtStart;
+    public float secondsBeforeMaskMovesToNewTarget;
+    public float afterCollisionFreezeTime;
     public float maskStartingSpeed;
     public float maskChangingSpeed;
     public float minDistanceFromCharacter;
-    public float landingRadius;
-
-    public Transform p1;
-    public Transform p2;
 
     private Animator animator;
     
     [SerializeField]
-    public Transform morko;
+    public Transform currentMorko;
     [SerializeField]
-    public Transform toMorko;
+    public Transform nextMorko;
     private Transform normal;
 
-    private bool collisionDurationWait = true;
-    private bool startingDurationWait = true;
+    private bool waitAfterCollision = true;
+    private bool startWaitDurationWaited = false;
     private bool lookingForStartingMorko = true;
     private bool maskMovingToNewMorko = false;
+    private bool maskJumping = false;
+    
+    [Space]
+    [Header("DEBUG")]
+    public Transform p1;
+    public Transform p2;
+    public bool startMaskControllerInStartMethod = true;
 
     private void Start()
     {
         navMeshAgent = mask.GetComponent<NavMeshAgent>();
         navMeshAgent.Warp(transform.position);
-
         animator = mask.GetComponent<Animator>();
+
+        if (startMaskControllerInStartMethod)
+            this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
         
-        var closestCharacter = FindClosestCharacter(characters);
-        StartCoroutine(MoveMaskToTarget(closestCharacter, maskStartingSpeed, waitForSecondsBeforeMovingMask, startingDurationWait));
-        
-        morko = p2;
+        currentMorko = p2;
         normal = p1;
     }
 
     private void Update()
     {
-        if (lookingForStartingMorko)
-        {
-            toMorko = FindClosestCharacter(characters);
-            StartCoroutine(MoveMaskToTarget(toMorko, maskStartingSpeed, waitForSecondsBeforeMovingMask, startingDurationWait));
-            CheckMaskDistanceFromCharacter(toMorko);
-        }
+        if (lookingForStartingMorko && startWaitDurationWaited && !maskJumping)
+            FindStartingCharacter();
         
+        if (maskMovingToNewMorko && !maskJumping)
+            CheckMaskDistanceFromCharacter(nextMorko);
+        
+        // DEBUG PURPOSES
+        // SwitchMorko() is called when morko and normal characters collide
         if (!maskMovingToNewMorko && Input.GetKeyDown(KeyCode.Space))
         {
-            SwitchMorko(morko, normal);
+            SwitchMorko(currentMorko, normal);
             var temp = normal;
-            normal = morko;
-            morko = temp;
+            normal = currentMorko;
+            currentMorko = temp;
         }
-
-        if (maskMovingToNewMorko)
-            CheckMaskDistanceFromCharacter(toMorko);
     }
 
-    public Transform FindClosestCharacter(Transform[] characters)
+    public void StartMaskController()
     {
-        float distance = 100000000000f;
+        this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
+    }
+
+    private void FindStartingCharacter()
+    {
+        startWaitDurationWaited = true;
+        lookingForStartingMorko = true;
+        nextMorko = FindClosestCharacter(characters);
+        MoveMaskToTarget(nextMorko, maskStartingSpeed);
+        CheckMaskDistanceFromCharacter(nextMorko);
+    }
+
+    private Transform FindClosestCharacter(Transform[] characters)
+    {
+        float distance = float.MaxValue;
         Transform closestCharacter = characters[Random.Range(0, characters.Length - 1)];
         
         foreach (var c in characters)
@@ -81,13 +98,11 @@ public class MaskController : MonoBehaviour
         return closestCharacter;
     }
     
-    IEnumerator MoveMaskToTarget(Transform target, float speed, float waitForSeonds, bool wait)
+    private void MoveMaskToTarget(Transform target, float speed)
     {
-        if (wait)
-            yield return new WaitForSeconds(waitForSeonds);
-        
-        animator.SetBool("Snake", true);
-        startingDurationWait = false;
+        maskMovingToNewMorko = true;
+        animator.applyRootMotion = true;
+        animator.SetBool("Move", true);
         
         navMeshAgent.speed = speed;
         navMeshAgent.destination = target.position;
@@ -99,79 +114,58 @@ public class MaskController : MonoBehaviour
     {
         var distance = Vector3.Distance(mask.transform.position, target.position);
         if (distance <= minDistanceFromCharacter)
-            MaskToHead(target);
+            TransitionMaskToHead(target);
     }
 
     public void SwitchMorko(Transform oldMorko, Transform newMorko)
     {
-        toMorko = newMorko;
-        maskMovingToNewMorko = true;
+        nextMorko = newMorko;
         
-        MaskOffHead(oldMorko, toMorko);
-        //disable toMorko movement
-        StartCoroutine(MoveMaskToTarget(newMorko, maskChangingSpeed, waitForSecondsBeforeMovingMask, true));
+        animator.SetTrigger("MaskOff");
+        nextMorko.GetComponent<Character>().FreezeForSeconds(afterCollisionFreezeTime);
+        this.InvokeAfter(()=> MoveMaskToTarget(newMorko, maskChangingSpeed), secondsBeforeMaskMovesToNewTarget);
     }
     
     public void MaskOffHead(Transform fromMorko, Transform toMorko)
     {
-        animator.ResetTrigger("MaskOn");
         animator.SetTrigger("MaskOff");
         navMeshAgent.baseOffset = 0;
         mask.transform.parent = null;
+        
         var direction = (toMorko.position - mask.position).normalized;
         mask.rotation = Quaternion.LookRotation(direction);
-        //mask.position = GetMaskLandingPosition(fromMorko.position);
     }
 
-    public void MaskToHead(Transform toMorko)
+    public void TransitionMaskToHead(Transform toMorko)
     {
-        animator.SetTrigger("MaskOn");
-        animator.SetBool("Snake", false);
-
+        animator.applyRootMotion = true;
+        animator.SetTrigger("MaskJumpToHead");
+        animator.SetBool("Move", false);
+        maskJumping = true;
+    }
+    
+    public void MaskOffMorko()
+    {
+        navMeshAgent.Resume();
+        navMeshAgent.baseOffset = 0;
+        mask.transform.parent = null;
+        var direction = (nextMorko.position - mask.position).normalized;
+        mask.rotation = Quaternion.LookRotation(direction);
+    }
+    public void MaskOnNewMorko()
+    {
         lookingForStartingMorko = false;
         maskMovingToNewMorko = false;
+        maskJumping = false;
+
+        animator.applyRootMotion = false;
         
-        var maskHolder = toMorko.transform.GetChild(0);
+        var maskHolder = nextMorko.transform.GetChild(0);
         mask.transform.parent = maskHolder.transform;
         mask.transform.localPosition = Vector3.zero;
-        mask.transform.forward = toMorko.forward;
+        mask.transform.forward = nextMorko.forward;
         navMeshAgent.baseOffset = 0.82f;
 
-        morko = toMorko;
-    }
-
-    private Vector3 GetMaskLandingPosition(Vector3 currentPosition)
-    {
-        Vector3 position = Random.insideUnitCircle * landingRadius;
-        Vector3 newPosition = new Vector3(currentPosition.x + position.x, currentPosition.y, currentPosition.z + position.y);
-        return newPosition;
-    }
-
-    IEnumerator RotateMaskTowardsInSeconds(Vector3 target, float duration)
-    {
-        float timer = 0f;
-        var startRotation = mask.transform.rotation;
-        
-        while (timer <= duration)
-        {
-            timer += Time.deltaTime;
-
-            var direction = (target - mask.transform.position).normalized;
-            var lookRotation = Quaternion.LookRotation(direction);
- 
-            mask.transform.rotation = Quaternion.Slerp(startRotation, lookRotation, timer / duration);
-            yield return null;
-        }
-    }
-    
-    
-    
-    private IEnumerator WaitForAnimation ( Animation animation )
-    {
-        do
-        {
-            yield return null;
-        }
-        while ( animation.isPlaying );
+        currentMorko = nextMorko;
     }
 }
