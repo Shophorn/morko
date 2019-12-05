@@ -1508,7 +1508,7 @@ MonoBehaviour:
     value: 8
   maximumMarchDistance:
     overrideState: 1
-    value: 25
+    value: 50
   distanceFade:
     overrideState: 1
     value: 0

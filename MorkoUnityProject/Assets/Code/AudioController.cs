@@ -42,8 +42,8 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     }
     void IAudioUIControllable.SetCharacterVolume(float value) { /* Todo: Add functionality */ }
     void IAudioUIControllable.SetSfxVolume(float value) { /* Todo: Add functionality */ }
-    public void OnGameStart() { }
-    public void OnLoadingStart() { }
+    public void OnGameStart() { Debug.Log("GAME STARTED XXXDDD"); }
+    public void OnLoadingStart() { Debug.Log("LOADING STARTED XXXDDD"); }
     public void OnGameEnd() { }
 
 
@@ -84,7 +84,6 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     }
     public void PlayButtonSelect()
     {
-        Debug.Log("SOUND PLAYED HURRAH");
         audioSRC.PlayOneShot(onSelect);
     }
     public void PlayButtonClick()
