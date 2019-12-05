@@ -14,6 +14,7 @@ public class MaskController : MonoBehaviour
     public float maskStartingSpeed;
     public float maskChangingSpeed;
     public float minDistanceFromCharacter;
+    public float jumpSpeed;
 
     private Animator animator;
     
@@ -28,12 +29,16 @@ public class MaskController : MonoBehaviour
     private bool lookingForStartingMorko = true;
     private bool maskMovingToNewMorko = false;
     private bool maskJumping = false;
+    private bool maskIsBeingPutOn = false;
+
+    private Vector3 startJumpingPosition;
     
     [Space]
     [Header("DEBUG")]
     public Transform p1;
     public Transform p2;
     public bool startMaskControllerInStartMethod = true;
+    public Vector3 jumpToOffset = Vector3.zero;
 
     private void Start()
     {
@@ -50,11 +55,14 @@ public class MaskController : MonoBehaviour
 
     private void Update()
     {
-        if (lookingForStartingMorko && startWaitDurationWaited && !maskJumping)
+        if (lookingForStartingMorko && startWaitDurationWaited && !maskJumping && !maskIsBeingPutOn)
             FindStartingCharacter();
         
-        if (maskMovingToNewMorko && !maskJumping)
+        else if (maskMovingToNewMorko && !maskJumping && !maskIsBeingPutOn)
             CheckMaskDistanceFromCharacter(nextMorko);
+
+        else if (maskJumping)
+            TransitionMaskToHead(nextMorko);
         
         // DEBUG PURPOSES
         // SwitchMorko() is called when morko and normal characters collide
@@ -66,7 +74,7 @@ public class MaskController : MonoBehaviour
             currentMorko = temp;
         }
     }
-
+    
     public void StartMaskController()
     {
         this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
@@ -102,6 +110,8 @@ public class MaskController : MonoBehaviour
     {
         maskMovingToNewMorko = true;
         animator.applyRootMotion = true;
+        animator.ResetTrigger("MaskOff");
+        animator.ResetTrigger("MaskOn");
         animator.SetBool("Move", true);
         
         navMeshAgent.speed = speed;
@@ -120,6 +130,8 @@ public class MaskController : MonoBehaviour
     public void SwitchMorko(Transform oldMorko, Transform newMorko)
     {
         nextMorko = newMorko;
+        maskJumping = false;
+        maskIsBeingPutOn = false;
         
         animator.SetTrigger("MaskOff");
         nextMorko.GetComponent<Character>().FreezeForSeconds(afterCollisionFreezeTime);
@@ -129,6 +141,7 @@ public class MaskController : MonoBehaviour
     public void MaskOffHead(Transform fromMorko, Transform toMorko)
     {
         animator.SetTrigger("MaskOff");
+        navMeshAgent.Resume(); 
         navMeshAgent.baseOffset = 0;
         mask.transform.parent = null;
         
@@ -138,16 +151,41 @@ public class MaskController : MonoBehaviour
 
     public void TransitionMaskToHead(Transform toMorko)
     {
-        animator.applyRootMotion = true;
-        animator.SetTrigger("MaskJumpToHead");
-        animator.SetBool("Move", false);
+        if (!maskJumping)
+        {
+            startJumpingPosition = transform.localPosition;
+            animator.ResetTrigger("Move");
+            animator.SetTrigger("MaskJumpToHead");
+            navMeshAgent.Stop();
+        }
+        
+        Vector3 toMorkoHeadPosition = toMorko.transform.GetChild(0).position + jumpToOffset;
+        
+        float lenghtToTarget = Vector3.Distance(startJumpingPosition, toMorkoHeadPosition);
+        float currentLengthToTarget = Vector3.Distance(transform.position, toMorkoHeadPosition);
+        float interpolation = (lenghtToTarget - currentLengthToTarget) / lenghtToTarget;
+
+        //transform.position = Vector3.Lerp(startJumpingPosition, toMorkoHeadPosition, Time.deltaTime * jumpSpeed);
+        navMeshAgent.enabled = false;
+        transform.position = Vector3.MoveTowards(transform.position, toMorkoHeadPosition, Time.deltaTime * jumpSpeed);
+        animator.Play("MaskJumpToHeadProto", 0, interpolation);
+        
         maskJumping = true;
+
+        if (interpolation == 1f)
+        {
+            maskJumping = false;
+            maskIsBeingPutOn = true;
+            navMeshAgent.enabled = true;
+            animator.ResetTrigger("MaskJumpToHead");
+            animator.Play("MaskOn");
+        }
     }
     
     public void MaskOffMorko()
     {
         navMeshAgent.Resume();
-        navMeshAgent.baseOffset = 0;
+        navMeshAgent.baseOffset = 0f;
         mask.transform.parent = null;
         var direction = (nextMorko.position - mask.position).normalized;
         mask.rotation = Quaternion.LookRotation(direction);
@@ -164,7 +202,7 @@ public class MaskController : MonoBehaviour
         mask.transform.parent = maskHolder.transform;
         mask.transform.localPosition = Vector3.zero;
         mask.transform.forward = nextMorko.forward;
-        navMeshAgent.baseOffset = 0.82f;
+        navMeshAgent.baseOffset = 1.16f;
 
         currentMorko = nextMorko;
     }
