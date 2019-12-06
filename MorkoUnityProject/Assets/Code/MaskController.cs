@@ -190,11 +190,11 @@ public class MaskController : MonoBehaviour
             
             startJumpingPosition = transform.localPosition;
 
-            float distanceToTarget = Vector3.Distance(startJumpingPosition, targetLocation);
+            float distanceToTarget = Vector2.Distance(new Vector2(startJumpingPosition.x, startJumpingPosition.z), new Vector2(targetLocation.x, targetLocation.z));
             if (distanceToTarget <= minDistanceFromCharacter)
             {
-                //TODO (SAMPO): When target close enough, mask jump straight to head of target 
-                targetJumpingPosition = targetLocation;
+                TransitionMaskToHead(nextMorko);
+                return;
             }
             else
             {
