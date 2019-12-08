@@ -7,6 +7,8 @@ TagManager:
   - Host Window
   - Lobby Window
   - Avatar
+  - HardSurface
+  - Grass
   layers:
   - Default
   - TransparentFX
@@ -22,7 +24,7 @@ TagManager:
   - Multiplayer
   - VisionMask2
   - Obstacle
-  - 
+  - Terrain
   - 
   - 
   - 
