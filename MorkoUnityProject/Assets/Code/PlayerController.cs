@@ -1,6 +1,7 @@
 ﻿using Photon.Pun;
 using System;
 using System.Collections;
+using UnityEditor.Animations;
 using UnityEngine;
 
 [RequireComponent(typeof(Character), typeof(CharacterController))]
@@ -193,11 +194,10 @@ public class PlayerController : MonoBehaviourPun
 
 	private void UpdateAnimatorState()
 	{
-		//if (currentAnimation == previousAnimation)
-		//{
-		//	previousAnimation = currentAnimation;
-		//	return;
-		//}
+		if (isMorko)
+			animator.SetLayerWeight(1, 1);
+		else
+			animator.SetLayerWeight(1, 0);
 		
 		animator.SetBool("Idle", false);
 		animator.SetBool("Walk", false);
@@ -248,7 +248,6 @@ public class PlayerController : MonoBehaviourPun
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 	private void Move(Vector3 moveDirection, bool accelerateRun, bool hasMoved)
 	{
-		lastPosition = transform.position;
 		transform.position = new Vector3(transform.position.x, 0f, transform.position.z);
 		
 		bool joystickMaxed = moveDirection.magnitude >= joystickMaxThreshold;
@@ -262,7 +261,6 @@ public class PlayerController : MonoBehaviourPun
 		
 		bool maxRunSpeed = accelerateRun && currentMovementSpeed >= runSpeed;
 		bool decelerateRun = !accelerateRun && currentMovementSpeed > walkSpeed && ran;
-
 
 		currentAnimation = AnimatorState.Walk;
 		
@@ -320,19 +318,19 @@ public class PlayerController : MonoBehaviourPun
 		
 		float decrease = 1f;
 		
-		bool movingSideways = moveLookDotProduct >= 0 && moveLookDotProduct < 1f;
-		bool movingBackwards = moveLookDotProduct < 0 && moveLookDotProduct >= -1f;
+		bool movingSideways = moveDirection != Vector3.zero && moveLookDotProduct <= 0.75f && moveLookDotProduct > -0.75f;
+		bool movingBackwards = moveDirection != Vector3.zero && moveLookDotProduct < -0.75f && moveLookDotProduct >= -1f;
 		
 		if (movingSideways)
 		{
 			// Walk side multiplier
 			if (currentMovementSpeed <= walkSpeed)
 				decrease = Mathf.Lerp(sideMultiplier, 1f, moveLookDotProduct);
-			// Run side multiplier
+			// Run side multipliersw
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
 
-			//currentAnimation = AnimatorState.WalkSidewaysLeft;
+			currentAnimation = AnimatorState.WalkSidewaysLeft;
 		}
 		else if (movingBackwards)
 		{
@@ -343,7 +341,7 @@ public class PlayerController : MonoBehaviourPun
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, backwardRunMultiplier, Mathf.Abs(moveLookDotProduct));
 			
-			//currentAnimation = AnimatorState.WalkBackwards;
+			currentAnimation = AnimatorState.WalkBackwards;
 		}
 		else
 			decrease = 1f;

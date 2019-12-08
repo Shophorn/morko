@@ -190,9 +190,6 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Roar
     m_EventTreshold: 0
-  - m_ConditionMode: 1
-    m_ConditionEvent: JumpToHead
-    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1102356983718045304}
   m_Solo: 0
@@ -1189,7 +1186,7 @@ AnimatorStateMachine:
   m_EntryTransitions: []
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 336, y: 60, z: 0}
+  m_AnyStatePosition: {x: 336, y: 72, z: 0}
   m_EntryPosition: {x: -144, y: -24, z: 0}
   m_ExitPosition: {x: -144, y: -60, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
