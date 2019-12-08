@@ -29,7 +29,8 @@ public class PlayerController : MonoBehaviourPun
 	// mouseMove = False == move with GP
 	bool mouseRotatedLast = true;
 	bool keyboardMove = true;
-	
+
+	public Animator animator;
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
 
@@ -60,6 +61,8 @@ public class PlayerController : MonoBehaviourPun
 	private bool ran = false;
 	private bool disableMovement = false;
 	private long lastMillis = 0;
+	private AnimatorState currentAnimation = AnimatorState.Idle;
+	private AnimatorState previousAnimation = AnimatorState.Idle;
 
 	[Header("Testing")]
 	public float jumpVelocity = 5.0f;
@@ -68,6 +71,15 @@ public class PlayerController : MonoBehaviourPun
 	bool diving = false;
 	Vector3 diveDirection;
 
+	public enum AnimatorState
+	{
+		Idle,
+		Walk,
+		WalkSidewaysLeft,
+		WalkSidewaysRight,
+		WalkBackwards,
+		Run,
+	}
 	public void ChangeStateTo(bool morko)
 	{
 		isMorko = morko;
@@ -111,6 +123,7 @@ public class PlayerController : MonoBehaviourPun
 
 	private void Awake()
 	{
+		animator = GetComponent<Animator>();
 		character = GetComponent<Character>();
 		GameManager.RegisterCharactcer(character);
 
@@ -174,7 +187,50 @@ public class PlayerController : MonoBehaviourPun
 			ApplyGravity();
 			characterController.Move(diveDirection * diveSpeed * Time.deltaTime);
 		}
+		
+		UpdateAnimatorState();
 	}
+
+	private void UpdateAnimatorState()
+	{
+		//if (currentAnimation == previousAnimation)
+		//{
+		//	previousAnimation = currentAnimation;
+		//	return;
+		//}
+		
+		animator.SetBool("Idle", false);
+		animator.SetBool("Walk", false);
+		animator.SetBool("WalkSidewaysLeft", false);
+		animator.SetBool("WalkSidewaysRight", false);
+		animator.SetBool("WalkBackwards", false);
+		animator.SetBool("Run", false);
+
+        switch (currentAnimation)
+        {
+            case AnimatorState.Idle:
+	            animator.SetBool("Idle", true);
+                break;
+            case AnimatorState.Walk:
+	            animator.SetBool("Walk", true);
+                break;
+            case AnimatorState.WalkSidewaysLeft:
+	            animator.SetBool("WalkSidewaysLeft", true);
+                break;
+            case AnimatorState.WalkSidewaysRight:
+	            animator.SetBool("WalkSidewaysRight", true);
+                break;
+            case AnimatorState.WalkBackwards:
+	            animator.SetBool("WalkBackwards", true);
+                break;
+            case AnimatorState.Run:
+	            animator.SetBool("Run", true);
+                break;
+            default:
+	            animator.SetBool("Idle", true);
+                break;
+        }
+    }
 	
 	private void ApplyGravity()
 	{
@@ -206,7 +262,9 @@ public class PlayerController : MonoBehaviourPun
 		
 		bool maxRunSpeed = accelerateRun && currentMovementSpeed >= runSpeed;
 		bool decelerateRun = !accelerateRun && currentMovementSpeed > walkSpeed && ran;
-		
+
+
+		currentAnimation = AnimatorState.Walk;
 		
 		if (sneak)
 			currentMovementSpeed = sneakSpeed;
@@ -218,25 +276,34 @@ public class PlayerController : MonoBehaviourPun
 		{
 			ran = true;
 			currentMovementSpeed = runSpeed;
+			currentAnimation = AnimatorState.Run;
 		}
 		else if (accelerateRun)
 		{
 			ran = true;
 			currentMovementSpeed += accelerationRun * Time.deltaTime;
+			currentAnimation = AnimatorState.Run;
+
 		}
 		else if (decelerateRun)
 		{
 			currentMovementSpeed -= decelerationRun * Time.deltaTime;
+			currentAnimation = AnimatorState.Run;
+
 			if (currentMovementSpeed <= walkSpeed)
 			{
 				ran = false;
 				currentMovementSpeed = walkSpeed;
+				currentAnimation = AnimatorState.Walk;
 			}
 		}
 		else if (maxWalkSpeed)
 			currentMovementSpeed = walkSpeed;
 		else
+		{
 			currentMovementSpeed = 0f;
+			currentAnimation = AnimatorState.Idle;
+		}
 		
 		// Save direction when not moving
 		// Because direction is required even when not giving input for deceleration
@@ -264,6 +331,8 @@ public class PlayerController : MonoBehaviourPun
 			// Run side multiplier
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
+
+			//currentAnimation = AnimatorState.WalkSidewaysLeft;
 		}
 		else if (movingBackwards)
 		{
@@ -273,6 +342,8 @@ public class PlayerController : MonoBehaviourPun
 			// Run backwards multiplier
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, backwardRunMultiplier, Mathf.Abs(moveLookDotProduct));
+			
+			//currentAnimation = AnimatorState.WalkBackwards;
 		}
 		else
 			decrease = 1f;

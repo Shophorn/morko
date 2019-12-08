@@ -285,7 +285,7 @@ MonoBehaviour:
   broadcastDelayMs: 100
   gameUpdateThreadDelayMs: 50
   remoteCharacterLayer: 11
-  characterPrefab: {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76,
+  characterPrefab: {fileID: 4996940525929188405, guid: 172d7e0686548714b8a139b95a9b72fb,
     type: 3}
   mapSceneName: Map01
   morkoChangeParticlesPrefab: {fileID: 7047622455447796930, guid: 2f14f840dee18984d99bf4bfc002cd6a,
@@ -490,6 +490,56 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996035, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -190.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996037, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0.9716981
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0.9716981
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0.9716981
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_ClearFlags
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1856263929179443101, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -549,56 +599,6 @@ PrefabInstance:
         type: 3}
       propertyPath: radius
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 4294967295
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_ClearFlags
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -190.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996037, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996035, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b85a2b3b7e476064782a1fa7f16ff2c8, type: 3}
@@ -700,6 +700,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIMainGameObject
       objectReference: {fileID: 0}
+    - target: {fileID: 177153580263926345, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 177153581040214789, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -755,6 +760,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 177153581360334368, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: m_Text
+      value: MUSIC VOLUME
+      objectReference: {fileID: 0}
     - target: {fileID: 2995813997645047576, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_IsActive
@@ -780,15 +790,5 @@ PrefabInstance:
       propertyPath: content
       value: 
       objectReference: {fileID: 999229554}
-    - target: {fileID: 177153580263926345, guid: cf8fe42012c8b3e4abab233defd3faef,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 177153581360334368, guid: cf8fe42012c8b3e4abab233defd3faef,
-        type: 3}
-      propertyPath: m_Text
-      value: MUSIC VOLUME
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf8fe42012c8b3e4abab233defd3faef, type: 3}
