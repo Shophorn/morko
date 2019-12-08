@@ -180,9 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10db68964eb42024a97baa63057372cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characters:
-  - {fileID: 0}
-  - {fileID: 0}
+  characterTransforms: []
   navMeshAgent: {fileID: 1942082360609387272}
   secondsBeforeMaskMovesAtStart: 1
   secondsBeforeMaskMovesToNewTarget: 0
@@ -202,8 +200,6 @@ MonoBehaviour:
   breathingSpeed: 1
   currentMorko: {fileID: 0}
   nextMorko: {fileID: 0}
-  p1: {fileID: 0}
-  p2: {fileID: 0}
   startMaskControllerInStartMethod: 1
   maskOnToNeckOffset: {x: 0.058, y: -0.106, z: 0}
 --- !u!114 &860583297372687953

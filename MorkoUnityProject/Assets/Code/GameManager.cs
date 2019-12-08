@@ -365,8 +365,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		SceneManager.sceneLoaded -= OnMapSceneLoaded;
 		sceneState = SceneState.Map;
 
-		Vector3 startPosition 		= Vector3.zero;
-		Quaternion startRotation 	= Quaternion.identity;
+		var placement 				= SpawnPoint.GetCharacterPlacement(PhotonNetwork.LocalPlayer.ActorNumber);
+		Vector3 startPosition 		= placement.position;
+		Quaternion startRotation 	= Quaternion.AngleAxis(placement.rotation, Vector3.up);
+		
+		// Vector3 startPosition 		= Vector3.zero;
+		// Quaternion startRotation 	= Quaternion.identity;
 
 		var cameraController 	= Instantiate(cameraControllerPrefab);
 		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
@@ -447,6 +451,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		if (instance.sceneState != SceneState.Map)
 			return;
 
+		// Note(Leo): This should be same as PhotonNetwork.LocalPlayer.ActorNumber, is it??
 		if (character.photonView.IsMine)
 			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
 
