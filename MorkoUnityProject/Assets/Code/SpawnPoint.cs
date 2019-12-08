@@ -23,8 +23,6 @@ public class SpawnPoint : MonoBehaviour
 		}
 	}
 
-
-	public System.Collections.Generic.List<Vector3> yieldedPositions = new System.Collections.Generic.List<Vector3>();
 	public float radius;
 
 	private static SpawnPoint _instance;
