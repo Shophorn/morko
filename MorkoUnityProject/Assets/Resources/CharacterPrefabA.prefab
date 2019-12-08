@@ -1162,6 +1162,18 @@ MonoBehaviour:
   normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
   morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
   flashlight: {fileID: 8255654868176474285}
+  minWalkAnimationSpeed: 0.1
+  maxWalkAnimationSpeed: 2
+  minSidewaysWalkAnimationSpeed: 0.1
+  maxSidewaysWalkAnimationSpeed: 3
+  minSidewaysRunAnimationSpeed: 3
+  maxSidewaysRunAnimationSpeed: 6
+  minBackwardsWalkAnimationSpeed: 0.1
+  maxBackwardsWalkAnimationSpeed: 2
+  minBackwardsRunAnimationSpeed: 2
+  maxBackwardsRunAnimationSpeed: 3.5
+  minRunAnimationSpeed: 0.6
+  maxRunAnimationSpeed: 1
   jumpVelocity: 5
   diveSpeed: 10
 --- !u!1 &3645952338801317252

@@ -66,6 +66,26 @@ public class PlayerController : MonoBehaviourPun
 	private AnimatorState currentAnimation = AnimatorState.Idle;
 	private AnimatorState previousAnimation = AnimatorState.Idle;
 
+	[Space]
+	[Header("Animation Speeds")]
+	public float minWalkAnimationSpeed = 1f;
+	public float maxWalkAnimationSpeed = 1f;
+	[Space]
+	public float minSidewaysWalkAnimationSpeed = 1f;
+	public float maxSidewaysWalkAnimationSpeed = 1f;
+	[Space]
+	public float minSidewaysRunAnimationSpeed = 1f;
+	public float maxSidewaysRunAnimationSpeed = 1f;
+	[Space]
+	public float minBackwardsWalkAnimationSpeed = 1f;
+	public float maxBackwardsWalkAnimationSpeed = 1f;
+	[Space]
+	public float minBackwardsRunAnimationSpeed = 1f;
+	public float maxBackwardsRunAnimationSpeed = 1f;
+	[Space]
+	public float minRunAnimationSpeed = 1f;
+	public float maxRunAnimationSpeed = 1f;
+	
 	[Header("Testing")]
 	public float jumpVelocity = 5.0f;
 	public float diveSpeed = 5.0f;
@@ -213,27 +233,86 @@ public class PlayerController : MonoBehaviourPun
 		animator.SetBool("WalkBackwards", false);
 		animator.SetBool("Run", false);
 
+		float interpolate = 1f;
+		float animatorSpeed = 1f;
+		bool walkingNotRunning = currentMovementSpeed > 0 && currentMovementSpeed < runSpeed;
+			
         switch (currentAnimation)
         {
             case AnimatorState.Idle:
+	            animator.speed = 1f;
 	            animator.SetBool("Idle", true);
                 break;
             case AnimatorState.Walk:
+	            
+	            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+	            animatorSpeed = Mathf.Lerp(minWalkAnimationSpeed, maxWalkAnimationSpeed, interpolate);
+	            animator.speed = animatorSpeed;
 	            animator.SetBool("Walk", true);
                 break;
+            
             case AnimatorState.WalkSidewaysLeft:
+
+	            if (walkingNotRunning)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+		            animatorSpeed = Mathf.Lerp(minSidewaysWalkAnimationSpeed, maxSidewaysWalkAnimationSpeed, interpolate);
+	            }
+	            else
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(minSidewaysRunAnimationSpeed, maxSidewaysRunAnimationSpeed, interpolate);
+	            }
+	            
+	            animator.speed = animatorSpeed;
 	            animator.SetBool("WalkSidewaysLeft", true);
                 break;
+            
             case AnimatorState.WalkSidewaysRight:
+	            
+	            if (walkingNotRunning)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+		            animatorSpeed = Mathf.Lerp(minSidewaysWalkAnimationSpeed, maxSidewaysWalkAnimationSpeed, interpolate);
+	            }
+	            else
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(minSidewaysRunAnimationSpeed, maxSidewaysRunAnimationSpeed, interpolate);
+	            }
+	            
+	            animator.speed = animatorSpeed;
 	            animator.SetBool("WalkSidewaysRight", true);
                 break;
+            
             case AnimatorState.WalkBackwards:
+	            
+	            if (walkingNotRunning)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+		            animatorSpeed = Mathf.Lerp(minBackwardsWalkAnimationSpeed, maxBackwardsWalkAnimationSpeed, interpolate);
+	            }
+	            else
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(minBackwardsRunAnimationSpeed, maxBackwardsRunAnimationSpeed, interpolate);
+	            }
+	            
+	            animator.speed = animatorSpeed;
 	            animator.SetBool("WalkBackwards", true);
                 break;
+            
             case AnimatorState.Run:
+	            
+	            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+	            animatorSpeed = Mathf.Lerp(minRunAnimationSpeed, maxRunAnimationSpeed, interpolate);
+	            animator.speed = animatorSpeed;
 	            animator.SetBool("Run", true);
                 break;
+            
             default:
+	            
+	            animator.speed = 1f;
 	            animator.SetBool("Idle", true);
                 break;
         }
