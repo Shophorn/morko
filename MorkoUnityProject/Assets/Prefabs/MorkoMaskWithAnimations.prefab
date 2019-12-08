@@ -96,8 +96,11 @@ GameObject:
   - component: {fileID: 1942082360602019434}
   - component: {fileID: 1942082360609387272}
   - component: {fileID: 1942082360609387273}
+  - component: {fileID: 860583297372687953}
+  - component: {fileID: 2966174741917430528}
+  - component: {fileID: 3723024473151008063}
   m_Layer: 0
-  m_Name: MorkoMask 1
+  m_Name: MorkoMaskWithAnimations
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -203,6 +206,85 @@ MonoBehaviour:
   p2: {fileID: 0}
   startMaskControllerInStartMethod: 1
   maskOnToNeckOffset: {x: 0.058, y: -0.106, z: 0}
+--- !u!114 &860583297372687953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942082360609420706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 0
+  OwnershipTransfer: 0
+  ObservedComponents:
+  - {fileID: 0}
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &2966174741917430528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942082360609420706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 9
+    SynchronizeType: 2
+    Name: Roar
+  - Type: 9
+    SynchronizeType: 2
+    Name: JumpToHead
+  - Type: 9
+    SynchronizeType: 2
+    Name: JumpOffHead
+  - Type: 4
+    SynchronizeType: 2
+    Name: Move
+  - Type: 4
+    SynchronizeType: 2
+    Name: Idle
+  - Type: 4
+    SynchronizeType: 2
+    Name: Walk
+  - Type: 4
+    SynchronizeType: 2
+    Name: Run
+  - Type: 4
+    SynchronizeType: 2
+    Name: Breathing
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
+--- !u!114 &3723024473151008063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942082360609420706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
 --- !u!1 &1942082360609420708
 GameObject:
   m_ObjectHideFlags: 0
