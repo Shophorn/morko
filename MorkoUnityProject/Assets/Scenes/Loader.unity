@@ -294,8 +294,6 @@ MonoBehaviour:
     type: 3}
   visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
     type: 3}
-  broadcastDelayMs: 100
-  gameUpdateThreadDelayMs: 50
   characterPrefabs:
   - {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76, type: 3}
   - {fileID: 1640491983170310785, guid: 6cc2d8bb6baf4e448ada5008178ef215, type: 3}
@@ -308,7 +306,7 @@ MonoBehaviour:
   mapSceneName: Map01
   morkoChangeParticlesPrefab: {fileID: 7047622455447796930, guid: 2f14f840dee18984d99bf4bfc002cd6a,
     type: 3}
-  maskTrackerPrefab: {fileID: 3236208552190008975, guid: acc761d2911b7db48aa9fef4cd06ca1d,
+  maskPrefab: {fileID: 1942082360609420706, guid: f662dd28ddb63c24b8be68484d247f7a,
     type: 3}
 --- !u!4 &942324879
 Transform:

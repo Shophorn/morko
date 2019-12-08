@@ -312,6 +312,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: LocalCameraController
       objectReference: {fileID: 0}
+    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
+        type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 1815531723}
     - target: {fileID: 2084330402427940860, guid: 92318f7ba1abdd742b81fbccb8ffff32,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -367,11 +372,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 216298594692043413, guid: 92318f7ba1abdd742b81fbccb8ffff32,
-        type: 3}
-      propertyPath: target
-      value: 
-      objectReference: {fileID: 1815531723}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 92318f7ba1abdd742b81fbccb8ffff32, type: 3}
 --- !u!1 &857165653
@@ -618,7 +618,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f37ba4e726adedf4292550aee5eb44bc, type: 2}
+  - {fileID: 2100000, guid: 4ed7f97da0576a94a9cdc8507b87160b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -945,6 +945,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898639764226340294, guid: acc761d2911b7db48aa9fef4cd06ca1d,
+        type: 3}
+      propertyPath: m_AABB.m_Center.x
+      value: 0.5528101
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898639764226340294, guid: acc761d2911b7db48aa9fef4cd06ca1d,
+        type: 3}
+      propertyPath: m_AABB.m_Center.z
+      value: 0.032295227
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: acc761d2911b7db48aa9fef4cd06ca1d, type: 3}

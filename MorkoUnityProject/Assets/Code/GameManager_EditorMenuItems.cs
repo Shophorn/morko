@@ -1,6 +1,6 @@
 public partial class GameManager
 {
-	[UnityEditor.MenuItem("GameManager/Spawn Mask")]
+	[UnityEditor.MenuItem("Morko/GameManager/Spawn Mask")]
 	private static void SpawnMask()
 	{
 		if (instance == null)
@@ -10,7 +10,7 @@ public partial class GameManager
 		instance.photonView.RPC(nameof(SetCharacterMorkoRPC), Photon.Pun.RpcTarget.All, actorNumber);
 	}
 
-	[UnityEditor.MenuItem("GameManager/End Game")]
+	[UnityEditor.MenuItem("Morko/GameManager/End Game")]
 	private static void EndGame()
 	{
 		if (instance == null)
