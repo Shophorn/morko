@@ -988,6 +988,7 @@ GameObject:
   - component: {fileID: 6930633409023596138}
   - component: {fileID: 3311257126215873329}
   - component: {fileID: 114353981944122392}
+  - component: {fileID: 1209774536909601168}
   - component: {fileID: 114935891494484828}
   - component: {fileID: 7685343771109430989}
   - component: {fileID: 2128388933653630375}
@@ -1074,6 +1075,47 @@ MonoBehaviour:
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &1209774536909601168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3593296432942239937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 9
+    SynchronizeType: 2
+    Name: Roar
+  - Type: 4
+    SynchronizeType: 2
+    Name: Idle
+  - Type: 4
+    SynchronizeType: 2
+    Name: Walk
+  - Type: 4
+    SynchronizeType: 2
+    Name: WalkSidewaysLeft
+  - Type: 4
+    SynchronizeType: 2
+    Name: WalkSidewaysRight
+  - Type: 4
+    SynchronizeType: 2
+    Name: WalkBackwards
+  - Type: 4
+    SynchronizeType: 2
+    Name: Run
+  m_SynchronizeLayers:
+  - SynchronizeType: 2
+    LayerIndex: 0
+  - SynchronizeType: 2
+    LayerIndex: 1
 --- !u!114 &114935891494484828
 MonoBehaviour:
   m_ObjectHideFlags: 0
