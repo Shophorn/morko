@@ -369,8 +369,6 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		Vector3 startPosition 		= placement.position;
 		Quaternion startRotation 	= Quaternion.AngleAxis(placement.rotation, Vector3.up);
 		
-		// Vector3 startPosition 		= Vector3.zero;
-		// Quaternion startRotation 	= Quaternion.identity;
 
 		var cameraController 	= Instantiate(cameraControllerPrefab);
 		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
@@ -387,7 +385,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
         if (photonView.IsMine)
         {
-        	PhotonNetwork.Instantiate(maskPrefab.name, startPosition, startRotation); 
+        	var maskPlacement = SpawnPoint.GetMaskPlacement();
+        	PhotonNetwork.Instantiate(	maskPrefab.name,
+        								maskPlacement.position, 
+        								Quaternion.AngleAxis(maskPlacement.rotation, Vector3.up)); 
         }
 
         gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];

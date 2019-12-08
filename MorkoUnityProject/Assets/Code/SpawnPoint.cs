@@ -35,6 +35,7 @@ public class SpawnPoint : MonoBehaviour
 
 		if (_instance == null)
 			Debug.LogError("[SPAWN POINT]: No SpawnPoint in scene!"); 
+
 		return _instance;
 	}
 
@@ -60,6 +61,16 @@ public class SpawnPoint : MonoBehaviour
 		}
 
 		return new PositionAndRotation();	
+	}
+
+	public static PositionAndRotation GetMaskPlacement()
+	{
+		var result = new PositionAndRotation
+		{
+			position = GetInstance().transform.position,
+			rotation = 0,
+		};
+		return result;
 	}
 
 	private static bool GetActorIndexInPhotonRoom(int actorNumber, out int index, out int playerCount)
