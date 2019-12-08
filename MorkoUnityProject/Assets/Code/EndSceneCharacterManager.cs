@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class EndSceneCharacterManager : MonoBehaviour
 {
-	public GameObject characterPrefab;
 	public float characterOffset = 3f;
 
 	private void Start()
@@ -20,7 +19,8 @@ public class EndSceneCharacterManager : MonoBehaviour
 				position += new Vector3(0, 0.5f, 0);
 			}
 
-			var character = Instantiate(characterPrefab, transform, false);
+			int avatarIndex = endResult.playerAvatarIds[i];
+			var character = Instantiate(GameManager.GetCharacterPrefabs[avatarIndex], transform, false);
 			character.transform.position = position;
 			Destroy(character.GetComponent<PlayerController>());
 		}
@@ -31,4 +31,5 @@ public struct GameEndResult
 {
 	public int characterCount;
 	public int winningCharacterIndex;
+	public int [] playerAvatarIds;
 }

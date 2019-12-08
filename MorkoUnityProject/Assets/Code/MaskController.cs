@@ -1,15 +1,15 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class MaskController : MonoBehaviour
+public class MaskController : MonoBehaviourPun
 {
-    public Transform[] characters;
+    public List<Transform> characterTransforms;
     public NavMeshAgent navMeshAgent;
     
     [Space]
     [Header("Mask Settings")]
-    // Note(Sampo): Leo character lista saadaan varmaan GameManagerista
     public float secondsBeforeMaskMovesAtStart;
     public float secondsBeforeMaskMovesToNewTarget;
     public float afterCollisionFreezeTime;
@@ -52,10 +52,6 @@ public class MaskController : MonoBehaviour
     private Transform morkoHeadJoint;
     private Transform morkoNeckJoint;
 
-    [Space]
-    [Header("DEV")]
-    public Transform p1;
-    public Transform p2;
     public bool startMaskControllerInStartMethod = true;
     public Vector3 maskOnToNeckOffset;
 
@@ -75,13 +71,13 @@ public class MaskController : MonoBehaviour
 
         if (startMaskControllerInStartMethod)
             this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
-        
-        currentMorko = p2;
-        normal = p1;
     }
 
     private void Update()
     {
+        if (photonView.IsMine == false)
+            return;
+        
         if (lookingForStartingMorko && startWaitDurationWaited && !maskJumpingOn && !maskIsBeingPutOn)
             FindStartingCharacter();
         
@@ -93,17 +89,8 @@ public class MaskController : MonoBehaviour
         
         else if (maskJumpingOff)
             JumpOffHead(Vector3.zero);
-        
-        // DEBUG PURPOSES
-        // SwitchMorko() is called when morko and normal characters collide
-        //if (!maskMovingToNewMorko && Input.GetKeyDown(KeyCode.Space))
-        //{
-        //    SwitchMorko(currentMorko, normal);
-        //    var temp = normal;
-        //    normal = currentMorko;
-        //    currentMorko = temp;
-        //}
     }
+    
     public void StartMaskController()
     {
         this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
@@ -113,7 +100,7 @@ public class MaskController : MonoBehaviour
     {
         startWaitDurationWaited = true;
         lookingForStartingMorko = true;
-        nextMorko = FindClosestCharacter(characters);
+        nextMorko = FindClosestCharacter();
         
         morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
         morkoHeadJoint = morkoNeckJoint.GetChild(0);
@@ -122,12 +109,12 @@ public class MaskController : MonoBehaviour
         CheckMaskDistanceFromCharacter(nextMorko);
     }
 
-    private Transform FindClosestCharacter(Transform[] characters)
+    private Transform FindClosestCharacter()
     {
         float distance = float.MaxValue;
-        Transform closestCharacter = characters[Random.Range(0, characters.Length - 1)];
+        Transform closestCharacter = characterTransforms[Random.Range(0, characterTransforms.Count)];
         
-        foreach (var c in characters)
+        foreach (var c in characterTransforms)
         {
             var characterDistance = Vector3.Distance(transform.position, c.position);
             if (characterDistance < distance)
