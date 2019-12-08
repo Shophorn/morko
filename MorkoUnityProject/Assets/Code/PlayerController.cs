@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviourPun
 	public Animator animator;
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
+	public Transform flashlight;
 
 	PlayerSettings currentSettings => isMorko ? morkoSettings : normalSettings;
 	private float walkSpeed => currentSettings.walkSpeed;
@@ -195,9 +196,15 @@ public class PlayerController : MonoBehaviourPun
 	private void UpdateAnimatorState()
 	{
 		if (isMorko)
+		{
 			animator.SetLayerWeight(1, 1);
+			flashlight.gameObject.SetActive(false);
+		}
 		else
+		{
 			animator.SetLayerWeight(1, 0);
+			flashlight.gameObject.SetActive(true);
+		}
 		
 		animator.SetBool("Idle", false);
 		animator.SetBool("Walk", false);

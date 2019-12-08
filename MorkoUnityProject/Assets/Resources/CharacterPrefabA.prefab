@@ -1119,6 +1119,7 @@ MonoBehaviour:
   animator: {fileID: 6930633409023596138}
   normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
   morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
+  flashlight: {fileID: 8255654868176474285}
   jumpVelocity: 5
   diveSpeed: 10
 --- !u!1 &3645952338801317252
@@ -2586,6 +2587,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Flashlight
       objectReference: {fileID: 0}
+    - target: {fileID: 8255654867420142199, guid: 6565620f2b9c79844bb9bbba66d10727,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8255654867419973207, guid: 6565620f2b9c79844bb9bbba66d10727,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2640,6 +2646,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: -3.7970002
+      objectReference: {fileID: 0}
+    - target: {fileID: 8255654867422397623, guid: 6565620f2b9c79844bb9bbba66d10727,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6565620f2b9c79844bb9bbba66d10727, type: 3}
