@@ -18,14 +18,12 @@ public class RoomCreateInfo
 	public int gameDurationSeconds;
 }
 
-
 public class JoinInfo 
 {
 	public string playerName;
 	public int selectedRoomIndex;
 	public RoomInfo selectedRoomInfo;
 }
-
 
 public partial class UIController : MonoBehaviour
 {
