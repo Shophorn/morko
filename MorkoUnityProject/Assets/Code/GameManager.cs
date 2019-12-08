@@ -46,8 +46,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	private int localCharacterActorNumber;
 
 	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
-	[SerializeField] private TrackTransform maskTrackerPrefab;
-	private TrackTransform maskTracker;
+	[SerializeField] private GameObject maskPrefab;
+	private MaskController localMaskInstance;
 
 	private enum SceneState { Menu, Map, End }
 	private SceneState sceneState;
@@ -381,7 +381,11 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		cameraController.target = localPlayer.transform;
         Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
-        maskTracker = Instantiate(maskTrackerPrefab);
+        if (photonView.IsMine)
+        {
+        	PhotonNetwork.Instantiate(maskPrefab.name, startPosition, startRotation); 
+        }
+
         gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
 
 		uiController.Hide();
@@ -417,13 +421,25 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		// Todo(Leo): Unset current character
 
 		currentMorkoActorNumber = actorNumber;
-		maskTracker.target = connectedCharacters[actorNumber].transform;
+		// maskTracker.target = connectedCharacters[actorNumber].transform;
 
-		connectedCharacters[actorNumber].FreezeForSeconds(3);
-		Vector3 effectPosition = maskTracker.target.transform.position + maskTracker.offset;
-		Instantiate(morkoChangeParticlesPrefab, effectPosition, Quaternion.identity);
+		// connectedCharacters[actorNumber].FreezeForSeconds(3);
+		// Vector3 effectPosition = maskTracker.target.transform.position + maskTracker.offset;
+		// Instantiate(morkoChangeParticlesPrefab, effectPosition, Quaternion.identity);
 	}
 
+	public static void RegisterMask(MaskController mask)
+	{
+		// Todo(Leo): Make different settings for when sceneState is End
+		if (instance.sceneState != SceneState.Map)
+			return;
+
+		instance.localMaskInstance = mask;
+		foreach (var entry in instance.connectedCharacters)
+		{
+			mask.characterTransforms.Add(entry.Value.transform);
+		}
+	}
 
 	public static void RegisterCharactcer(Character character)
 	{
@@ -442,6 +458,9 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 		int actorNumber = character.photonView.Owner.ActorNumber;
 		instance.connectedCharacters.Add(actorNumber, character);
+
+		if (instance.localMaskInstance != null)
+			instance.localMaskInstance.characterTransforms.Add(character.transform);
 	}
 
 	public static Camera GetPlayerViewCamera()
