@@ -1183,9 +1183,6 @@ MonoBehaviour:
   stepsGrass:
   - {fileID: 8300000, guid: 12e6684f74a8d014ebafe3e1d3a6bc6e, type: 3}
   - {fileID: 8300000, guid: 5548fa30ee9adb140aafed859d3bd2ea, type: 3}
-  - {fileID: 8300000, guid: d40627a23896fde42bec257b2ae76f44, type: 3}
-  - {fileID: 8300000, guid: fa95fa07114517947adf189df4f23023, type: 3}
-  - {fileID: 8300000, guid: 18687c139b9cb294b8be0bf01df1d89e, type: 3}
   - {fileID: 8300000, guid: 72a0f5c4f5e8a6b4aa38dfea532b4a87, type: 3}
   - {fileID: 8300000, guid: d01956b41a85da64f84b355a2c948551, type: 3}
   stepsDirt: []
@@ -1196,8 +1193,8 @@ MonoBehaviour:
   adaptiveFootsteps: 1
   terrainLayer: 14
   muteFootsteps: 0
-  audioSrc: {fileID: 0}
-  currentSurface: 0
+  audioSrc: {fileID: 82659776637260440}
+  currentSurface: 1
 --- !u!82 &82659776637260440
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1211,7 +1208,7 @@ AudioSource:
     type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.4
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1255,7 +1252,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
