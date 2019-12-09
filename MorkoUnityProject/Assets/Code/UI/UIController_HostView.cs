@@ -43,7 +43,7 @@ public partial class UIController
 				gameDurationSeconds = hostView.gameDurationField.IntValue, 	
 			};
 
-			serverControls.CreateRoom(info);
+			netControls.CreateRoom(info);
 
 			SetRoomViewHost(true);
 			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);

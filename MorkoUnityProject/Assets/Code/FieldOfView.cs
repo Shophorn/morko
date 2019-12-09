@@ -21,6 +21,8 @@ public class FieldOfView : MonoBehaviour
     Mesh viewMesh;
     Mesh fullMesh;
 
+    public bool doRaycast = true;
+
     private void Start()
     {
         viewMesh = new Mesh();
@@ -126,7 +128,7 @@ public class FieldOfView : MonoBehaviour
         Vector3 dir = DirFromAngle(globalAngle, true);
         RaycastHit hit;
 
-        if(Physics.Raycast(transform.position,dir,out hit, viewRadius,mask))
+        if(Physics.Raycast(transform.position,dir,out hit, viewRadius,mask) && doRaycast)
         {
             float distance = hit.distance + hitOffset;
             return new ViewCastInfo(true, transform.position + dir * distance, distance, globalAngle);

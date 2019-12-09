@@ -1,10 +1,12 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
@@ -14,20 +16,15 @@ hashtable also in System.Collections. */
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 using Player = Photon.Realtime.Player;
-using PhotonActorNumber = System.Int32;
 
-public class GameManager : 	MonoBehaviourPunCallbacks,
-							IClientUIControllable,
-							IServerUIControllable,
-							IAppUIControllable
+[RequireComponent(typeof(AudioController))]
+public partial class GameManager : 	MonoBehaviourPunCallbacks,
+									INetUIControllable,
+									IAppUIControllable
 {
 	private static GameManager instance;
 
 	public UIController uiController;
-
-	private bool isRunningServer 		= false;
-	private bool isListeningBroadcasts 	= false;
-	private bool isConnectedToServer 	= false;
 
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
@@ -38,55 +35,48 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public GameObject visibilityEffectPrefab;
 
-	public int broadcastDelayMs = 100;
-	public int gameUpdateThreadDelayMs = 50;
+	public GameObject[] characterPrefabs;
+	public static GameObject [] GetCharacterPrefabs => instance.characterPrefabs;
 
-	public int remoteCharacterLayer;
-	public GameObject characterPrefab;
-	public string levelName;
+	public string mapSceneName;
+	private float gameEndTime;
 
-	private Dictionary<PhotonActorNumber, Character> connectedCharacters;
-	private PhotonActorNumber currentMorkoActorNumber;
-	private PhotonActorNumber localCharacterActorNumber;
-	private bool localCharacterSpawned;
+	private Dictionary<int, Character> connectedCharacters;
+	private int currentMorkoActorNumber;
+	private int localCharacterActorNumber;
 
 	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
+	[SerializeField] private GameObject maskPrefab;
+	private MaskController localMaskInstance;
 
-	[SerializeField] private TrackTransform maskTrackerPrefab;
-	private TrackTransform maskTracker;
+	private enum SceneState { Menu, Map, End }
+	private SceneState sceneState;
 
-	private bool isEndSceneCurrent = false;
+	private static readonly string menuSceneName = "EmptyScene";
+	private static readonly string endSceneName = "EndScene";
 
-	public static IClientUIControllable clientUIControls => instance;
-	public static IServerUIControllable serverUIControls => instance;
-	public static IAppUIControllable appUIControls => instance;
 
-	[UnityEditor.MenuItem("GameManager/Spawn Mask")]
-	private static void SpawnMask()
+	public static GameObject[] GetCharecterModelsForSelection()
 	{
-		if (instance == null)
-			return;
+		if (instance = null)
+			return new GameObject[0];
 
-		int actorNumber = instance.localCharacterActorNumber;
-		instance.photonView.RPC(nameof(SetCharacterMorkoRPC), RpcTarget.All, actorNumber);
-	}
+		int count = instance.characterPrefabs.Length;
+		var results = new GameObject [count];
+		for (int i = 0; i < count; i++)
+		{
+			results[i] = Instantiate(instance.characterPrefabs[i], Vector3.zero, Quaternion.identity);
+			Destroy(results[i].GetComponent<PlayerController>());
+			Destroy(results[i].GetComponent<Character>());
+		}
 
-	[UnityEditor.MenuItem("GameManager/End Game")]
-	private static void EndGame()
-	{
-		if (instance == null)
-			return;
-
-		instance.photonView.RPC(nameof(LoadEndScene), RpcTarget.All);
+		return results;
 	}
 
 	[PunRPC]
-	private void LoadEndScene()
+	private void LoadEndSceneRPC()
 	{
-		isEndSceneCurrent = true;
-
-		PhotonNetwork.AutomaticallySyncScene = true;
-		PhotonNetwork.LoadLevel("EndScene");
+		LoadScene(SceneLoader.Photon, endSceneName, OnEndSceneLoaded);
 	}
 
 	private void Awake()
@@ -96,16 +86,46 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		DontDestroyOnLoad(this);
 		PhotonNetwork.ConnectUsingSettings();
 
-
-		uiController.Configure(this, this, this);
+		uiController.Configure(this, this, GetComponent<AudioController>());
 		uiController.SetConnectingScreen();
+
+		LoadScene(SceneLoader.UnityEngine, menuSceneName, OnMenuSceneLoaded);
 	}
 
 	private void Update()
 	{
-		if (Input.GetButtonDown("Cancel"))
+		void DoInGameMenu() {
+			if (Input.GetButtonDown("Cancel"))
+				uiController.ToggleNotPauseMenu();
+		}
+
+		switch (sceneState)
 		{
-			uiController.ToggleNotPauseMenu();
+			case SceneState.Menu:
+				break;
+
+			case SceneState.Map:
+			{
+				if (currentMorkoActorNumber == localCharacterActorNumber)
+				{
+					var properties = PhotonNetwork.LocalPlayer.CustomProperties;
+					float currentMorkoLevel = (float) properties[PlayerProperty.MorkoLevel];
+					currentMorkoLevel += Time.deltaTime;
+					properties[PlayerProperty.MorkoLevel] = currentMorkoLevel;
+					PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+				}
+
+				DoInGameMenu();
+				if (PhotonNetwork.IsMasterClient && gameEndTime < Time.time)
+				{
+					photonView.RPC(nameof(EndGameRPC), RpcTarget.All);
+				}
+			} break;
+
+
+			case SceneState.End:
+				DoInGameMenu();
+				break;
 		}
 	}
 
@@ -127,113 +147,135 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.SetRooms(rooms);
 	}
 
-	void IClientUIControllable.RequestJoin(JoinInfo joinInfo)
-	{
-		PhotonNetwork.NickName = joinInfo.playerName;
-		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
-	}
-
-
 	public override void OnJoinedRoom()
 	{
-		isEndSceneCurrent = false;
-
 		foreach (var player in PhotonNetwork.PlayerList)
 		{
 			if (player.IsLocal)
 			{
-				var properties = new Hashtable ();
-				properties.Add(PhotonPropertyKey.PlayerStatus, (int)PlayerNetworkStatus.Waiting);
+				// var properties = new Hashtable ();
+				var properties = new Hashtable();
+				properties.Add(PlayerProperty.Status, (int)PlayerNetworkStatus.Waiting);
+				properties.Add(PlayerProperty.MorkoLevel, 0.0f);
+				properties.Add(PlayerProperty.AvatarId, UnityEngine.Random.Range(0, characterPrefabs.Length));
+
 				player.SetCustomProperties(properties);
 				uiController.AddPlayer(player.ActorNumber, player.NickName, PlayerNetworkStatus.Waiting);
 			}
 			else
 			{
 				var status = PlayerNetworkStatus.Waiting;
-				if (player.CustomProperties.ContainsKey(PhotonPropertyKey.PlayerStatus))
+				if (player.CustomProperties.ContainsKey(PlayerProperty.Status))
 				{
-					status = (PlayerNetworkStatus)player.CustomProperties[PhotonPropertyKey.PlayerStatus];
+					status = (PlayerNetworkStatus)player.CustomProperties[PlayerProperty.Status];
 				}
 				uiController.AddPlayer(player.ActorNumber, player.NickName, status);
 			}
 		}
-
+		uiController.SetRoomView();
 	}
 
 	public override void OnJoinRoomFailed(short returnCode, string message)
 	{
+		// Todo(Leo): Inform user that connection failed
 		Debug.LogError($"Failed to join room ({returnCode}, {message})");
+		uiController.SetMainView();
 	}
 
-	void IClientUIControllable.OnPlayerReady()
-	{
-		var properties = new Hashtable();
-		properties.Add(PhotonPropertyKey.PlayerStatus, PlayerNetworkStatus.Ready);
-		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
-	}
 
 	public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable properties)
 	{
-		if (properties.ContainsKey(PhotonPropertyKey.PlayerStatus))
+		string allKeys = "";
+		foreach (var pair in properties)
 		{
-			uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber,
-													(PlayerNetworkStatus)properties[PhotonPropertyKey.PlayerStatus]);
+			switch (pair.Key)
+			{
+				case PlayerProperty.Status:
+					uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber, (PlayerNetworkStatus)pair.Value);
+					break;
+
+				case PlayerProperty.AvatarId:
+					break;
+
+				case PlayerProperty.MorkoLevel:
+					connectedCharacters[targetPlayer.ActorNumber].SetMorkoLevel((float)pair.Value);
+					break;
+			}
+			allKeys += pair.Key + ", ";
 		}
+		Debug.Log("UPDATED PLAYER PROPERTIES: " + allKeys);
 	}
 
 	public static GameEndResult GetEndResult()
 	{
+		var players 		= PhotonNetwork.CurrentRoom.Players;
+		var sortedPlayers 	= players.OrderBy(entry => entry.Key);
+		var avatarIds 		= new int [players.Count];
+
+		int runningIndex = 0;
+		int winningIndex = -1;
+		float winningPlayerMorkoLevel = float.MaxValue;
+
+		foreach (var entry in sortedPlayers)
+		{	
+			var player = entry.Value;
+			var properties = player.CustomProperties;
+			var morkoLevel = (float)properties[PlayerProperty.MorkoLevel];
+
+			if (morkoLevel < winningPlayerMorkoLevel)
+			{
+				winningIndex = runningIndex;
+				winningPlayerMorkoLevel = morkoLevel;
+			}
+
+			avatarIds [runningIndex] = (int)properties[PlayerProperty.AvatarId];
+			runningIndex++;
+		}
+
 		var endResult = new GameEndResult
 		{
 			characterCount = instance.connectedCharacters.Count,
-			winningCharacterIndex = 0
+			winningCharacterIndex = winningIndex,
+			playerAvatarIds = avatarIds
 		};
 		return endResult;
 	}
 
-	void IServerUIControllable.CreateRoom(RoomCreateInfo createInfo)
+	void INetUIControllable.RequestJoin(JoinInfo joinInfo)
+	{
+		PhotonNetwork.NickName = joinInfo.playerName;
+		PhotonNetwork.JoinRoom(joinInfo.selectedRoomInfo.Name);
+		uiController.SetJoiningScreen();
+
+		PhotonNetwork.LocalPlayer.CustomProperties.Add(PlayerProperty.MorkoLevel, 10);
+	}
+
+	void INetUIControllable.OnPlayerReady()
+	{
+		var properties = new Hashtable();
+		properties.Add(PlayerProperty.Status, PlayerNetworkStatus.Ready);
+		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+	}
+
+	void INetUIControllable.CreateRoom(RoomCreateInfo createInfo)
 	{
 		PhotonNetwork.NickName = createInfo.hostingPlayerName;
 		var options = new RoomOptions
 		{
 			MaxPlayers = (byte)createInfo.maxPlayers,
-			CustomRoomPropertiesForLobby = new string [] {PhotonPropertyKey.RoomMapId, PhotonPropertyKey.RoomGameDuration},
+			CustomRoomPropertiesForLobby = new string [] {RoomProperty.MapId, RoomProperty.GameDuration},
 			CustomRoomProperties = new Hashtable
 			{
-				{PhotonPropertyKey.RoomMapId, createInfo.mapIndex},
-				{PhotonPropertyKey.RoomGameDuration, createInfo.gameDurationSeconds}
+				{RoomProperty.MapId, createInfo.mapIndex},
+				{RoomProperty.GameDuration, createInfo.gameDurationSeconds}
 			}
 		};
 		PhotonNetwork.CreateRoom(createInfo.roomName, options);
 	}
 
-	void IServerUIControllable.StartGame()
+	void INetUIControllable.StartGame()
 	{
-		this.photonView.RPC("StartGame", RpcTarget.All);
-	}
-
-	[PunRPC]
-	void StartGame()
-	{
-		uiController.SetLoadingScreen();
-		connectedCharacters = new Dictionary<PhotonActorNumber, Character>();
-		currentMorkoActorNumber = -1;
-
-		PhotonNetwork.AutomaticallySyncScene = true;
-		PhotonNetwork.LoadLevel(levelName);
-		SceneManager.sceneLoaded += OnMapSceneLoaded;
-	}
-
-	public void ExitCurrentMatch()
-	{
-		Debug.Log("Exited the current match");
-		PhotonNetwork.LeaveRoom();
-		uiController.Show();
-		uiController.SetMainView();
-
-		PhotonNetwork.LoadLevel("EmptyScene");
-
-		// Todo(Leo): If we were master client remove or host migrate room
+		this.photonView.RPC(nameof(StartGameRPC), RpcTarget.All);
 	}
 
 	public override void OnPlayerEnteredRoom(Player enteringPlayer)
@@ -251,28 +293,116 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.RemovePlayer(leavingPlayer.ActorNumber);
 	}
 
+	[PunRPC]
+	void StartGameRPC()
+	{
+		uiController.SetLoadingScreen();
+		connectedCharacters = new Dictionary<int, Character>();
+		currentMorkoActorNumber = -1;
+
+		LoadScene(SceneLoader.Photon, mapSceneName, OnMapSceneLoaded);
+	}
+
+	[PunRPC]
+	void EndGameRPC()
+	{
+		// Todo(Leo): Any other functionality, like sound effects, animation triggers, etc
+		LoadScene(SceneLoader.Photon, endSceneName, OnEndSceneLoaded);
+	}
+
+	void INetUIControllable.LeaveRoom()
+	{
+		PhotonNetwork.LeaveRoom();
+		uiController.SetMainView();
+	}
+
+	public void ExitCurrentMatch()
+	{
+		Debug.Log("Exited the current match");
+		PhotonNetwork.LeaveRoom();
+		uiController.Show();
+		uiController.SetMainView();
+
+		LoadScene(SceneLoader.Photon, menuSceneName, OnMenuSceneLoaded);
+
+		// Todo(Leo): If we were master client remove or host migrate room
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	///                SCENE LOAD CALLBACKS                                 ///
+	///////////////////////////////////////////////////////////////////////////
+	private enum SceneLoader { Photon, UnityEngine }
+
+	private void LoadScene(SceneLoader sceneLoader, string sceneName, UnityAction<Scene, LoadSceneMode> callback)
+	{
+		SceneManager.sceneLoaded += callback;
+		switch (sceneLoader)
+		{
+			case SceneLoader.Photon: 
+				PhotonNetwork.AutomaticallySyncScene = true;
+				PhotonNetwork.LoadLevel(sceneName);
+				break;
+
+			case SceneLoader.UnityEngine:
+				SceneManager.LoadScene(sceneName);
+				break;
+
+			default:
+				Debug.LogError("Invalid scene loader");
+				SceneManager.sceneLoaded -= callback;
+				break;
+		}
+	}
+
+	private void OnMenuSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		SceneManager.sceneLoaded -= OnMenuSceneLoaded;
+		sceneState = SceneState.Menu;
+	}
+
 	private void OnMapSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
 		SceneManager.sceneLoaded -= OnMapSceneLoaded;
+		sceneState = SceneState.Map;
 
-		Vector3 startPosition 		= Vector3.zero;
-		Quaternion startRotation 	= Quaternion.identity;
+		var placement 				= SpawnPoint.GetCharacterPlacement(PhotonNetwork.LocalPlayer.ActorNumber);
+		Vector3 startPosition 		= placement.position;
+		Quaternion startRotation 	= Quaternion.AngleAxis(placement.rotation, Vector3.up);
+		
 
 		var cameraController 	= Instantiate(cameraControllerPrefab);
 		gameCamera 				= Instantiate(gameCameraPrefab, cameraController.transform);
 		gameCamera.CreateMask();
 
-		var localPlayer 		= PhotonNetwork.Instantiate(characterPrefab.name,
+		int characterIndex 		= (int)PhotonNetwork.LocalPlayer.CustomProperties[PlayerProperty.AvatarId];
+		string prefabName 		= characterPrefabs[characterIndex].name;
+		var localPlayer 		= PhotonNetwork.Instantiate(prefabName,
 															startPosition,
 															startRotation);
         localPlayer.name 		= "Local Player";
 		cameraController.target = localPlayer.transform;
         Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
-        maskTracker = Instantiate(maskTrackerPrefab);
+        if (photonView.IsMine)
+        {
+        	var maskPlacement = SpawnPoint.GetMaskPlacement();
+        	PhotonNetwork.Instantiate(	maskPrefab.name,
+        								maskPlacement.position, 
+        								Quaternion.AngleAxis(maskPlacement.rotation, Vector3.up)); 
+        }
+
+        gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
 
 		uiController.Hide();
 	}
+
+	private void OnEndSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		SceneManager.sceneLoaded -= OnEndSceneLoaded;
+		sceneState = SceneState.End;
+	}
+
+	///---------------------------------------------------------------------///
 
 	public static bool IsCharacterMorko(Character character)
 	{
@@ -293,21 +423,36 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 		if (currentMorkoActorNumber == actorNumber)
 			return;
 
-		currentMorkoActorNumber = actorNumber;
-		maskTracker.target = connectedCharacters[actorNumber].transform;
+		// Todo(Leo): Unset current character
 
-		connectedCharacters[actorNumber].FreezeForSeconds(3);
-		Vector3 effectPosition = maskTracker.target.transform.position + maskTracker.offset;
-		Instantiate(morkoChangeParticlesPrefab, effectPosition, Quaternion.identity);
+		currentMorkoActorNumber = actorNumber;
+		// maskTracker.target = connectedCharacters[actorNumber].transform;
+
+		// connectedCharacters[actorNumber].FreezeForSeconds(3);
+		// Vector3 effectPosition = maskTracker.target.transform.position + maskTracker.offset;
+		// Instantiate(morkoChangeParticlesPrefab, effectPosition, Quaternion.identity);
 	}
 
+	public static void RegisterMask(MaskController mask)
+	{
+		// Todo(Leo): Make different settings for when sceneState is End
+		if (instance.sceneState != SceneState.Map)
+			return;
+
+		instance.localMaskInstance = mask;
+		foreach (var entry in instance.connectedCharacters)
+		{
+			mask.characterTransforms.Add(entry.Value.transform);
+		}
+	}
 
 	public static void RegisterCharactcer(Character character)
 	{
-		// Todo(Leo): This is a hack
-		if (instance.isEndSceneCurrent)
+		// Todo(Leo): Make different settings for when sceneState is End
+		if (instance.sceneState != SceneState.Map)
 			return;
 
+		// Note(Leo): This should be same as PhotonNetwork.LocalPlayer.ActorNumber, is it??
 		if (character.photonView.IsMine)
 			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
 
@@ -319,6 +464,9 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 
 		int actorNumber = character.photonView.Owner.ActorNumber;
 		instance.connectedCharacters.Add(actorNumber, character);
+
+		if (instance.localMaskInstance != null)
+			instance.localMaskInstance.characterTransforms.Add(character.transform);
 	}
 
 	public static Camera GetPlayerViewCamera()
@@ -345,19 +493,25 @@ public class GameManager : 	MonoBehaviourPunCallbacks,
 	}
 }
 
-public static class PhotonPropertyKey
+/*	
+Note(Leo): Photon uses strings to identify custom properties and
+also encourages the use of short words. Using these enum-like class
+we get short strings and also compile errors if these do not match
+unlike using actual string literals.
+
+When adding new ones, just make sure they are different from previous
+ones (so that they are unique when both are combined), and if we run
+out of sensible 1 character strings, just use two or more characters.
+*/
+public static class RoomProperty
 {
-	/*	
-	Note(Leo): Photon uses strings to identify custom properties and
-	also encourages the use of short words. Using this enum-like class
-	we get short strings and also compile errors if these do not match
-	unlike using actual string literals.
-	
-	When adding new ones, just make sure they are different from previous
-	ones, and if we run out of sensible 1 character strings, just use two
-	or more characters.
-	*/
-	public const string PlayerStatus = "s";
-	public const string RoomGameDuration = "d";
-	public const string RoomMapId = "m";
+	public const string GameDuration = "d";
+	public const string MapId = "m";
+}
+
+public static class PlayerProperty
+{
+	public const string Status = "s";
+	public const string AvatarId = "a";
+	public const string MorkoLevel = "l";
 }

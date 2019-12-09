@@ -31,7 +31,7 @@ Transform:
   m_LocalScale: {x: 0.07706695, y: 0.07706695, z: 0.07706695}
   m_Children: []
   m_Father: {fileID: 1081713420466458088}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2231597440789578189
 MeshFilter:
@@ -91,6 +91,36 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &625424594693934104
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7255833970643099316}
+  m_Layer: 25
+  m_Name: MaskHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7255833970643099316
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625424594693934104}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.971, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1081713420466458088}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3022948283868569743
 GameObject:
   m_ObjectHideFlags: 0
@@ -121,7 +151,7 @@ Transform:
   m_LocalScale: {x: 26.37001, y: 29.768164, z: 36.210243}
   m_Children: []
   m_Father: {fileID: 1081713420466458088}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1803157755525319003
 MeshFilter:
@@ -186,7 +216,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6125209540940393729
 Transform:
   m_ObjectHideFlags: 0
@@ -199,7 +229,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1081713420466458088}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &3104561209456141771
 Camera:
@@ -264,8 +294,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1081713420466458088}
+  offset: {x: 0, y: 0, z: 0}
   distance: 10
-  angle: 45
+  defaultAngle: 0
+  maxAngle: 90
+  angleIncrement: 0
+  tagsThatTriggerCameraPositionChange: []
 --- !u!1 &5656205786982962242
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,6 +329,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 7255833970643099316}
   - {fileID: 665894401798212742}
   - {fileID: 1523537232304565616}
   - {fileID: 2677435290027912155}
@@ -314,8 +349,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b9d207adda53ed4991c9b285f63d126, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterController: {fileID: 5931495741578049458}
-  localController: {fileID: 0}
 --- !u!143 &5931495741578049458
 CharacterController:
   m_ObjectHideFlags: 0
@@ -365,7 +398,7 @@ Transform:
   m_LocalScale: {x: 0.07706695, y: 0.07706695, z: 0.07706695}
   m_Children: []
   m_Father: {fileID: 1081713420466458088}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6423792436727359180
 MeshFilter:

@@ -1,6 +1,7 @@
 ﻿using Photon.Pun;
 using System;
 using System.Collections;
+using UnityEditor.Animations;
 using UnityEngine;
 
 [RequireComponent(typeof(Character), typeof(CharacterController))]
@@ -29,9 +30,11 @@ public class PlayerController : MonoBehaviourPun
 	// mouseMove = False == move with GP
 	bool mouseRotatedLast = true;
 	bool keyboardMove = true;
-	
+
+	public Animator animator;
 	public PlayerSettings normalSettings;
 	public PlayerSettings morkoSettings;
+	public Transform flashlight;
 
 	PlayerSettings currentSettings => isMorko ? morkoSettings : normalSettings;
 	private float walkSpeed => currentSettings.walkSpeed;
@@ -60,6 +63,9 @@ public class PlayerController : MonoBehaviourPun
 	private bool ran = false;
 	private bool disableMovement = false;
 	private long lastMillis = 0;
+	[SerializeField]
+	public AnimatorState currentAnimation = AnimatorState.Idle;
+	private AnimatorState previousAnimation = AnimatorState.Idle;
 
 	[Header("Testing")]
 	//public float jumpVelocity = 5.0f;
@@ -70,6 +76,15 @@ public class PlayerController : MonoBehaviourPun
 	bool isSprintingCooldown = false;
 	Vector3 sprintDirection;
 
+	public enum AnimatorState
+	{
+		Idle,
+		Walk,
+		WalkSidewaysLeft,
+		WalkSidewaysRight,
+		WalkBackwards,
+		Run,
+	}
 	public void ChangeStateTo(bool morko)
 	{
 		isMorko = morko;
@@ -113,6 +128,7 @@ public class PlayerController : MonoBehaviourPun
 
 	private void Awake()
 	{
+		animator = GetComponent<Animator>();
 		character = GetComponent<Character>();
 		GameManager.RegisterCharactcer(character);
 
@@ -140,7 +156,8 @@ public class PlayerController : MonoBehaviourPun
 	{
 		if (character.Frozen)
 			return;
-
+		
+		Debug.Log(currentSettings.ToString());
 
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
@@ -178,7 +195,114 @@ public class PlayerController : MonoBehaviourPun
 			//ApplyGravity();
 			characterController.Move(sprintDirection * sprintSpeed * Time.deltaTime);
 		}
+		
+		UpdateAnimatorState();
 	}
+
+	private void UpdateAnimatorState()
+	{
+		if (isMorko)
+		{
+			animator.SetLayerWeight(1, 1);
+			flashlight.gameObject.SetActive(false);
+		}
+		else
+		{
+			animator.SetLayerWeight(1, 0);
+			flashlight.gameObject.SetActive(true);
+		}
+		
+		animator.SetBool("Idle", false);
+		animator.SetBool("Walk", false);
+		animator.SetBool("WalkSidewaysLeft", false);
+		animator.SetBool("WalkSidewaysRight", false);
+		animator.SetBool("WalkBackwards", false);
+		animator.SetBool("Run", false);
+
+		float interpolate = 1f;
+		float animatorSpeed = 1f;
+		bool walkingNotRunning = currentMovementSpeed > 0 && currentMovementSpeed < runSpeed;
+			
+        switch (currentAnimation)
+        {
+            case AnimatorState.Idle:
+	            animator.speed = 1f;
+	            animator.SetBool("Idle", true);
+                break;
+            case AnimatorState.Walk:
+	            
+	            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+	            animatorSpeed = Mathf.Lerp(currentSettings.minWalkAnimationSpeed, currentSettings.maxWalkAnimationSpeed, interpolate);
+	            animator.speed = animatorSpeed;
+	            animator.SetBool("Walk", true);
+                break;
+            
+            case AnimatorState.WalkSidewaysLeft:
+
+	            if (walkingNotRunning)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysWalkAnimationSpeed, currentSettings.maxSidewaysWalkAnimationSpeed, interpolate);
+	            }
+	            else
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysRunAnimationSpeed, currentSettings.maxSidewaysRunAnimationSpeed, interpolate);
+	            }
+	            
+	            animator.speed = animatorSpeed;
+	            animator.SetBool("WalkSidewaysLeft", true);
+                break;
+            
+            case AnimatorState.WalkSidewaysRight:
+	            
+	            if (walkingNotRunning)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysWalkAnimationSpeed, currentSettings.maxSidewaysWalkAnimationSpeed, interpolate);
+	            }
+	            else
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysRunAnimationSpeed, currentSettings.maxSidewaysRunAnimationSpeed, interpolate);
+	            }
+	            
+	            animator.speed = animatorSpeed;
+	            animator.SetBool("WalkSidewaysRight", true);
+                break;
+            
+            case AnimatorState.WalkBackwards:
+	            
+	            if (walkingNotRunning)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minBackwardsWalkAnimationSpeed, currentSettings.maxBackwardsWalkAnimationSpeed, interpolate);
+	            }
+	            else
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minBackwardsRunAnimationSpeed, currentSettings.maxBackwardsRunAnimationSpeed, interpolate);
+	            }
+	            
+	            animator.speed = animatorSpeed;
+	            animator.SetBool("WalkBackwards", true);
+                break;
+            
+            case AnimatorState.Run:
+	            
+	            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+	            animatorSpeed = Mathf.Lerp(currentSettings.minRunAnimationSpeed, currentSettings.maxRunAnimationSpeed, interpolate);
+	            animator.speed = animatorSpeed;
+	            animator.SetBool("Run", true);
+                break;
+            
+            default:
+	            
+	            animator.speed = 1f;
+	            animator.SetBool("Idle", true);
+                break;
+        }
+    }
 	
 	private void ApplyGravity()
 	{
@@ -196,7 +320,6 @@ public class PlayerController : MonoBehaviourPun
 	// Todo(Sampo): Input support for multiple platforms (Mac, Linux)
 	private void Move(Vector3 moveDirection, bool accelerateRun, bool hasMoved)
 	{
-		lastPosition = transform.position;
 		transform.position = new Vector3(transform.position.x, 0f, transform.position.z);
 		
 		bool joystickMaxed = moveDirection.magnitude >= joystickMaxThreshold;
@@ -210,7 +333,8 @@ public class PlayerController : MonoBehaviourPun
 		
 		bool maxRunSpeed = accelerateRun && currentMovementSpeed >= runSpeed;
 		bool decelerateRun = !accelerateRun && currentMovementSpeed > walkSpeed && ran;
-		
+
+		currentAnimation = AnimatorState.Walk;
 		
 		if (sneak)
 			currentMovementSpeed = sneakSpeed;
@@ -222,25 +346,34 @@ public class PlayerController : MonoBehaviourPun
 		{
 			ran = true;
 			currentMovementSpeed = runSpeed;
+			currentAnimation = AnimatorState.Run;
 		}
 		else if (accelerateRun)
 		{
 			ran = true;
 			currentMovementSpeed += accelerationRun * Time.deltaTime;
+			currentAnimation = AnimatorState.Run;
+
 		}
 		else if (decelerateRun)
 		{
 			currentMovementSpeed -= decelerationRun * Time.deltaTime;
+			currentAnimation = AnimatorState.Run;
+
 			if (currentMovementSpeed <= walkSpeed)
 			{
 				ran = false;
 				currentMovementSpeed = walkSpeed;
+				currentAnimation = AnimatorState.Walk;
 			}
 		}
 		else if (maxWalkSpeed)
 			currentMovementSpeed = walkSpeed;
 		else
+		{
 			currentMovementSpeed = 0f;
+			currentAnimation = AnimatorState.Idle;
+		}
 		
 		// Save direction when not moving
 		// Because direction is required even when not giving input for deceleration
@@ -257,17 +390,26 @@ public class PlayerController : MonoBehaviourPun
 		
 		float decrease = 1f;
 		
-		bool movingSideways = moveLookDotProduct >= 0 && moveLookDotProduct < 1f;
-		bool movingBackwards = moveLookDotProduct < 0 && moveLookDotProduct >= -1f;
+		bool movingSideways = moveDirection != Vector3.zero && moveLookDotProduct <= 0.75f && moveLookDotProduct > -0.75f;
+		bool movingBackwards = moveDirection != Vector3.zero && moveLookDotProduct < -0.75f && moveLookDotProduct >= -1f;
 		
 		if (movingSideways)
 		{
 			// Walk side multiplier
 			if (currentMovementSpeed <= walkSpeed)
 				decrease = Mathf.Lerp(sideMultiplier, 1f, moveLookDotProduct);
-			// Run side multiplier
+			// Run side multipliersw
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
+
+			Vector3 perp = Vector3.Cross(transform.forward, moveDirection);
+			float direction = Vector3.Dot(perp, transform.up);
+			bool turningRightNotLeft = direction > 0f ? true : false;
+			
+			if (turningRightNotLeft)
+				currentAnimation = AnimatorState.WalkSidewaysRight;
+			else
+				currentAnimation = AnimatorState.WalkSidewaysLeft;
 		}
 		else if (movingBackwards)
 		{
@@ -277,6 +419,8 @@ public class PlayerController : MonoBehaviourPun
 			// Run backwards multiplier
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, backwardRunMultiplier, Mathf.Abs(moveLookDotProduct));
+			
+			currentAnimation = AnimatorState.WalkBackwards;
 		}
 		else
 			decrease = 1f;

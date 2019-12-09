@@ -14,16 +14,10 @@ public class ScrollContent : MonoBehaviour
 	public float angle;
 
 	public int SelectedIndex { get => selectedItemIndex; }
-
 	public event Action<int> OnSelectionChanged;
 
 	[SerializeField]
 	private int selectedItemIndex;
-
-	private void Awake()
-	{
-		Debug.Log($"I have ScrollContent, I am {name}");
-	}
 
 	private void OnDisable()
 	{
@@ -95,6 +89,8 @@ public class ScrollContent : MonoBehaviour
 
 	public void SetOptions(string[] names, GameObject[] objects)
 	{
+		Debug.Log("Options set");
+
 		if (names.Length != objects.Length)
 		{
 			Debug.LogError("Lengths of passed arrays do not match.");

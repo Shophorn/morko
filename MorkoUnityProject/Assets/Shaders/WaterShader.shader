@@ -5,9 +5,10 @@
         _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_BumpMap("Bump", 2D) = "white" {}
+		_Hmap("HeightMap",2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
-
+		_Parallax("Parallax",float) = 1
 		_NoiseOffset("Noise Offset", float) = 1
 	   _NoiseMorph("Noise Morph",float) = 1
 	   _NoiseStr("Noise Strength", float) = 0.5
@@ -21,6 +22,8 @@
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types
         #pragma surface surf Standard fullforwardshadows
+		#pragma shader_feature _NORMAL_MAP
+		#pragma shader_feature _PARALLAX_MAP
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
@@ -30,6 +33,7 @@
         struct Input
         {
             float2 uv_MainTex;
+			float3 viewDir;
         };
 
 
@@ -38,11 +42,13 @@
         half _Metallic;
         fixed4 _Color;
 		sampler2D _BumpMap;
+		sampler2D _Hmap;
 
 		float _NoiseStr;
 		float _NoiseScale;
 		float _NoiseMorph;
 		float _NoiseOffset;
+		float _Parallax;
 
 
 		float hash(float n)
@@ -80,6 +86,7 @@
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
+			IN.uv_MainTex += pow(ParallaxOffset(tex2D(_Hmap, IN.uv_MainTex).r, _Parallax, IN.viewDir.xyz),2);
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
 			;

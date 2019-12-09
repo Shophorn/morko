@@ -25,6 +25,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _ColorSource: 0
+    - _DesaturationEffect: 0.549
     - _Distance: 1
     - _Intensity: 2.9
     - _TintSource: 0

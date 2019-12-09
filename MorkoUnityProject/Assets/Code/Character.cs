@@ -24,4 +24,6 @@ public class Character : MonoBehaviourPun
 		}
 		Frozen = false;
 	}
+
+	public void SetMorkoLevel(float level) {}
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2084330402427940860}
   - component: {fileID: 216298594692043413}
   m_Layer: 0
-  m_Name: LocalCameraController
+  m_Name: CameraController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,5 +44,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
+  offset: {x: 0, y: 0.5, z: 0}
   distance: 13
-  angle: 45
+  defaultAngle: 45
+  maxAngle: 90
+  angleIncrement: 0.3
+  tagsThatTriggerCameraPositionChange:
+  - Default

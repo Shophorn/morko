@@ -27,21 +27,24 @@ public partial class UIController
 
     private void InitializeRoomView()
     {
+        roomView.view.OnShow += () =>
+        {
+            EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);
+        };
+
         roomView.hostStartGameButton.onClick.AddListener(() =>
         {
-            serverControls.StartGame();
+            netControls.StartGame();
         });
 
         roomView.readyButton.onClick.AddListener(() => 
         {
-            clientControls.OnPlayerReady();
+            netControls.OnPlayerReady();
         });
 
         roomView.cancelButton.onClick.AddListener(() =>
         {
-			EventSystem.current.SetSelectedGameObject(mainView.hostViewButton.gameObject);
-			// Todo(Leo): Call some cancel callback, we need to cancel photon
-			SetMainView();
+            netControls.LeaveRoom();
         });
     }
 
