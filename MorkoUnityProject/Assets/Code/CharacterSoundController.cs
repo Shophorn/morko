@@ -37,7 +37,10 @@ public class CharacterSoundController : MonoBehaviour
 
     void PlayFootstep()
     {
-        if(muteFootsteps != false)
+
+        Debug.Log("FOOTSTEP PLAYED");
+
+        if(muteFootsteps == false)
         {
             switch (currentSurface)
             {
