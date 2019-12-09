@@ -55,8 +55,9 @@ public partial class UIController
 				selectedRoomInfo = availableRooms[joinView.selectedServerIndex]
 			};
 			netControls.RequestJoin(info);
-
+			
 			SetRoomViewHost(false);
+			scrollContent.SetOptions(gameManager.characterNames, gameManager.characterPrefabs);
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 

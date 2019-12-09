@@ -48,6 +48,10 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private GameObject background;
 
+	[SerializeField] private ScrollContent scrollContent;
+
+	[SerializeField] private GameManager gameManager;
+
 	private bool notPauseMenuActive = false;
 	private bool hidden = false;
 

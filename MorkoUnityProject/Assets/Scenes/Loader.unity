@@ -303,6 +303,19 @@ MonoBehaviour:
   - {fileID: 7403688484484138542, guid: c5c13ed61d89e20479f19b1099dfd980, type: 3}
   - {fileID: 8156152407627671174, guid: a84a1b13435240c40a043ca039d66176, type: 3}
   - {fileID: 3463886530874104888, guid: 26221c3ec66399a499d9b7aa4e5ebadb, type: 3}
+  characterNames:
+  - Ollie
+  - Thomas
+  - Minnie
+  - Edgar
+  - Stewart
+  - Alice
+  - Harold
+  - Susan
+  mapPrefabs:
+  - {fileID: 7721435005251517925, guid: 77dcebe648731414aa669dc0d99ab9e1, type: 3}
+  mapNames:
+  - Suburbs
   mapSceneName: Map01
   morkoChangeParticlesPrefab: {fileID: 7047622455447796930, guid: 2f14f840dee18984d99bf4bfc002cd6a,
     type: 3}
@@ -786,6 +799,16 @@ PrefabInstance:
       propertyPath: roomView.characterSelector
       value: 
       objectReference: {fileID: 462797108}
+    - target: {fileID: 177153581040214788, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: scrollContent
+      value: 
+      objectReference: {fileID: 999229554}
+    - target: {fileID: 177153581040214788, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: gameManager
+      value: 
+      objectReference: {fileID: 942324878}
     - target: {fileID: 2995813997645047576, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_IsActive
