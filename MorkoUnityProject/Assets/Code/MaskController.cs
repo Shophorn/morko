@@ -103,8 +103,9 @@ public class MaskController : MonoBehaviourPun
         
         else if (maskJumpingOff)
             JumpOffHead(Vector3.zero);
-        
-        AnimatorState();
+
+        if (!lookingForStartingMorko)
+            AnimatorState();
     }
     
     public void StartMaskController()
@@ -192,6 +193,7 @@ public class MaskController : MonoBehaviourPun
         toMorkoHeadPosition = new Vector3(toMorkoHeadPosition.x, toMorkoHeadPosition.y + (jumpParabolaSize - interpolation * jumpParabolaSize), toMorkoHeadPosition.z);
 
         transform.position = Vector3.MoveTowards(transform.position, toMorkoHeadPosition, Time.deltaTime * jumpSpeed);
+        transform.forward = toMorkoHeadPosition - transform.position;
         animator.Play("Attack", 0, interpolation);
         
         maskJumpingOn = true;
@@ -345,10 +347,6 @@ public class MaskController : MonoBehaviourPun
                     animator.speed = moveSpeed;
                     animator.SetBool("Move", true);
 
-                    break;
-                default:
-                    animator.speed = breathingSpeed;
-                    animator.SetBool("Breathing", true);
                     break;
             } 
         }

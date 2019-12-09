@@ -161,18 +161,18 @@ public class PlayerController : MonoBehaviourPun
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
 		
-		bool runningInput = Input.GetButton("Run") || Input.GetKey(KeyCode.LeftShift);
-		bool runningSpeed = currentMovementSpeed >= walkSpeed;
-		bool accelerateAndRun = runningInput && runningSpeed ? true : false;
+		//bool runningInput = Input.GetButton("Run") || Input.GetKey(KeyCode.LeftShift);
+		//bool runningSpeed = currentMovementSpeed >= walkSpeed;
+		//bool accelerateAndRun = runningInput && runningSpeed ? true : false;
 
-		bool sprint = Input.GetButton("Sprint") || Mathf.Abs(Input.GetAxis("Sprint")) == 1f;
+		bool sprint = Input.GetButton("Sprint") || Mathf.Abs(Input.GetAxis("Sprint")) == 1f || Input.GetKey(KeyCode.LeftShift);
 		
 		if (sprint && !isSprinting && !isSprintingCooldown)
 		{
 			isSprinting = true;
 			isSprintingCooldown = true;
 			this.InvokeAfter (()=> isSprinting = false, sprintDuration);
-			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown);
+			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown + sprintDuration);
 			this.InvokeAfter(()=> StartCoroutine(RotationSpeedBackToNormalInSeconds(rotationBackToNormalSpeedInSecods)), sprintDuration);
 
 			sprintDirection = previousVelocityVector;
@@ -189,7 +189,7 @@ public class PlayerController : MonoBehaviourPun
 
 		if (isSprinting == false)
 		{
-			Move(moveDirection, accelerateAndRun, hasMoved);
+			Move(moveDirection, /*accelerateAndRun*/ false, hasMoved);
 			Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
 		}
 		else
