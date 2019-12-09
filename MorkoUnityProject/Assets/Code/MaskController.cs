@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 public class MaskController : MonoBehaviourPun
 {
@@ -52,14 +54,20 @@ public class MaskController : MonoBehaviourPun
     private Transform morkoHeadJoint;
     private Transform morkoNeckJoint;
 
+    private PlayerController currenMorkoController;
+
     public bool startMaskControllerInStartMethod = true;
     public Vector3 maskOnToNeckOffset;
 
     public enum AnimatorBooleans
     {
+        Breathing,
         Idle,
         Move,
         Walk,
+        WalkSidewaysLeft,
+        WalkSidewaysRight,
+        WalkBackwards,
         Run
     }
 
@@ -94,6 +102,8 @@ public class MaskController : MonoBehaviourPun
         
         else if (maskJumpingOff)
             JumpOffHead(Vector3.zero);
+        
+        AnimatorState();
     }
     
     public void StartMaskController()
@@ -134,6 +144,8 @@ public class MaskController : MonoBehaviourPun
     public void SwitchMorko(Transform oldMorko, Transform newMorko)
     {
         nextMorko = newMorko;
+        currentMorko = null;
+        currenMorkoController = null;
         
         maskJumpingOn = false;
         maskIsBeingPutOn = false;
@@ -261,6 +273,7 @@ public class MaskController : MonoBehaviourPun
         AnimatorState(AnimatorBooleans.Walk);
         
         currentMorko = nextMorko;
+        currenMorkoController = currentMorko.GetComponent<PlayerController>();
     }
     
     private void ResetAnimatorTriggers()
@@ -270,40 +283,70 @@ public class MaskController : MonoBehaviourPun
         animator.ResetTrigger("JumpOffHead");
     }
 
-    public void AnimatorState(AnimatorBooleans state)
+    public void AnimatorState(AnimatorBooleans state = default)
     {
         ResetAnimatorTriggers();
         animator.SetBool("Idle", false);
+        animator.SetBool("Breathing", false);
         animator.SetBool("Walk", false);
         animator.SetBool("Run", false);
         animator.SetBool("Move", false);
-        
-        switch (state)
+        animator.SetBool("WalkSidewaysLeft", false);
+        animator.SetBool("WalkSidewaysRight", false);
+        animator.SetBool("WalkBackwards", false);
+
+        if (currenMorkoController)
         {
-            case AnimatorBooleans.Idle:
-                animator.speed = breathingSpeed;
-                animator.SetBool("Idle", true);
+            var morkoAnimation = currenMorkoController.currentAnimation;
+            switch (morkoAnimation)
+            {
+                case PlayerController.AnimatorState.Idle:
+                    animator.speed = breathingSpeed;
+                    animator.SetBool("Idle", true);
+                    break;
+                case PlayerController.AnimatorState.Walk:
+                    animator.speed = walkSpeed;
+                    animator.SetBool("Walk", true);
+                    break;
+                case PlayerController.AnimatorState.WalkSidewaysLeft:
+                    animator.speed = runSpeed;
+                    animator.SetBool("WalkSidewaysLeft", true);
+                    break;
+                case PlayerController.AnimatorState.WalkSidewaysRight:
+                    animator.speed = runSpeed;
+                    animator.SetBool("WalkSidewaysRight", true);
+                    break;
+                case PlayerController.AnimatorState.WalkBackwards:
+                    animator.speed = runSpeed;
+                    animator.SetBool("WalkBackwards", true);
+                    break;
+                case PlayerController.AnimatorState.Run:
+                    animator.speed = runSpeed;
+                    animator.SetBool("Run", true);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        else
+        {
+            switch (state)
+            {
+                case AnimatorBooleans.Breathing:
+                    animator.speed = breathingSpeed;
+                    animator.SetBool("Breathing", true);
 
-                break;
-            case AnimatorBooleans.Move:
-                animator.speed = moveSpeed;
-                animator.SetBool("Move", true);
+                    break;
+                case AnimatorBooleans.Move:
+                    animator.speed = moveSpeed;
+                    animator.SetBool("Move", true);
 
-                break;
-            case AnimatorBooleans.Walk:
-                animator.speed = walkSpeed;
-                animator.SetBool("Walk", true);
-
-                break;
-            case AnimatorBooleans.Run:
-                animator.speed = runSpeed;
-                animator.SetBool("Run", true);
-
-                break;
-            default:
-                animator.speed = breathingSpeed;
-                animator.SetBool("Idle", true);
-                break;
+                    break;
+                default:
+                    animator.speed = breathingSpeed;
+                    animator.SetBool("Breathing", true);
+                    break;
+            } 
         }
     }
 }

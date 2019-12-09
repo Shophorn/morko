@@ -63,7 +63,8 @@ public class PlayerController : MonoBehaviourPun
 	private bool ran = false;
 	private bool disableMovement = false;
 	private long lastMillis = 0;
-	private AnimatorState currentAnimation = AnimatorState.Idle;
+	[SerializeField]
+	public AnimatorState currentAnimation = AnimatorState.Idle;
 	private AnimatorState previousAnimation = AnimatorState.Idle;
 
 	[Header("Testing")]
