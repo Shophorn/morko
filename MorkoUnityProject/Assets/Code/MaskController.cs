@@ -58,6 +58,7 @@ public class MaskController : MonoBehaviourPun
 
     public bool startMaskControllerInStartMethod = true;
     public Vector3 maskOnToNeckOffset;
+    public Vector3 maskOnToNeckRotation;
 
     public enum AnimatorBooleans
     {
@@ -265,13 +266,14 @@ public class MaskController : MonoBehaviourPun
         maskJumpingOn = false;
 
         animator.applyRootMotion = false;
-        
         morkoHeadJoint.localScale = Vector3.zero;
+        transform.forward = nextMorko.forward;
         transform.parent = morkoNeckJoint;
         transform.localPosition = maskOnToNeckOffset;
         transform.forward = nextMorko.forward;
+        transform.localRotation = Quaternion.Euler(maskOnToNeckRotation);
 
-        AnimatorState(AnimatorBooleans.Walk);
+        AnimatorState(AnimatorBooleans.Idle);
         
         currentMorko = nextMorko;
         currenMorkoController = currentMorko.GetComponent<PlayerController>();
