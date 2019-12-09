@@ -50,6 +50,8 @@ public partial class UIController : MonoBehaviour
 
 	[SerializeField] private ScrollContent scrollContent;
 
+	[SerializeField] private GameManager gameManager;
+
 	private bool notPauseMenuActive = false;
 	private bool hidden = false;
 
@@ -203,10 +205,5 @@ public partial class UIController : MonoBehaviour
 
 		string[] names = rooms.Select(room => room.Name).ToArray();
 		joinView.availableServersSelector.SetOptions(names);
-	}
-
-	public void SetOptions(string[] names, GameObject[] objects)
-	{
-		scrollContent.SetOptions(names,objects);
 	}
 }

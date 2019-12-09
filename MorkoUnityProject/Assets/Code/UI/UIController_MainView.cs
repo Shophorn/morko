@@ -30,6 +30,7 @@ public partial class UIController
 		{
 			EventSystem.current.SetSelectedGameObject(hostView.mapSelectionList.scrollLeft.gameObject);
 			SetView(hostView);
+			scrollContent.SetOptions(gameManager.mapNames, gameManager.mapPrefabs);
 		});
 		mainView.joinViewButton.onClick.AddListener(() =>
 		{

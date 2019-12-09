@@ -804,6 +804,11 @@ PrefabInstance:
       propertyPath: scrollContent
       value: 
       objectReference: {fileID: 999229554}
+    - target: {fileID: 177153581040214788, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: gameManager
+      value: 
+      objectReference: {fileID: 942324878}
     - target: {fileID: 2995813997645047576, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_IsActive

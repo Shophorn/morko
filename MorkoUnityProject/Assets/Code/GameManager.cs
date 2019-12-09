@@ -60,36 +60,35 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	private static readonly string menuSceneName = "EmptyScene";
 	private static readonly string endSceneName = "EndScene";
 
-	public static GameObject[] GetMapPrefabsForSelection()
-	{
-		if (instance == null)
-			return new GameObject[0];
+	//public static GameObject[] GetMapPrefabsForSelection()
+	//{
+	//	if (instance == null)
+	//		return new GameObject[0];
 
-		int count = instance.mapPrefabs.Length;
-		var results = new GameObject[count];
-		for (int i = 0; i < count; i++)
-		{
-			results[i] = Instantiate(instance.mapPrefabs[i], Vector3.zero, Quaternion.identity);
-		}
-		return results;
-	}
+	//	int count = instance.mapPrefabs.Length;
+	//	var results = new GameObject[count];
+	//	for (int i = 0; i < count; i++)
+	//	{
+	//		results[i] = Instantiate(instance.mapPrefabs[i], Vector3.zero, Quaternion.identity);
+	//	}
+	//	return results;
+	//}
 
+	//public static GameObject[] GetCharacterModelsForSelection()
+	//{
+	//	if (instance == null)
+	//		return new GameObject[0];
 
-	public static GameObject[] GetCharacterModelsForSelection()
-	{
-		if (instance == null)
-			return new GameObject[0];
-
-		int count = instance.characterPrefabs.Length;
-		var results = new GameObject [count];
-		for (int i = 0; i < count; i++)
-		{
-			results[i] = Instantiate(instance.characterPrefabs[i], Vector3.zero, Quaternion.identity);
-			Destroy(results[i].GetComponent<PlayerController>());
-			Destroy(results[i].GetComponent<Character>());
-		}
-		return results;
-	}
+	//	int count = instance.characterPrefabs.Length;
+	//	var results = new GameObject [count];
+	//	for (int i = 0; i < count; i++)
+	//	{
+	//		results[i] = Instantiate(instance.characterPrefabs[i], Vector3.zero, Quaternion.identity);
+	//		Destroy(results[i].GetComponent<PlayerController>());
+	//		Destroy(results[i].GetComponent<Character>());
+	//	}
+	//	return results;
+	//}
 
 	[PunRPC]
 	private void LoadEndSceneRPC()
@@ -108,8 +107,6 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.SetConnectingScreen();
 
 		LoadScene(SceneLoader.UnityEngine, menuSceneName, OnMenuSceneLoaded);
-
-		uiController.SetOptions(mapNames,GetMapPrefabsForSelection());
 	}
 
 	private void Update()
