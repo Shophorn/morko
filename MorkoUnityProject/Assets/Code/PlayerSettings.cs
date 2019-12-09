@@ -11,7 +11,7 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0f, 1f)] public float sideRunMultiplier = 1;
     [Range(0f, 1f)] public float backwardMultiplier = 1f;
     [Range(0f, 1f)] public float backwardRunMultiplier = 1f;
-    
+    public float rotationSpeed = 600f;
     
     public float sneakSpeed => walkSpeed * sneakMultiplier;
     public float runSpeed => walkSpeed * runMultiplier;
@@ -20,6 +20,7 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     public float sideRunSpeed => runSpeed * sideMultiplier;
     public float backwardRunSpeed => runSpeed * backwardMultiplier;
 
+    [Space]
     [Range(0f, 5f)] public float accelerationTime = 1.5f;
     [Range(0f, 5f)] public float decelerationTime = 1.5f;
     [Range(0f, 5f)] public float accelerationRunTime = 1f;
@@ -34,6 +35,9 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0f, 20f)] public float sprintSpeed = 2f;
     [Range(0f, 5f)] public float sprintDuration = 1.5f;
     [Range(0f, 10f)] public float sprintCooldown = 2f;
+    public float sprintRotationSpeed = 180f;
+    public float rotationBackToNormalSpeed = 0.25f;
+
     
     [Space]
     [Header("Animation Speeds")]
@@ -54,7 +58,9 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Space]
     public float minRunAnimationSpeed = 1f;
     public float maxRunAnimationSpeed = 1f;
-    
+    [Space]
+    public float sprintAnimationSpeed = 1f;
+
     [Header("TEST")]
     public bool rotateTowardsMove = true;
 }

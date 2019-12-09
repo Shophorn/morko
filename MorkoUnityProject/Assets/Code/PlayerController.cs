@@ -52,8 +52,12 @@ public class PlayerController : MonoBehaviourPun
 	private float sprintDuration => currentSettings.sprintDuration;
 	private float sprintSpeed => currentSettings.sprintSpeed;
 	private float sprintCooldown => currentSettings.sprintCooldown;
+	private float rotationSpeed => currentSettings.rotationSpeed;
+	private float sprintRotationSpeed => currentSettings.sprintRotationSpeed;
+	private float rotationBackToNormalSpeed => currentSettings.rotationBackToNormalSpeed;
 	
 	private float currentMovementSpeed = 0f;
+	private float currentRotationSpeed;
 	private Vector3 moveDirection;
 	private Vector3 lastPosition;
 	private Vector3 oldDirection = Vector3.zero;
@@ -70,7 +74,7 @@ public class PlayerController : MonoBehaviourPun
 	[Header("Testing")]
 	bool isSprinting = false;
 	bool isSprintingCooldown = false;
-	Vector3 sprintDirection;
+	private Vector3 sprintDirection;
 
 	public enum AnimatorState
 	{
@@ -146,6 +150,7 @@ public class PlayerController : MonoBehaviourPun
 	private void Start()
 	{
 		camera = GameManager.GetPlayerViewCamera();
+		currentRotationSpeed = rotationSpeed;
 	}
 
 	private void Update()
@@ -159,8 +164,8 @@ public class PlayerController : MonoBehaviourPun
 		bool runningInput = Input.GetButton("Run") || Input.GetKey(KeyCode.LeftShift);
 		bool runningSpeed = currentMovementSpeed >= walkSpeed;
 		bool accelerateAndRun = runningInput && runningSpeed ? true : false;
-		
-		bool sprint = Input.GetButton("Sprint");
+
+		bool sprint = Input.GetButton("Sprint") || Mathf.Abs(Input.GetAxis("Sprint")) == 1f;
 		
 		if (sprint && !isSprinting && !isSprintingCooldown)
 		{
@@ -168,10 +173,14 @@ public class PlayerController : MonoBehaviourPun
 			isSprintingCooldown = true;
 			this.InvokeAfter (()=> isSprinting = false, sprintDuration);
 			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown);
+			this.InvokeAfter(()=> StartCoroutine(RotationSpeedBackToNormalInSeconds(rotationBackToNormalSpeed)), sprintDuration);
 
 			sprintDirection = previousVelocityVector;
 			sprintDirection.y = 0f;
 			sprintDirection = sprintDirection.normalized;
+
+			transform.localRotation = Quaternion.LookRotation(moveDirection);
+			currentRotationSpeed = sprintRotationSpeed;
 		}
 
 		Vector3 lookDirectionJoystick = new Vector3(Input.GetAxis("RotateX"), 0f, Input.GetAxis("RotateZ"));
@@ -185,10 +194,24 @@ public class PlayerController : MonoBehaviourPun
 		}
 		else
 		{
-			characterController.Move(sprintDirection * sprintSpeed * Time.deltaTime);
+			currentAnimation = AnimatorState.Run;
+			Rotate(lookDirectionJoystick, currentMousePosition, mouseDelta, hasMoved);
+			characterController.Move(transform.forward * sprintSpeed * Time.deltaTime);
 		}
 		
 		UpdateAnimatorState();
+	}
+
+	IEnumerator RotationSpeedBackToNormalInSeconds(float seconds)
+	{
+		float time = 0f;
+
+		while (time < seconds)
+		{
+			time += Time.deltaTime;
+			currentRotationSpeed = Mathf.Lerp(sprintRotationSpeed, rotationSpeed, time / seconds);
+			yield return null;
+		}
 	}
 
 	private void UpdateAnimatorState()
@@ -281,10 +304,16 @@ public class PlayerController : MonoBehaviourPun
                 break;
             
             case AnimatorState.Run:
+
+	            if (!isSprinting)
+	            {
+		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minRunAnimationSpeed, currentSettings.maxRunAnimationSpeed, interpolate);
+		            animator.speed = animatorSpeed;
+	            }
+	            else
+		            animator.speed = currentSettings.sprintAnimationSpeed;
 	            
-	            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
-	            animatorSpeed = Mathf.Lerp(currentSettings.minRunAnimationSpeed, currentSettings.maxRunAnimationSpeed, interpolate);
-	            animator.speed = animatorSpeed;
 	            animator.SetBool("Run", true);
                 break;
             
@@ -483,7 +512,7 @@ public class PlayerController : MonoBehaviourPun
 		else if (hasMoved && currentSettings.rotateTowardsMove)
 			targetRotation = Quaternion.LookRotation(moveDirection);
 
-		transform.rotation = targetRotation;
+		transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, currentRotationSpeed * Time.deltaTime);
 	}
 
 	private Quaternion GetRotationToCursorPositionRelativeToCameraAndCharacterPosition()

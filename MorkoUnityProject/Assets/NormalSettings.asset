@@ -19,14 +19,16 @@ MonoBehaviour:
   sideRunMultiplier: 0.7
   backwardMultiplier: 0.8
   backwardRunMultiplier: 0.8
+  rotationSpeed: 600
   accelerationTime: 1
   decelerationTime: 0.5
   accelerationRunTime: 1.5
   decelerationRunTime: 1
-  sprintSpeed: 20
-  sprintDuration: 0.1
+  sprintSpeed: 5
+  sprintDuration: 1
   sprintCooldown: 2
-  minWalkAnimationSpeed: 0.1
+  sprintRotationSpeed: 50
+  minWalkAnimationSpeed: 0.005
   maxWalkAnimationSpeed: 2
   minSidewaysWalkAnimationSpeed: 0.1
   maxSidewaysWalkAnimationSpeed: 3
@@ -38,4 +40,5 @@ MonoBehaviour:
   maxBackwardsRunAnimationSpeed: 3
   minRunAnimationSpeed: 0.8
   maxRunAnimationSpeed: 1
+  sprintAnimationSpeed: 1
   rotateTowardsMove: 1
