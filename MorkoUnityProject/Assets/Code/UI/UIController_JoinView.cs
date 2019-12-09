@@ -58,6 +58,7 @@ public partial class UIController
 			
 			SetRoomViewHost(false);
 			scrollContent.SetOptions(gameManager.characterNames, gameManager.characterPrefabs);
+			roomView.characterSelectionList.SetLabel();
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
 

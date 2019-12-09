@@ -49,6 +49,7 @@ public partial class UIController
 			EventSystem.current.SetSelectedGameObject(roomView.characterSelectionList.scrollLeft.gameObject);
 			SetView(roomView);
 			scrollContent.SetOptions(gameManager.characterNames, gameManager.characterPrefabs);
+			roomView.characterSelectionList.SetLabel();
 		});
 		hostView.cancelButton.onClick.AddListener(() =>
 		{
