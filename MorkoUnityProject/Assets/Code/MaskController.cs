@@ -63,6 +63,11 @@ public class MaskController : MonoBehaviourPun
         Run
     }
 
+    private void Awake()
+    {
+        GameManager.RegisterMask(this);
+    }
+
     private void Start()
     {
         navMeshAgent = transform.GetComponent<NavMeshAgent>();

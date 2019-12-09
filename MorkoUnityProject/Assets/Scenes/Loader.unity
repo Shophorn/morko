@@ -506,6 +506,56 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996035, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -190.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1534224889490996037, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0.9716981
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0.9716981
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0.9716981
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
+        type: 3}
+      propertyPath: m_ClearFlags
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1856263929179443101, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -565,56 +615,6 @@ PrefabInstance:
         type: 3}
       propertyPath: radius
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 4294967295
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1856263928410442751, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_ClearFlags
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -190.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996036, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996037, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1534224889490996035, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b85a2b3b7e476064782a1fa7f16ff2c8, type: 3}

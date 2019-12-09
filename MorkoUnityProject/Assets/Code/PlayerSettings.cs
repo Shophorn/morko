@@ -6,7 +6,7 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(1f, 10f)] public float walkSpeed = 5f;
     [Header("Set multiplier to 1 for no effect")]
     [Range(0.1f, 1f)] public float sneakMultiplier = 0.5f;
-    [Range(1f, 2f)] public float runMultiplier = 1.5f;
+    [Range(1f, 10f)] public float runMultiplier = 1.5f;
     [Range(0f, 1f)] public float sideMultiplier = 1;
     [Range(0f, 1f)] public float sideRunMultiplier = 1;
     [Range(0f, 1f)] public float backwardMultiplier = 1f;
@@ -34,6 +34,26 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(1f, 5f)] public float dashDistance = 2f;
     [Range(1f, 5f)] public float dashDuration = 1.5f;
     [Range(1f, 10f)] public float dashCooldown = 2f;
+    
+    [Space]
+    [Header("Animation Speeds")]
+    public float minWalkAnimationSpeed = 1f;
+    public float maxWalkAnimationSpeed = 1f;
+    [Space]
+    public float minSidewaysWalkAnimationSpeed = 1f;
+    public float maxSidewaysWalkAnimationSpeed = 1f;
+    [Space]
+    public float minSidewaysRunAnimationSpeed = 1f;
+    public float maxSidewaysRunAnimationSpeed = 1f;
+    [Space]
+    public float minBackwardsWalkAnimationSpeed = 1f;
+    public float maxBackwardsWalkAnimationSpeed = 1f;
+    [Space]
+    public float minBackwardsRunAnimationSpeed = 1f;
+    public float maxBackwardsRunAnimationSpeed = 1f;
+    [Space]
+    public float minRunAnimationSpeed = 1f;
+    public float maxRunAnimationSpeed = 1f;
     
     [Header("TEST")]
     public bool rotateTowardsMove = true;

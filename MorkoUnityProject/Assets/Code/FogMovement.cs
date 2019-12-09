@@ -41,9 +41,9 @@ public class FogMovement : MonoBehaviour
         currentXZ += Time.deltaTime * noiseSpeedXZ;
         currentY += Time.deltaTime * noiseSpeedY;
 
-        if (currentXZ > 100000)
+        if (currentXZ > 100000 || currentXZ < -100000)
             currentXZ = 1;
-        if (currentY > 100000)
+        if (currentY > 100000 || currentY < -100000)
             currentY = 1;
 
         rend.material.SetFloat("_NoiseOffset", currentXZ);
