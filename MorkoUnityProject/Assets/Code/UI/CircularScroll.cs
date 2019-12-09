@@ -24,18 +24,14 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 
 	protected override void Awake()
 	{
-		listElements = content.listElements;
-
 		scrollLeft.onClick.AddListener(delegate { StartCoroutine(Rotate(Direction.Left)); });
 		scrollRight.onClick.AddListener(delegate { StartCoroutine(Rotate(Direction.Right)); });
-
-		currentItem = content.CheckCurrentItem();
-		nameLabel.text = currentItem.listItemName;
-		baseSpeed = 5f;
 	}
 
 	private IEnumerator Rotate(Direction direction)
 	{
+		listElements = content.listElements;
+		Debug.Log(listElements.Length);
 		float startAngle = 0f;
 		float factor;
 		if(listElements.Length > 0)
@@ -48,12 +44,19 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 					listElements[i].transform.RotateAround(content.transform.position, Vector3.up, factor * (int)direction);
 					listElements[i].transform.Rotate(0f,-factor*(int)direction,0f);
 				}
+				Debug.Log(factor);
 				startAngle += factor;
 				yield return null;
 			}
 			currentItem = content.CheckCurrentItem();
 			nameLabel.text = currentItem.listItemName;
 		}
+	}
+
+	public void SetLabel()
+	{
+		currentItem = content.CheckCurrentItem();
+		nameLabel.text = currentItem.listItemName;
 	}
 
 	//Events suddenly stopped working for some reason.

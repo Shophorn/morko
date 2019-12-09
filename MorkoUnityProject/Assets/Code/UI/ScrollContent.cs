@@ -19,19 +19,6 @@ public class ScrollContent : MonoBehaviour
 	[SerializeField]
 	private int selectedItemIndex;
 
-	private void OnDisable()
-	{
-		ClearSelectionList();
-	}
-
-	private void ClearSelectionList()
-	{
-		for (int i = 0; i < transform.childCount; i++)
-		{
-			Destroy(transform.GetChild(i).gameObject);
-		}
-	}
-
 	private void InstantiateContentCircular(string[] names, GameObject[] objects)
 	{
 		angle = 360f / (float)listElements.Length;
@@ -42,23 +29,21 @@ public class ScrollContent : MonoBehaviour
 				Quaternion rotation = Quaternion.AngleAxis(i * angle, Vector3.up);
 				Vector3 direction = rotation * Vector3.back;
 
-				Vector3 position = transform.position - (direction * radius);
+				Vector3 position = transform.position + (direction * radius);
 				listElements[i] = Instantiate(listItem, position,rotation);
 				listElements[i].transform.SetParent(transform);
 				listElements[i].listItemId = i;
 				listElements[i].listItemName = names[i];
-				//objects[i].transform.localScale = new Vector3(30,30,30);
 				Instantiate(objects[i], listElements[i].transform.position, rotation).transform.SetParent(listElements[i].transform);
 				listElements[i].transform.Rotate(0f, listElements[i].transform.rotation.y+180-(i*angle), 0f, 0f);
 			}
 			CheckCurrentItem();
 		}
-		Debug.Log("Stuff doned");
 	}
 
 	public ListItem CheckCurrentItem()
 	{
-		Vector3 selectedPosition = new Vector3(0,transform.position.y,-180);
+		Vector3 selectedPosition = new Vector3(0,transform.position.y,-190);
 		float shortestDistance = 1000;
 		float distance = 0;
 		ListItem shortest = null;
@@ -72,6 +57,7 @@ public class ScrollContent : MonoBehaviour
 			}
 		}
 		currentItem = shortest;
+		Debug.Log(currentItem);
 		int tempIndex = selectedItemIndex;
 		selectedItemIndex = currentItem.listItemId;
 		if (tempIndex != selectedItemIndex)
