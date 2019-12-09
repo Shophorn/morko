@@ -145,6 +145,7 @@ public class MaskController : MonoBehaviourPun
     {
         nextMorko = newMorko;
         currentMorko = null;
+        currenMorkoController.isMorko = false;
         currenMorkoController = null;
         
         maskJumpingOn = false;
@@ -274,6 +275,7 @@ public class MaskController : MonoBehaviourPun
         
         currentMorko = nextMorko;
         currenMorkoController = currentMorko.GetComponent<PlayerController>();
+        currenMorkoController.isMorko = true;
     }
     
     private void ResetAnimatorTriggers()
