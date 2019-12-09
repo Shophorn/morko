@@ -37,6 +37,11 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public GameObject[] characterPrefabs;
 	public static GameObject [] GetCharacterPrefabs => instance.characterPrefabs;
+	public String[] characterNames;
+
+	public GameObject[] mapPrefabs;
+	public static GameObject[] GetMapPrefabs => instance.mapPrefabs;
+	public string[] mapNames;
 
 	public string mapSceneName;
 	private float gameEndTime;
@@ -55,10 +60,24 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	private static readonly string menuSceneName = "EmptyScene";
 	private static readonly string endSceneName = "EndScene";
 
-
-	public static GameObject[] GetCharecterModelsForSelection()
+	public static GameObject[] GetMapPrefabsForSelection()
 	{
-		if (instance = null)
+		if (instance == null)
+			return new GameObject[0];
+
+		int count = instance.mapPrefabs.Length;
+		var results = new GameObject[count];
+		for (int i = 0; i < count; i++)
+		{
+			results[i] = Instantiate(instance.mapPrefabs[i], Vector3.zero, Quaternion.identity);
+		}
+		return results;
+	}
+
+
+	public static GameObject[] GetCharacterModelsForSelection()
+	{
+		if (instance == null)
 			return new GameObject[0];
 
 		int count = instance.characterPrefabs.Length;
@@ -69,7 +88,6 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 			Destroy(results[i].GetComponent<PlayerController>());
 			Destroy(results[i].GetComponent<Character>());
 		}
-
 		return results;
 	}
 
@@ -90,6 +108,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		uiController.SetConnectingScreen();
 
 		LoadScene(SceneLoader.UnityEngine, menuSceneName, OnMenuSceneLoaded);
+
+		uiController.SetOptions(mapNames,GetMapPrefabsForSelection());
 	}
 
 	private void Update()
