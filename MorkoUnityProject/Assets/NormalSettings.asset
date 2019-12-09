@@ -23,8 +23,8 @@ MonoBehaviour:
   decelerationTime: 0.5
   accelerationRunTime: 1.5
   decelerationRunTime: 1
-  dashDistance: 3
-  dashDuration: 3
+  dashSpeed: 20
+  dashDuration: 0.1
   dashCooldown: 2
   minWalkAnimationSpeed: 0.1
   maxWalkAnimationSpeed: 2

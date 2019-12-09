@@ -1165,8 +1165,6 @@ MonoBehaviour:
   morkoSettings: {fileID: 11400000, guid: 7f33e3b3f5a5cad4596681d9e1cff85e, type: 2}
   flashlight: {fileID: 8255654868176474285}
   currentAnimation: 0
-  jumpVelocity: 5
-  diveSpeed: 10
 --- !u!114 &114652356982659214
 MonoBehaviour:
   m_ObjectHideFlags: 0

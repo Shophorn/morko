@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviourPun
 	private float decelerationWalk => currentSettings.decelerationWalk;
 	private float decelerationRun => currentSettings.decelerationRun;
 	private float dashDuration => currentSettings.dashDuration;
-	private float dashDistance => currentSettings.dashDistance;
+	private float dashSpeed => currentSettings.dashSpeed;
 	private float dashCooldown => currentSettings.dashCooldown;
 	
 	private float currentMovementSpeed = 0f;
@@ -68,10 +68,6 @@ public class PlayerController : MonoBehaviourPun
 	private AnimatorState previousAnimation = AnimatorState.Idle;
 
 	[Header("Testing")]
-	//public float jumpVelocity = 5.0f;
-	public float sprintSpeed = 5.0f;
-	public float sprintDuration = 1.0f;
-	public float sprintCooldown = 1.0f;
 	bool isSprinting = false;
 	bool isSprintingCooldown = false;
 	Vector3 sprintDirection;
@@ -172,8 +168,8 @@ public class PlayerController : MonoBehaviourPun
 		{
 			isSprinting = true;
 			isSprintingCooldown = true;
-			this.InvokeAfter (()=> isSprinting = false, sprintDuration);
-			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown);
+			this.InvokeAfter (()=> isSprinting = false, dashDuration);
+			this.InvokeAfter (()=> isSprintingCooldown = false, dashCooldown);
 
 			//velocityY = jumpVelocity;
 			sprintDirection = previousVelocityVector;
@@ -193,7 +189,7 @@ public class PlayerController : MonoBehaviourPun
 		else
 		{
 			//ApplyGravity();
-			characterController.Move(sprintDirection * sprintSpeed * Time.deltaTime);
+			characterController.Move(sprintDirection * dashSpeed * Time.deltaTime);
 		}
 		
 		UpdateAnimatorState();
