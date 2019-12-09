@@ -1158,7 +1158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DEVELOPMENTForceControl: 0
-  isMorko: 1
+  isMorko: 0
   camera: {fileID: 0}
   animator: {fileID: 6930633409023596138}
   normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}

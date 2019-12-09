@@ -398,7 +398,14 @@ public class PlayerController : MonoBehaviourPun
 			else
 				decrease = Mathf.Lerp(sideRunMultiplier, 1f, moveLookDotProduct);
 
-			currentAnimation = AnimatorState.WalkSidewaysLeft;
+			Vector3 perp = Vector3.Cross(transform.forward, moveDirection);
+			float direction = Vector3.Dot(perp, transform.up);
+			bool turningRightNotLeft = direction > 0f ? true : false;
+			
+			if (turningRightNotLeft)
+				currentAnimation = AnimatorState.WalkSidewaysRight;
+			else
+				currentAnimation = AnimatorState.WalkSidewaysLeft;
 		}
 		else if (movingBackwards)
 		{
