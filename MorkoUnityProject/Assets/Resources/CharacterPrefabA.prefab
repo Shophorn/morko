@@ -1158,7 +1158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DEVELOPMENTForceControl: 0
-  isMorko: 0
+  isMorko: 1
   camera: {fileID: 0}
   animator: {fileID: 6930633409023596138}
   normalSettings: {fileID: 11400000, guid: 52eae50a24f3690409e02f152321fbd7, type: 2}
@@ -1180,10 +1180,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stepsHardSurface: []
   stepsGrass:
-  - {fileID: 8300000, guid: 12e6684f74a8d014ebafe3e1d3a6bc6e, type: 3}
-  - {fileID: 8300000, guid: 5548fa30ee9adb140aafed859d3bd2ea, type: 3}
-  - {fileID: 8300000, guid: 72a0f5c4f5e8a6b4aa38dfea532b4a87, type: 3}
-  - {fileID: 8300000, guid: d01956b41a85da64f84b355a2c948551, type: 3}
+  - {fileID: 8300000, guid: 78f1a3c0922c2484bb2baa06c7a8e17a, type: 3}
+  - {fileID: 8300000, guid: 427507bde10e09541b77a9f557e0261b, type: 3}
+  - {fileID: 8300000, guid: e51530260682a2f4781cc735a69ee7a7, type: 3}
+  - {fileID: 8300000, guid: abf0378c39e44ee47b250a806f697f35, type: 3}
+  - {fileID: 8300000, guid: 422294d65d0d6104d89dbc96854d0e26, type: 3}
+  - {fileID: 8300000, guid: 73d7374a6204eab40ac36c3174e881ab, type: 3}
+  - {fileID: 8300000, guid: 4cdaf71bf5ace8e44a68aea57c206c18, type: 3}
   stepsDirt: []
   defaultFootsteps: []
   tagHardSurface: HardSurface
