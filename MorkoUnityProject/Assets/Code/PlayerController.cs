@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviourPun
 	private float sprintCooldown => currentSettings.sprintCooldown;
 	private float rotationSpeed => currentSettings.rotationSpeed;
 	private float sprintRotationSpeed => currentSettings.sprintRotationSpeed;
-	private float rotationBackToNormalSpeed => currentSettings.rotationBackToNormalSpeed;
+	private float rotationBackToNormalSpeedInSecods => currentSettings.rotationBackToNormalSpeedInSecods;
 	
 	private float currentMovementSpeed = 0f;
 	private float currentRotationSpeed;
@@ -173,7 +173,7 @@ public class PlayerController : MonoBehaviourPun
 			isSprintingCooldown = true;
 			this.InvokeAfter (()=> isSprinting = false, sprintDuration);
 			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown);
-			this.InvokeAfter(()=> StartCoroutine(RotationSpeedBackToNormalInSeconds(rotationBackToNormalSpeed)), sprintDuration);
+			this.InvokeAfter(()=> StartCoroutine(RotationSpeedBackToNormalInSeconds(rotationBackToNormalSpeedInSecods)), sprintDuration);
 
 			sprintDirection = previousVelocityVector;
 			sprintDirection.y = 0f;

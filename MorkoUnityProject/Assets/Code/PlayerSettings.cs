@@ -36,8 +36,7 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     [Range(0f, 5f)] public float sprintDuration = 1.5f;
     [Range(0f, 10f)] public float sprintCooldown = 2f;
     public float sprintRotationSpeed = 180f;
-    public float rotationBackToNormalSpeed = 0.25f;
-
+    public float rotationBackToNormalSpeedInSecods = 0.25f;
     
     [Space]
     [Header("Animation Speeds")]
