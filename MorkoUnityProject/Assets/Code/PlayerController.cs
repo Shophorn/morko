@@ -49,9 +49,9 @@ public class PlayerController : MonoBehaviourPun
 	private float accelerationRun => currentSettings.accelerationRun;
 	private float decelerationWalk => currentSettings.decelerationWalk;
 	private float decelerationRun => currentSettings.decelerationRun;
-	private float dashDuration => currentSettings.dashDuration;
-	private float dashSpeed => currentSettings.dashSpeed;
-	private float dashCooldown => currentSettings.dashCooldown;
+	private float sprintDuration => currentSettings.sprintDuration;
+	private float sprintSpeed => currentSettings.sprintSpeed;
+	private float sprintCooldown => currentSettings.sprintCooldown;
 	
 	private float currentMovementSpeed = 0f;
 	private Vector3 moveDirection;
@@ -153,25 +153,22 @@ public class PlayerController : MonoBehaviourPun
 		if (character.Frozen)
 			return;
 		
-		Debug.Log(currentSettings.ToString());
-
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
 		
-		bool runningInput = (Input.GetButton("Sprint") || Input.GetKey(KeyCode.LeftShift));
+		bool runningInput = Input.GetButton("Run") || Input.GetKey(KeyCode.LeftShift);
 		bool runningSpeed = currentMovementSpeed >= walkSpeed;
 		bool accelerateAndRun = runningInput && runningSpeed ? true : false;
 		
-		bool sprint = Input.GetKeyDown(KeyCode.Space);
+		bool sprint = Input.GetButton("Sprint");
 		
 		if (sprint && !isSprinting && !isSprintingCooldown)
 		{
 			isSprinting = true;
 			isSprintingCooldown = true;
-			this.InvokeAfter (()=> isSprinting = false, dashDuration);
-			this.InvokeAfter (()=> isSprintingCooldown = false, dashCooldown);
+			this.InvokeAfter (()=> isSprinting = false, sprintDuration);
+			this.InvokeAfter (()=> isSprintingCooldown = false, sprintCooldown);
 
-			//velocityY = jumpVelocity;
 			sprintDirection = previousVelocityVector;
 			sprintDirection.y = 0f;
 			sprintDirection = sprintDirection.normalized;
@@ -188,8 +185,7 @@ public class PlayerController : MonoBehaviourPun
 		}
 		else
 		{
-			//ApplyGravity();
-			characterController.Move(sprintDirection * dashSpeed * Time.deltaTime);
+			characterController.Move(sprintDirection * sprintSpeed * Time.deltaTime);
 		}
 		
 		UpdateAnimatorState();

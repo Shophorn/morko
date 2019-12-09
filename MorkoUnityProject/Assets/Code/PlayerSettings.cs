@@ -31,9 +31,9 @@ public class PlayerSettings : ScriptableObject //, IPlayerFields
     public float decelerationWalk => walkSpeed / decelerationTime;
     public float decelerationRun => walkSpeed / decelerationRunTime;
     
-    [Range(0f, 20f)] public float dashSpeed = 2f;
-    [Range(0f, 5f)] public float dashDuration = 1.5f;
-    [Range(0f, 10f)] public float dashCooldown = 2f;
+    [Range(0f, 20f)] public float sprintSpeed = 2f;
+    [Range(0f, 5f)] public float sprintDuration = 1.5f;
+    [Range(0f, 10f)] public float sprintCooldown = 2f;
     
     [Space]
     [Header("Animation Speeds")]
