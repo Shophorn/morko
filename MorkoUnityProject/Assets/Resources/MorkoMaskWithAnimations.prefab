@@ -182,7 +182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterTransforms: []
   navMeshAgent: {fileID: 1942082360609387272}
-  secondsBeforeMaskMovesAtStart: 1
+  secondsBeforeMaskMovesAtStart: 3
   secondsBeforeMaskMovesToNewTarget: 0
   afterCollisionFreezeTime: 3
   startMovementSpeed: 3
@@ -263,6 +263,15 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 2
     Name: Breathing
+  - Type: 4
+    SynchronizeType: 2
+    Name: WalkSidewaysRight
+  - Type: 4
+    SynchronizeType: 2
+    Name: WalkSidewaysLeft
+  - Type: 4
+    SynchronizeType: 2
+    Name: WalkBackwards
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
