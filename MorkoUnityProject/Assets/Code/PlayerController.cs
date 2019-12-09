@@ -66,26 +66,6 @@ public class PlayerController : MonoBehaviourPun
 	private AnimatorState currentAnimation = AnimatorState.Idle;
 	private AnimatorState previousAnimation = AnimatorState.Idle;
 
-	[Space]
-	[Header("Animation Speeds")]
-	public float minWalkAnimationSpeed = 1f;
-	public float maxWalkAnimationSpeed = 1f;
-	[Space]
-	public float minSidewaysWalkAnimationSpeed = 1f;
-	public float maxSidewaysWalkAnimationSpeed = 1f;
-	[Space]
-	public float minSidewaysRunAnimationSpeed = 1f;
-	public float maxSidewaysRunAnimationSpeed = 1f;
-	[Space]
-	public float minBackwardsWalkAnimationSpeed = 1f;
-	public float maxBackwardsWalkAnimationSpeed = 1f;
-	[Space]
-	public float minBackwardsRunAnimationSpeed = 1f;
-	public float maxBackwardsRunAnimationSpeed = 1f;
-	[Space]
-	public float minRunAnimationSpeed = 1f;
-	public float maxRunAnimationSpeed = 1f;
-	
 	[Header("Testing")]
 	public float jumpVelocity = 5.0f;
 	public float diveSpeed = 5.0f;
@@ -173,7 +153,8 @@ public class PlayerController : MonoBehaviourPun
 	{
 		if (character.Frozen)
 			return;
-
+		
+		Debug.Log(currentSettings.ToString());
 
 		moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0.0f, Input.GetAxisRaw("Vertical"));
 		bool hasMoved = (moveDirection.sqrMagnitude > joystickMinDeadzone);
@@ -246,7 +227,7 @@ public class PlayerController : MonoBehaviourPun
             case AnimatorState.Walk:
 	            
 	            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
-	            animatorSpeed = Mathf.Lerp(minWalkAnimationSpeed, maxWalkAnimationSpeed, interpolate);
+	            animatorSpeed = Mathf.Lerp(currentSettings.minWalkAnimationSpeed, currentSettings.maxWalkAnimationSpeed, interpolate);
 	            animator.speed = animatorSpeed;
 	            animator.SetBool("Walk", true);
                 break;
@@ -256,12 +237,12 @@ public class PlayerController : MonoBehaviourPun
 	            if (walkingNotRunning)
 	            {
 		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
-		            animatorSpeed = Mathf.Lerp(minSidewaysWalkAnimationSpeed, maxSidewaysWalkAnimationSpeed, interpolate);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysWalkAnimationSpeed, currentSettings.maxSidewaysWalkAnimationSpeed, interpolate);
 	            }
 	            else
 	            {
 		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
-		            animatorSpeed = Mathf.Lerp(minSidewaysRunAnimationSpeed, maxSidewaysRunAnimationSpeed, interpolate);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysRunAnimationSpeed, currentSettings.maxSidewaysRunAnimationSpeed, interpolate);
 	            }
 	            
 	            animator.speed = animatorSpeed;
@@ -273,12 +254,12 @@ public class PlayerController : MonoBehaviourPun
 	            if (walkingNotRunning)
 	            {
 		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
-		            animatorSpeed = Mathf.Lerp(minSidewaysWalkAnimationSpeed, maxSidewaysWalkAnimationSpeed, interpolate);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysWalkAnimationSpeed, currentSettings.maxSidewaysWalkAnimationSpeed, interpolate);
 	            }
 	            else
 	            {
 		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
-		            animatorSpeed = Mathf.Lerp(minSidewaysRunAnimationSpeed, maxSidewaysRunAnimationSpeed, interpolate);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minSidewaysRunAnimationSpeed, currentSettings.maxSidewaysRunAnimationSpeed, interpolate);
 	            }
 	            
 	            animator.speed = animatorSpeed;
@@ -290,12 +271,12 @@ public class PlayerController : MonoBehaviourPun
 	            if (walkingNotRunning)
 	            {
 		            interpolate = Mathf.Clamp01(currentMovementSpeed / walkSpeed);
-		            animatorSpeed = Mathf.Lerp(minBackwardsWalkAnimationSpeed, maxBackwardsWalkAnimationSpeed, interpolate);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minBackwardsWalkAnimationSpeed, currentSettings.maxBackwardsWalkAnimationSpeed, interpolate);
 	            }
 	            else
 	            {
 		            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
-		            animatorSpeed = Mathf.Lerp(minBackwardsRunAnimationSpeed, maxBackwardsRunAnimationSpeed, interpolate);
+		            animatorSpeed = Mathf.Lerp(currentSettings.minBackwardsRunAnimationSpeed, currentSettings.maxBackwardsRunAnimationSpeed, interpolate);
 	            }
 	            
 	            animator.speed = animatorSpeed;
@@ -305,7 +286,7 @@ public class PlayerController : MonoBehaviourPun
             case AnimatorState.Run:
 	            
 	            interpolate = Mathf.Clamp01(currentMovementSpeed / runSpeed);
-	            animatorSpeed = Mathf.Lerp(minRunAnimationSpeed, maxRunAnimationSpeed, interpolate);
+	            animatorSpeed = Mathf.Lerp(currentSettings.minRunAnimationSpeed, currentSettings.maxRunAnimationSpeed, interpolate);
 	            animator.speed = animatorSpeed;
 	            animator.SetBool("Run", true);
                 break;
