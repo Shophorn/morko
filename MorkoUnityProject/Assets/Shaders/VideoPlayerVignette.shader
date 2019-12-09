@@ -10,6 +10,7 @@
         _Distance ("Distance", Range(0, 1)) =  0.5
         _Intensity ("Intensity", Float) = 1
         _VignetteColor ("Vignette Color", color) = (0,0,0,1)
+        _DesaturationEffect ("Desaturation", Range(0,1)) = 0
     }
     SubShader
     {
@@ -49,6 +50,8 @@
             float _Intensity;
             float3 _VignetteColor;
 
+            float _DesaturationEffect;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -70,6 +73,15 @@
                 color.rgb *= i.color;
             #endif
 
+                float3 desaturated = Luminance(color.rgb);
+                // 1−(1−A)×(1−B)
+                float3 one3 = float3(1,1,1);
+
+                desaturated = one3 - (one3 - desaturated) * (one3 - desaturated);
+                desaturated = one3 - (one3 - desaturated) * (one3 - desaturated);
+                color.rgb = lerp(color.rgb, desaturated, _DesaturationEffect);
+
+                // color.rgb = Luminance(color.rgb);
 
                 float2 toCenter = 2.0 * i.uv - 1.0;
                 float dist = length(toCenter);
@@ -77,6 +89,7 @@
                 float factor = pow(1.0 - dist.r, _Intensity);
 
                 color.rgb *= factor;
+
 
                 return color;
             }
