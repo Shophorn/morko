@@ -85,6 +85,8 @@ public class MaskController : MonoBehaviourPun
 
         if (startMaskControllerInStartMethod)
             this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
+
+        enabled = false;
     }
 
     private void Update()
@@ -115,6 +117,8 @@ public class MaskController : MonoBehaviourPun
 
     private void FindStartingCharacter()
     {
+        enabled = true;
+
         startWaitDurationWaited = true;
         lookingForStartingMorko = true;
         nextMorko = FindClosestCharacter();

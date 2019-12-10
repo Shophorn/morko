@@ -1,4 +1,4 @@
-﻿using Photon.Pun;
+﻿	using Photon.Pun;
 using System;
 using System.Collections;
 using UnityEditor.Animations;
@@ -140,7 +140,8 @@ public class PlayerController : MonoBehaviourPun
 	#endif
 		{
 			Destroy(GetComponent<AudioListener>());
-			Destroy(this);
+			// Destroy(this);
+			enabled = false;
 			return;
 		}
 
@@ -203,7 +204,7 @@ public class PlayerController : MonoBehaviourPun
 		UpdateAnimatorState();
 	}
 
-	IEnumerator RotationSpeedBackToNormalInSeconds(float seconds)
+	private IEnumerator RotationSpeedBackToNormalInSeconds(float seconds)
 	{
 		float time = 0f;
 

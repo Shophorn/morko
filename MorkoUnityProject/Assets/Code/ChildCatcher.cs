@@ -9,6 +9,8 @@ public class ChildCatcher : MonoBehaviourPun
 	public LayerMask characterLayerMask;
 
 	public float radialViewRange = 3;
+	public float waitBeforeCatchingAgainTime = 5;
+	private float canCatchTime = 0;
 
 	private readonly Collider [] overlapColliders = new Collider[20]; 
 
@@ -21,7 +23,11 @@ public class ChildCatcher : MonoBehaviourPun
 
 	private void Update()
 	{
-		if (photonView.IsMine == false)
+		bool doUpdate = photonView.IsMine
+						&& mask.enabled
+						&& canCatchTime < Time.time;
+
+		if (doUpdate == false)
 			return;
 
 		int colliderCount = Physics.OverlapSphereNonAlloc(	transform.position,
@@ -40,6 +46,10 @@ public class ChildCatcher : MonoBehaviourPun
 			if (overlapColliders[colliderIndex].gameObject == mask.currentMorko.gameObject)
 				continue;
 
+			var character = overlapColliders[colliderIndex].GetComponent<Character>();
+			if (character == null)
+				continue;
+
 			var hitTransform = overlapColliders[colliderIndex].transform;
 			Vector3 hitForward = hitTransform.forward;
 			Vector3 fromHitToHere = (transform.position - hitTransform.position).normalized;
@@ -47,17 +57,20 @@ public class ChildCatcher : MonoBehaviourPun
 
 			bool catchChild = false;
 
-			if (angle < angledViewAngle)
+			if (Mathf.Abs(angle) < angledViewAngle)
 			{
+				Debug.Log("[CHILD CATCHER]: Caught by angle");
 				catchChild = true;
 			}
 			else if (Vector3.Distance(transform.position, hitTransform.position) < radialViewRange)
 			{
+				Debug.Log("[CHILD CATCHER]: Caught by radialViewRange");
 				catchChild = true;
 			}
 
 			if (catchChild)
 			{
+				canCatchTime = Time.time + waitBeforeCatchingAgainTime;
 				mask.SwitchMorko(hitTransform);
 			}
 		}
