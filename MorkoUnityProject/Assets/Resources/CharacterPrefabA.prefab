@@ -1179,7 +1179,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f7c97ade8ac53841aa45885597c8821, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stepsHardSurface: []
+  stepsHardSurface:
+  - {fileID: 8300000, guid: c168d9ba0af7a364aaedd6e4aaa1a3f4, type: 3}
+  - {fileID: 8300000, guid: a4413d24edb98d14f9cdd3f285751fa5, type: 3}
+  - {fileID: 8300000, guid: 5099737cdb3898148bb6970b87d2dacf, type: 3}
+  - {fileID: 8300000, guid: ad27026042a13c949b957a611c4818fa, type: 3}
+  - {fileID: 8300000, guid: 974a8e6631fa70c4b960fc38050a7a9f, type: 3}
+  - {fileID: 8300000, guid: 8ba868e49df88cc4eb69d45cfc3ee03c, type: 3}
+  - {fileID: 8300000, guid: 515aace097809b94c972f81d99f37a5a, type: 3}
   stepsGrass:
   - {fileID: 8300000, guid: 78f1a3c0922c2484bb2baa06c7a8e17a, type: 3}
   - {fileID: 8300000, guid: 427507bde10e09541b77a9f557e0261b, type: 3}
@@ -1211,7 +1218,7 @@ AudioSource:
     type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.4
+  m_Volume: 0.2
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1219,10 +1226,10 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 3
+  MaxDistance: 20
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
