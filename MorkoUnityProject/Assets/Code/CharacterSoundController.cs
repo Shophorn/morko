@@ -26,35 +26,35 @@ public class CharacterSoundController : MonoBehaviour
     public AudioSource audioSrc;
     public enum SurfaceType { hard,grass,dirt,unknown};
     public SurfaceType currentSurface;
+    public PlayerController pc;
 
     void FixedUpdate()
     {
+        adaptiveFootsteps = !pc.isMorko;
+
         if (adaptiveFootsteps)
             GetSurfaceType();
         else
             currentSurface = SurfaceType.unknown;
     }
 
-    void PlayFootstep()
+    void PlayFootstep(float audioScale)
     {
-
-        Debug.Log("FOOTSTEP PLAYED");
-
         if(muteFootsteps == false)
         {
             switch (currentSurface)
             {
                 case SurfaceType.hard:
-                    audioSrc.PlayOneShot(stepsHardSurface[Random.Range(0, stepsHardSurface.Length)]);
+                    audioSrc.PlayOneShot(stepsHardSurface[Random.Range(0, stepsHardSurface.Length)],audioScale);
                     break;
                 case SurfaceType.grass:
-                    audioSrc.PlayOneShot(stepsGrass[Random.Range(0, stepsGrass.Length)]);
+                    audioSrc.PlayOneShot(stepsGrass[Random.Range(0, stepsGrass.Length)], audioScale);
                     break;
                 case SurfaceType.dirt:
-                    audioSrc.PlayOneShot(stepsDirt[Random.Range(0, stepsDirt.Length)]);
+                    audioSrc.PlayOneShot(stepsDirt[Random.Range(0, stepsDirt.Length)], audioScale);
                     break;
                 default:
-                    audioSrc.PlayOneShot(defaultFootsteps[Random.Range(0, defaultFootsteps.Length)]);
+                    audioSrc.PlayOneShot(defaultFootsteps[Random.Range(0, defaultFootsteps.Length)], audioScale);
                     break;
             }
         }  

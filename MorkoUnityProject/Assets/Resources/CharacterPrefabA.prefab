@@ -1196,7 +1196,11 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 73d7374a6204eab40ac36c3174e881ab, type: 3}
   - {fileID: 8300000, guid: 4cdaf71bf5ace8e44a68aea57c206c18, type: 3}
   stepsDirt: []
-  defaultFootsteps: []
+  defaultFootsteps:
+  - {fileID: 8300000, guid: c4facdc422110c842a747e744bd4cd7d, type: 3}
+  - {fileID: 8300000, guid: ca427f723e6f3b147baf83d7fc2314ef, type: 3}
+  - {fileID: 8300000, guid: 4c09ee03ab248b348ad188af7b77b377, type: 3}
+  - {fileID: 8300000, guid: 8ab3680254ae4cc4ea3dfff442a2f56b, type: 3}
   tagHardSurface: HardSurface
   tagGrass: Grass
   tagDirt: 
@@ -1205,6 +1209,7 @@ MonoBehaviour:
   muteFootsteps: 0
   audioSrc: {fileID: 82659776637260440}
   currentSurface: 1
+  pc: {fileID: 2128388933653630375}
 --- !u!82 &82659776637260440
 AudioSource:
   m_ObjectHideFlags: 0
