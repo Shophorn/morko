@@ -85,6 +85,8 @@ public class MaskController : MonoBehaviourPun
 
         if (startMaskControllerInStartMethod)
             this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
+
+        enabled = false;
     }
 
     private void Update()
@@ -115,6 +117,8 @@ public class MaskController : MonoBehaviourPun
 
     private void FindStartingCharacter()
     {
+        enabled = true;
+
         startWaitDurationWaited = true;
         lookingForStartingMorko = true;
         nextMorko = FindClosestCharacter();
@@ -143,7 +147,7 @@ public class MaskController : MonoBehaviourPun
         return closestCharacter;
     }
     
-    public void SwitchMorko(Transform oldMorko, Transform newMorko)
+    public void SwitchMorko(Transform newMorko)
     {
         nextMorko = newMorko;
         currentMorko = null;
@@ -155,6 +159,8 @@ public class MaskController : MonoBehaviourPun
         
         nextMorko.GetComponent<Character>().FreezeForSeconds(afterCollisionFreezeTime);
         JumpOffHead(nextMorko.position);
+
+        photonView.TransferOwnership(newMorko.GetComponent<PhotonView>().Owner);
     }
     
     private void MoveMaskToTarget(Transform target, float speed)
@@ -186,10 +192,12 @@ public class MaskController : MonoBehaviourPun
         
         Vector3 toMorkoHeadPosition = morkoHeadJoint.position;
         
-        float lengthToTarget = Vector3.Distance(startJumpingPosition, toMorkoHeadPosition);
+        float lengthToTarget        = Vector3.Distance(startJumpingPosition, toMorkoHeadPosition);
         float currentLengthToTarget = Vector3.Distance(transform.position, toMorkoHeadPosition);
-        float interpolation = (lengthToTarget - currentLengthToTarget) / lengthToTarget;
+        float interpolation         = (lengthToTarget - currentLengthToTarget) / lengthToTarget;
         
+        Debug.Log($"[MASK CONTROLLER]: jump to head interpolation = {interpolation}");
+
         toMorkoHeadPosition = new Vector3(toMorkoHeadPosition.x, toMorkoHeadPosition.y + (jumpParabolaSize - interpolation * jumpParabolaSize), toMorkoHeadPosition.z);
 
         transform.position = Vector3.MoveTowards(transform.position, toMorkoHeadPosition, Time.deltaTime * jumpSpeed);
@@ -197,6 +205,7 @@ public class MaskController : MonoBehaviourPun
         animator.Play("Attack", 0, interpolation);
         
         maskJumpingOn = true;
+
 
         if (interpolation >= jumpInterpolationCutOff)
         {
@@ -259,7 +268,7 @@ public class MaskController : MonoBehaviourPun
         morkoHeadJoint = morkoNeckJoint.GetChild(0);
     }
     
-    public void MaskOnNewMorko()
+    private void MaskOnNewMorko()
     {
         navMeshAgent.enabled = false;
 
