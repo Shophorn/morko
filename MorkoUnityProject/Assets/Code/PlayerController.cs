@@ -128,22 +128,23 @@ public class PlayerController : MonoBehaviourPun
 
 	private void Awake()
 	{
-		animator = GetComponent<Animator>();
+		// Note(Leo): These need to be done even if this is remote player
 		character = GetComponent<Character>();
 		GameManager.RegisterCharactcer(character);
 
 	// Note(Leo): Destroy this controller component when we are not the local player
 	#if UNITY_EDITOR
 		if(character.photonView.IsMine == false && DEVELOPMENTForceControl == false)
-		{
-			Destroy(this);
-		}
 	#else
 		if (character.photonView.IsMine == false)
-		{
-			Destroy(this);
-		}
 	#endif
+		{
+			Destroy(GetComponent<AudioListener>());
+			Destroy(this);
+			return;
+		}
+
+		animator = GetComponent<Animator>();
 		characterController = GetComponent<CharacterController>();
 	}
 

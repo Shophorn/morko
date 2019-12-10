@@ -994,7 +994,8 @@ GameObject:
   - component: {fileID: 2128388933653630375}
   - component: {fileID: 114652356982659214}
   - component: {fileID: 82659776637260440}
-  m_Layer: 0
+  - component: {fileID: 81698777442041120}
+  m_Layer: 25
   m_Name: CharacterPrefabA
   m_TagString: Avatar
   m_Icon: {fileID: 0}
@@ -1074,6 +1075,7 @@ MonoBehaviour:
   OwnershipTransfer: 0
   ObservedComponents:
   - {fileID: 114935891494484828}
+  - {fileID: 1209774536909601168}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -1293,6 +1295,14 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!81 &81698777442041120
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3593296432942239937}
+  m_Enabled: 1
 --- !u!1 &3645952338801317252
 GameObject:
   m_ObjectHideFlags: 0
@@ -2763,6 +2773,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8255654867420142199, guid: 6565620f2b9c79844bb9bbba66d10727,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8255654867419973207, guid: 6565620f2b9c79844bb9bbba66d10727,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2822,6 +2837,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8669678596950646873, guid: 6565620f2b9c79844bb9bbba66d10727,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6565620f2b9c79844bb9bbba66d10727, type: 3}

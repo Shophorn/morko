@@ -143,7 +143,7 @@ public class MaskController : MonoBehaviourPun
         return closestCharacter;
     }
     
-    public void SwitchMorko(Transform oldMorko, Transform newMorko)
+    public void SwitchMorko(Transform newMorko)
     {
         nextMorko = newMorko;
         currentMorko = null;

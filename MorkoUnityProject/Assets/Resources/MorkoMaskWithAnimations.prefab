@@ -206,6 +206,7 @@ GameObject:
   - component: {fileID: 860583297372687953}
   - component: {fileID: 2966174741917430528}
   - component: {fileID: 3723024473151008063}
+  - component: {fileID: 114090078071894554}
   m_Layer: 0
   m_Name: MorkoMaskWithAnimations
   m_TagString: Untagged
@@ -326,10 +327,11 @@ MonoBehaviour:
   ObservedComponentsFoldoutOpen: 1
   Group: 0
   prefixField: -1
-  Synchronization: 0
-  OwnershipTransfer: 0
+  Synchronization: 3
+  OwnershipTransfer: 1
   ObservedComponents:
-  - {fileID: 0}
+  - {fileID: 2966174741917430528}
+  - {fileID: 3723024473151008063}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -399,6 +401,24 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
+--- !u!114 &114090078071894554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942082360609420706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8508ba4c0e3457e408e7baee6f4d5f4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  angledViewRange: 20
+  angledViewAngle: 50
+  characterLayerMask:
+    serializedVersion: 2
+    m_Bits: 33554432
+  radialViewRange: 3
 --- !u!1 &1942082360609420708
 GameObject:
   m_ObjectHideFlags: 0
