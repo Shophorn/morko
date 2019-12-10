@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 959700124120696217}
   - component: {fileID: 6797530733936933506}
   - component: {fileID: 800964596035134969}
-  - component: {fileID: 216632300297782117}
   - component: {fileID: 4395660839009764218}
   m_Layer: 0
   m_Name: EyeLeft003
@@ -79,19 +78,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &216632300297782117
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1052068219462615594}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4395660839009764218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -419,6 +405,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 33554432
   radialViewRange: 3
+  waitBeforeCatchingAgainTime: 5
 --- !u!1 &1942082360609420708
 GameObject:
   m_ObjectHideFlags: 0
@@ -1344,7 +1331,6 @@ GameObject:
   - component: {fileID: 4785796987669498942}
   - component: {fileID: 6552049616660799183}
   - component: {fileID: 7582208743314232971}
-  - component: {fileID: 3509235289360897368}
   - component: {fileID: 1134328819292929752}
   m_Layer: 0
   m_Name: EyeRight003
@@ -1412,19 +1398,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &3509235289360897368
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3305582355857978981}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1134328819292929752
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1451,7 +1424,6 @@ GameObject:
   - component: {fileID: 1417051864433221960}
   - component: {fileID: 6058805350985877414}
   - component: {fileID: 7267781965865428547}
-  - component: {fileID: 8184293180935243818}
   - component: {fileID: 8498820584922393312}
   m_Layer: 0
   m_Name: EyeRight002
@@ -1519,19 +1491,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &8184293180935243818
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3457226982943120461}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8498820584922393312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3826,7 +3785,6 @@ GameObject:
   - component: {fileID: 322137640442911609}
   - component: {fileID: 2856891965210841201}
   - component: {fileID: 6594182640215825462}
-  - component: {fileID: 8391216067662957737}
   - component: {fileID: 1007256012029839064}
   m_Layer: 0
   m_Name: EyeLeft002
@@ -3894,19 +3852,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &8391216067662957737
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7042977397863245283}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1007256012029839064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3933,7 +3878,6 @@ GameObject:
   - component: {fileID: 878420524368845211}
   - component: {fileID: 3570176406023864815}
   - component: {fileID: 1766769126218557346}
-  - component: {fileID: 3999921910049925934}
   - component: {fileID: 7383711673212191776}
   m_Layer: 0
   m_Name: EyeLeft001
@@ -4001,19 +3945,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &3999921910049925934
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8244584165607579455}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &7383711673212191776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4040,7 +3971,6 @@ GameObject:
   - component: {fileID: 4041653983483611012}
   - component: {fileID: 4700523043913908756}
   - component: {fileID: 6749135867208296966}
-  - component: {fileID: 868140326127088881}
   - component: {fileID: 6993543485755225475}
   m_Layer: 0
   m_Name: EyeRight001
@@ -4108,19 +4038,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &868140326127088881
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8699817881621483927}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &6993543485755225475
 MonoBehaviour:
   m_ObjectHideFlags: 0
