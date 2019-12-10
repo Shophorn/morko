@@ -61,6 +61,7 @@
             o.Specular = specular.rgb;
             // o.Metallic = 0;
             o.Smoothness = specular.a;
+			o.Emission = float4(specular.rgb, 1) * 0.1;
 
             float2 maskUv = IN.screenPos.xy / IN.screenPos.w;
             float visibility = tex2D(_VisibilityMask, maskUv).r;

@@ -513,7 +513,7 @@ public class PlayerController : MonoBehaviourPun
 		else if (hasMoved && currentSettings.rotateTowardsMove)
 			targetRotation = Quaternion.LookRotation(moveDirection);
 
-		transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, currentRotationSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, currentRotationSpeed * Time.deltaTime);
 	}
 
 	private Quaternion GetRotationToCursorPositionRelativeToCameraAndCharacterPosition()

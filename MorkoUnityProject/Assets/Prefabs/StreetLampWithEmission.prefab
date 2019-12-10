@@ -57,7 +57,7 @@ GameObject:
   - component: {fileID: 2761186879640214718}
   - component: {fileID: 2761186879640214717}
   m_Layer: 0
-  m_Name: Point Light
+  m_Name: Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -124,7 +124,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100004, guid: 7aa2c35d5dab510479916d1c3ac7ccb5, type: 3}
       propertyPath: m_Name
-      value: streetLamp_wUV
+      value: Mesh
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 7aa2c35d5dab510479916d1c3ac7ccb5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -170,14 +170,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 7aa2c35d5dab510479916d1c3ac7ccb5, type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 627fcc3a83f08d845804c45f615c6892, type: 2}
     - target: {fileID: 2300002, guid: 7aa2c35d5dab510479916d1c3ac7ccb5, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 2572256be6b3475438fecfc90ca148d5, type: 2}
+    - target: {fileID: 2300000, guid: 7aa2c35d5dab510479916d1c3ac7ccb5, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 627fcc3a83f08d845804c45f615c6892, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7aa2c35d5dab510479916d1c3ac7ccb5, type: 3}
 --- !u!4 &5507330539312906751 stripped

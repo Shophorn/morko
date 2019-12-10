@@ -309,6 +309,8 @@ MonoBehaviour:
     type: 3}
   maskPrefab: {fileID: 1942082360609420706, guid: f662dd28ddb63c24b8be68484d247f7a,
     type: 3}
+  scrollListChildMaterial: {fileID: 2100000, guid: 593ca91e5094b444b84688e642cb2950,
+    type: 2}
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0
@@ -717,16 +719,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIMainGameObject
       objectReference: {fileID: 0}
-    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
-        type: 3}
-      propertyPath: listItemContainer
-      value: 
-      objectReference: {fileID: 820101729}
-    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
-        type: 3}
-      propertyPath: content
-      value: 
-      objectReference: {fileID: 999229554}
     - target: {fileID: 177153581040214789, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -792,6 +784,16 @@ PrefabInstance:
       propertyPath: gameManager
       value: 
       objectReference: {fileID: 942324878}
+    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: listItemContainer
+      value: 
+      objectReference: {fileID: 820101729}
+    - target: {fileID: 7802742230265130183, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: content
+      value: 
+      objectReference: {fileID: 999229554}
     - target: {fileID: 7802742229366912511, guid: cf8fe42012c8b3e4abab233defd3faef,
         type: 3}
       propertyPath: listItemContainer

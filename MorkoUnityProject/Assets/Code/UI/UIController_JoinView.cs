@@ -57,7 +57,7 @@ public partial class UIController
 			netControls.RequestJoin(info);
 			
 			SetRoomViewHost(false);
-			scrollContent.SetOptions(gameManager.characterNames, gameManager.characterPrefabs);
+			scrollContent.SetOptions(GameManager.GetCharacterNames, GameManager.GetCharacterModelsForSelection());
 			roomView.characterSelectionList.SetLabel();
 		});
 		joinView.playerNameField.text = JoinView.defaultPlayerName;
