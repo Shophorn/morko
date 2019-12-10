@@ -16,11 +16,13 @@ public class MapLights : MonoBehaviour
         UpdateLights();
     }
 
+    #if UNITY_EDITOR
     private void OnValidate()
     {
         if(EditorApplication.isPlaying)
             UpdateLights();
     }
+    #endif
 
     private void UpdateLights()
     {
