@@ -34,7 +34,7 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 		Debug.Log(listElements.Length);
 		float startAngle = 0f;
 		float factor;
-		if(listElements.Length > 0)
+		if(listElements.Length > 1)
 		{
 			factor = baseSpeed / listElements.Length;
 			while (startAngle < content.angle)
