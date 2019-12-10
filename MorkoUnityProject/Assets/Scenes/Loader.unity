@@ -321,6 +321,8 @@ MonoBehaviour:
     type: 3}
   maskPrefab: {fileID: 1942082360609420706, guid: f662dd28ddb63c24b8be68484d247f7a,
     type: 3}
+  scrollListChildMaterial: {fileID: 2100000, guid: 593ca91e5094b444b84688e642cb2950,
+    type: 2}
 --- !u!4 &942324879
 Transform:
   m_ObjectHideFlags: 0
@@ -3493,6 +3495,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Text
       value: 'DURATION:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7802742229586278655, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7802742231021251783, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1391176255549786973, guid: cf8fe42012c8b3e4abab233defd3faef,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf8fe42012c8b3e4abab233defd3faef, type: 3}

@@ -38,10 +38,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	public GameObject[] characterPrefabs;
 	public static GameObject [] GetCharacterPrefabs => instance.characterPrefabs;
 	public String[] characterNames;
+	public static String[] GetCharacterNames => instance.characterNames;
 
 	public GameObject[] mapPrefabs;
 	public static GameObject[] GetMapPrefabs => instance.mapPrefabs;
 	public string[] mapNames;
+	public static String[] GetMapNames => instance.mapNames;
 
 	public string mapSceneName;
 	private float gameEndTime;
@@ -60,35 +62,44 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	private static readonly string menuSceneName = "EmptyScene";
 	private static readonly string endSceneName = "EndScene";
 
-	//public static GameObject[] GetMapPrefabsForSelection()
-	//{
-	//	if (instance == null)
-	//		return new GameObject[0];
+	[SerializeField] private Material scrollListChildMaterial;
 
-	//	int count = instance.mapPrefabs.Length;
-	//	var results = new GameObject[count];
-	//	for (int i = 0; i < count; i++)
-	//	{
-	//		results[i] = Instantiate(instance.mapPrefabs[i], Vector3.zero, Quaternion.identity);
-	//	}
-	//	return results;
-	//}
+	public static GameObject[] GetMapPrefabsForSelection()
+	{
+		if (instance == null)
+			return new GameObject[0];
 
-	//public static GameObject[] GetCharacterModelsForSelection()
-	//{
-	//	if (instance == null)
-	//		return new GameObject[0];
+		int count = instance.mapPrefabs.Length;
+		var results = new GameObject[count];
+		for (int i = 0; i < count; i++)
+		{
+			results[i] = Instantiate(instance.mapPrefabs[i], Vector3.zero, Quaternion.identity);
+		}
+		return results;
+	}
 
-	//	int count = instance.characterPrefabs.Length;
-	//	var results = new GameObject [count];
-	//	for (int i = 0; i < count; i++)
-	//	{
-	//		results[i] = Instantiate(instance.characterPrefabs[i], Vector3.zero, Quaternion.identity);
-	//		Destroy(results[i].GetComponent<PlayerController>());
-	//		Destroy(results[i].GetComponent<Character>());
-	//	}
-	//	return results;
-	//}
+	public static GameObject[] GetCharacterModelsForSelection()
+	{
+		if (instance == null)
+			return new GameObject[0];
+
+		int count = instance.characterPrefabs.Length;
+		var results = new GameObject [count];
+		for (int i = 0; i < count; i++)
+		{
+			results[i] = Instantiate(instance.characterPrefabs[i], Vector3.zero, Quaternion.identity);
+			Destroy(results[i].GetComponent<PlayerController>());
+			Destroy(results[i].GetComponent<Character>());
+			foreach(Transform t in results[i].transform.GetChild(0))
+			{
+				Material[] materials = new Material[2];
+				materials[0] = t.gameObject.GetComponent<SkinnedMeshRenderer>().material;
+				materials[1] = instance.scrollListChildMaterial;
+				t.gameObject.GetComponent<SkinnedMeshRenderer>().materials = materials;
+			}
+		}
+		return results;
+	}
 
 	[PunRPC]
 	private void LoadEndSceneRPC()
