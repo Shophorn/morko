@@ -30,7 +30,8 @@ public class CharacterSoundController : MonoBehaviour
 
     void FixedUpdate()
     {
-        adaptiveFootsteps = !pc.isMorko;
+        if(pc != null)
+            adaptiveFootsteps = !pc.isMorko;
 
         if (adaptiveFootsteps)
             GetSurfaceType();

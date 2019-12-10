@@ -16,6 +16,10 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     public AudioClip onSelect;
     public AudioClip[] onClick;
     public AudioSource audioSRC;
+    public AudioSource audioSRCMusic;
+
+    [Header("Other sounds")]
+    public AudioClip gameStartJingle;
     /* Note(Leo): Implementing these explicitly we get a nice
     compiler error if the interface changes anytime */
     void IAudioUIControllable.SetMasterVolume(float value)
@@ -42,9 +46,16 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     }
     void IAudioUIControllable.SetCharacterVolume(float value) { /* Todo: Add functionality */ }
     void IAudioUIControllable.SetSfxVolume(float value) { /* Todo: Add functionality */ }
-    public void OnGameStart() { Debug.Log("GAME STARTED XXXDDD"); }
+    public void OnGameStart()
+    {
+        Debug.Log("GAME STARTED XXXDDD");
+        audioSRCMusic.Stop();
+    }
     public void OnLoadingStart() { Debug.Log("LOADING STARTED XXXDDD"); }
-    public void OnGameEnd() { }
+    public void OnGameEnd()
+    {
+        audioSRCMusic.Play();
+    }
 
 
     private void Awake()

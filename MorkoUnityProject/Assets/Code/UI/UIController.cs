@@ -173,7 +173,9 @@ public partial class UIController : MonoBehaviour
 	{
 		SetView(null);
 		connectingScreen.SetActive(false);
-		loadingScreen.SetActive(false);
+        //loadingScreen.SetActive(false);
+        //Irtsa placeholder;
+        loadingScreen.GetComponent<FadeToGame>().StartFade();
 		background.SetActive(false);
 		hidden = true;
 	}
