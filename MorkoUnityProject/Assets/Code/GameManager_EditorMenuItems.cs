@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 public partial class GameManager
 {
 	[UnityEditor.MenuItem("Morko/GameManager/Spawn Mask")]
@@ -20,3 +22,5 @@ public partial class GameManager
 		instance.photonView.RPC(nameof(EndGameRPC), Photon.Pun.RpcTarget.All);
 	}
 }
+
+#endif

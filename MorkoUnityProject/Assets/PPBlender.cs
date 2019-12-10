@@ -8,8 +8,16 @@ public class PPBlender : MonoBehaviour
     public PostProcessVolume normal;
     public PostProcessVolume morko;
     public PostProcessVolume morkoGhost;
-    [Range(0f,2f)]
-    public float blendToMorko = 0;
+    
+    [Range(0f,2f), SerializeField]
+    private float blendToMorko = 0;
+    public float BlendToMorko
+    {
+        get => blendToMorko;
+        set {   blendToMorko = Mathf.Clamp(value, 0, 2);
+                Debug.Log("[PP BLENDER]: Morko blend set");
+            }
+    }
 
     public FieldOfView fov;
     public float baseViewAngle;

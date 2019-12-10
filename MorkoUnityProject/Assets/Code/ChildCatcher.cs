@@ -25,6 +25,7 @@ public class ChildCatcher : MonoBehaviourPun
 	{
 		bool doUpdate = photonView.IsMine
 						&& mask.enabled
+						&& mask.currentMorko != null
 						&& canCatchTime < Time.time;
 
 		if (doUpdate == false)

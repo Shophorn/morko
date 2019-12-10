@@ -1,7 +1,6 @@
-﻿	using Photon.Pun;
+﻿using Photon.Pun;
 using System;
 using System.Collections;
-using UnityEditor.Animations;
 using UnityEngine;
 
 [RequireComponent(typeof(Character), typeof(CharacterController))]

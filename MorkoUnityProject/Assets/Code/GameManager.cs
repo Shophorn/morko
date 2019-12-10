@@ -33,7 +33,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	public MultiplayerVision gameCameraPrefab;
 	private MultiplayerVision gameCamera = null;
 
-	public GameObject visibilityEffectPrefab;
+	public PPBlender visibilityEffectPrefab;
+	private PPBlender visibilityEffect;
 
 	public GameObject[] characterPrefabs;
 	public static GameObject [] GetCharacterPrefabs => instance.characterPrefabs;
@@ -208,7 +209,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 			switch (pair.Key)
 			{
 				case PlayerProperty.Status:
-					uiController.UpdatePlayerNetworkStatus(	targetPlayer.ActorNumber, (PlayerNetworkStatus)pair.Value);
+					uiController.UpdatePlayerNetworkStatus(targetPlayer.ActorNumber, (PlayerNetworkStatus)pair.Value);
 					break;
 
 				case PlayerProperty.AvatarId:
@@ -399,7 +400,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 															startRotation);
         localPlayer.name 		= "Local Player";
 		cameraController.target = localPlayer.transform;
-        Instantiate(visibilityEffectPrefab, localPlayer.transform);
+        visibilityEffect 		= Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
         if (photonView.IsMine)
         {
@@ -441,14 +442,15 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		if (currentMorkoActorNumber == actorNumber)
 			return;
 
-		// Todo(Leo): Unset current character
-
 		currentMorkoActorNumber = actorNumber;
-		// maskTracker.target = connectedCharacters[actorNumber].transform;
-
-		// connectedCharacters[actorNumber].FreezeForSeconds(3);
-		// Vector3 effectPosition = maskTracker.target.transform.position + maskTracker.offset;
-		// Instantiate(morkoChangeParticlesPrefab, effectPosition, Quaternion.identity);
+		if (currentMorkoActorNumber == localCharacterActorNumber)
+		{
+			visibilityEffect.FadeToMorko();
+		}
+		else
+		{
+			visibilityEffect.FadeToHuman();
+		}
 	}
 
 	public static void RegisterMask(MaskController mask)

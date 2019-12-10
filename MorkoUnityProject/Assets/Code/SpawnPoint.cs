@@ -10,6 +10,7 @@ public struct PositionAndRotation
 
 public class SpawnPoint : MonoBehaviour
 {
+	#if UNITY_EDITOR
 	[UnityEditor.MenuItem("Morko/Spawn Point/Confirm Spawn Point")]
 	private static void ConfrimSpawnPointInScene()
 	{
@@ -22,6 +23,7 @@ public class SpawnPoint : MonoBehaviour
 			Debug.LogWarning("[SPAWN POINT]: Not found! If this is a map scene, you should add SpawnPoint component to a GameObject in scene.");
 		}
 	}
+	#endif
 
 	public float radius;
 

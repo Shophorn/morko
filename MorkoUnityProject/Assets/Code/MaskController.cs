@@ -160,7 +160,13 @@ public class MaskController : MonoBehaviourPun
         nextMorko.GetComponent<Character>().FreezeForSeconds(afterCollisionFreezeTime);
         JumpOffHead(nextMorko.position);
 
-        photonView.TransferOwnership(newMorko.GetComponent<PhotonView>().Owner);
+        var newMorkoCharacter = newMorko.GetComponent<Character>();
+        if (newMorkoCharacter == null)
+        {
+            Debug.LogError("Bad newMorko, implement using Character instead of transform");
+        }
+        photonView.TransferOwnership(newMorkoCharacter.photonView.Owner);
+        GameManager.SetCharacterMorko(newMorkoCharacter);
     }
     
     private void MoveMaskToTarget(Transform target, float speed)
@@ -267,7 +273,7 @@ public class MaskController : MonoBehaviourPun
         morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
         morkoHeadJoint = morkoNeckJoint.GetChild(0);
     }
-    
+
     private void MaskOnNewMorko()
     {
         navMeshAgent.enabled = false;
@@ -289,6 +295,14 @@ public class MaskController : MonoBehaviourPun
         currentMorko = nextMorko;
         currenMorkoController = currentMorko.GetComponent<PlayerController>();
         currenMorkoController.isMorko = true;
+
+        var newMorkoCharacter = currentMorko.GetComponent<Character>();
+        if (newMorkoCharacter == null)
+        {
+            Debug.LogError("Bad newMorko, implement using Character instead of transform");
+        }
+        photonView.TransferOwnership(newMorkoCharacter.photonView.Owner);
+        GameManager.SetCharacterMorko(newMorkoCharacter);
     }
     
     private void ResetAnimatorTriggers()

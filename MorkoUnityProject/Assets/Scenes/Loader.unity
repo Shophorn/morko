@@ -280,7 +280,7 @@ MonoBehaviour:
     type: 3}
   gameCameraPrefab: {fileID: 2436246498174968636, guid: 3962d84ff3f0570499c6cbae627ff6f4,
     type: 3}
-  visibilityEffectPrefab: {fileID: 9194018677192548821, guid: 65c931b6a859fb542b25f26f20467814,
+  visibilityEffectPrefab: {fileID: 2770545079808731319, guid: 65c931b6a859fb542b25f26f20467814,
     type: 3}
   characterPrefabs:
   - {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76, type: 3}
