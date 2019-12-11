@@ -60,6 +60,9 @@ public class MaskController : MonoBehaviourPun
     public Vector3 maskOnToNeckOffset;
     public Vector3 maskOnToNeckRotation;
 
+    // Todo(Leo): HACKHACKACK
+    public bool IsTransferingToOtherCharacter { get; private set; }
+
     public enum AnimatorBooleans
     {
         Breathing,
@@ -149,6 +152,8 @@ public class MaskController : MonoBehaviourPun
     
     public void SwitchMorko(Transform newMorko)
     {
+        IsTransferingToOtherCharacter = true;
+
         nextMorko = newMorko;
         currentMorko = null;
         currenMorkoController.isMorko = false;
@@ -201,7 +206,9 @@ public class MaskController : MonoBehaviourPun
         float lengthToTarget        = Vector3.Distance(startJumpingPosition, toMorkoHeadPosition);
         float currentLengthToTarget = Vector3.Distance(transform.position, toMorkoHeadPosition);
         float interpolation         = (lengthToTarget - currentLengthToTarget) / lengthToTarget;
-        
+        // float interpolation         = currentLengthToTarget / lengthToTarget;
+        interpolation               = Mathf.Clamp01(interpolation);
+
         Debug.Log($"[MASK CONTROLLER]: jump to head interpolation = {interpolation}");
 
         toMorkoHeadPosition = new Vector3(toMorkoHeadPosition.x, toMorkoHeadPosition.y + (jumpParabolaSize - interpolation * jumpParabolaSize), toMorkoHeadPosition.z);
@@ -211,7 +218,6 @@ public class MaskController : MonoBehaviourPun
         animator.Play("Attack", 0, interpolation);
         
         maskJumpingOn = true;
-
 
         if (interpolation >= jumpInterpolationCutOff)
         {
@@ -296,13 +302,22 @@ public class MaskController : MonoBehaviourPun
         currenMorkoController = currentMorko.GetComponent<PlayerController>();
         currenMorkoController.isMorko = true;
 
-        var newMorkoCharacter = currentMorko.GetComponent<Character>();
-        if (newMorkoCharacter == null)
+
+        // Todo(Leo): These should be not local function
+        void SetMorkoStateEverywhere()
         {
-            Debug.LogError("Bad newMorko, implement using Character instead of transform");
+            IsTransferingToOtherCharacter = false;
+
+            var newMorkoCharacter = currentMorko.GetComponent<Character>();
+            if (newMorkoCharacter == null)
+            {
+                Debug.LogError("Bad newMorko, implement using Character instead of transform");
+            }
+            photonView.TransferOwnership(newMorkoCharacter.photonView.Owner);
+            GameManager.SetCharacterMorko(newMorkoCharacter);
         }
-        photonView.TransferOwnership(newMorkoCharacter.photonView.Owner);
-        GameManager.SetCharacterMorko(newMorkoCharacter);
+
+        SetMorkoStateEverywhere();
     }
     
     private void ResetAnimatorTriggers()

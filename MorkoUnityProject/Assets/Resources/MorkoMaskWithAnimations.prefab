@@ -402,12 +402,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8508ba4c0e3457e408e7baee6f4d5f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  angledViewRange: 20
+  angledViewRange: 4
   angledViewAngle: 50
   characterLayerMask:
     serializedVersion: 2
     m_Bits: 33554432
-  radialViewRange: 3
+  radialViewRange: 1.5
   waitBeforeCatchingAgainTime: 5
 --- !u!82 &82193242653134862
 AudioSource:
@@ -518,8 +518,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d07b8e574f98cc24eac0b6ec98fc0a72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioSrc: {fileID: 7501735948832781211}
-  roar: {fileID: 8300000, guid: ce8495ffa4a6cdf4b9bc7091141a11e6, type: 3}
+  audioSrc: {fileID: 0}
+  roar: {fileID: 0}
   volume: 0
   currentVolume: 0
   roarPlaying: 0

@@ -34,3 +34,4 @@ MorkoUnityProject/Assets/Plugins/Editor/JetBrains.meta
 # logs
 *.log
 */log.txt
+*.zip

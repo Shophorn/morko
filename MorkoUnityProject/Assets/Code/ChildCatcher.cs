@@ -8,7 +8,7 @@ public class ChildCatcher : MonoBehaviourPun
 	public float angledViewAngle;
 	public LayerMask characterLayerMask;
 
-	public float radialViewRange = 3;
+	public float radialViewRange = 1.5f;
 	public float waitBeforeCatchingAgainTime = 5;
 	private float canCatchTime = 0;
 
@@ -26,6 +26,7 @@ public class ChildCatcher : MonoBehaviourPun
 		bool doUpdate = photonView.IsMine
 						&& mask.enabled
 						&& mask.currentMorko != null
+						&& (mask.IsTransferingToOtherCharacter == false)
 						&& canCatchTime < Time.time;
 
 		if (doUpdate == false)
