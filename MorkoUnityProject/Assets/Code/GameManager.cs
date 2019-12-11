@@ -329,6 +329,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		connectedCharacters = new Dictionary<int, Character>();
 		currentMorkoActorNumber = -1;
 
+		OnLoadingStartLocal?.Invoke();
+
 		LoadScene(SceneLoader.Photon, mapSceneName, OnMapSceneLoaded);
 	}
 
@@ -388,6 +390,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	{
 		SceneManager.sceneLoaded -= OnMenuSceneLoaded;
 		sceneState = SceneState.Menu;
+	
+		OnReturnToMenuLocal?.Invoke();
 	}
 
 	private void OnMapSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -424,12 +428,16 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
         gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
 
 		uiController.Hide();
+
+		OnGameStartLocal?.Invoke();
 	}
 
 	private void OnEndSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
 		SceneManager.sceneLoaded -= OnEndSceneLoaded;
 		sceneState = SceneState.End;
+
+		OnGameEndLocal?.Invoke();
 	}
 
 	///---------------------------------------------------------------------///
@@ -464,6 +472,15 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		}
 	}
 
+	private static void SetTextureToChildren(GameObject parent, int id, Texture texture)
+	{
+		var renderers = parent.GetComponentsInChildren<Renderer>();
+		foreach(var renderer in renderers)
+		{
+			renderer.material.SetTexture(id, texture);
+		}
+	}
+
 	public static void RegisterMask(MaskController mask)
 	{
 		// Todo(Leo): Make different settings for when sceneState is End
@@ -475,7 +492,11 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		{
 			mask.characterTransforms.Add(entry.Value.transform);
 		}
+		SetTextureToChildren(	instance.localMaskInstance.gameObject,
+								Shader.PropertyToID("_VisibilityMask"),
+								instance.gameCamera.MaskTexture);
 	}
+
 
 	public static void RegisterCharactcer(Character character)
 	{
@@ -487,11 +508,9 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		if (character.photonView.IsMine)
 			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
 
-		var characterPartRenderers = character.GetComponentsInChildren<Renderer>();
-		foreach(var renderer in characterPartRenderers)
-		{
-			renderer.material.SetTexture("_VisibilityMask", instance.gameCamera.MaskTexture);
-		}
+		SetTextureToChildren( 	character.gameObject,
+								Shader.PropertyToID("_VisibilityMask"),
+								instance.gameCamera.MaskTexture);
 
 		int actorNumber = character.photonView.Owner.ActorNumber;
 		instance.connectedCharacters.Add(actorNumber, character);
