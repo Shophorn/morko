@@ -72,6 +72,11 @@ PrefabInstance:
       propertyPath: viewIdField
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1209774536909601168, guid: 3a71de3e20a29034ab9809fa37d9ab76,
+        type: 3}
+      propertyPath: m_SynchronizeParameters.Array.size
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 1590829742969482902, guid: 3a71de3e20a29034ab9809fa37d9ab76,
         type: 3}
       propertyPath: m_Materials.Array.data[0]

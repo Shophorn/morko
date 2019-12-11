@@ -1115,6 +1115,12 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 2
     Name: Run
+  - Type: 9
+    SynchronizeType: 0
+    Name: Win
+  - Type: 9
+    SynchronizeType: 0
+    Name: Lose
   m_SynchronizeLayers:
   - SynchronizeType: 2
     LayerIndex: 0
@@ -1534,13 +1540,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4314680826145574470}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.25, z: 0}
+  m_LocalRotation: {x: 0.9914453, y: -0, z: -0, w: -0.13052316}
+  m_LocalPosition: {x: 0, y: 0.8, z: 1.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8115506030764263787}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 195, y: 0, z: 0}
 --- !u!108 &850848816717993980
 Light:
   m_ObjectHideFlags: 0
@@ -1550,11 +1556,11 @@ Light:
   m_GameObject: {fileID: 4314680826145574470}
   m_Enabled: 1
   serializedVersion: 8
-  m_Type: 2
+  m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 2
-  m_SpotAngle: 30
+  m_SpotAngle: 73
   m_CookieSize: 10
   m_Shadows:
     m_Type: 0
