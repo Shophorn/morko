@@ -39,7 +39,7 @@ public class EndSceneCharacterManager : MonoBehaviour
 				character.GetComponent<Animator>().SetTrigger("Lose");
 			
 			character.transform.position = position;
-			name.transform.position = nameOffset;
+			name.transform.localPosition = nameOffset;
 
 			Destroy(character.GetComponent<PlayerController>());
 		}
