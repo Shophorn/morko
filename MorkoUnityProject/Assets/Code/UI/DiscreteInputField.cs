@@ -7,8 +7,8 @@ public class DiscreteInputField : Selectable
 {
 	public enum Format { None, Int, Time }
 
-	public Button decrementButton;
-	public Button incrementButton;
+	[SerializeField] private Button decrementButton;
+	[SerializeField] private Button incrementButton;
 
 	[System.Serializable] public class FloatEvent : UnityEvent<float> {}
 	public FloatEvent OnValueChanged;
@@ -75,6 +75,9 @@ public class DiscreteInputField : Selectable
 		}
 
 		_value = Mathf.Clamp(_value, minValue, maxValue);
+
+		decrementButton.enabled = _value > minValue;
+		incrementButton.enabled = _value < maxValue;
 
 		switch(format)
 		{

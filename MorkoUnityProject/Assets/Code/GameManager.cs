@@ -183,11 +183,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		{
 			if (player.IsLocal)
 			{
-				// var properties = new Hashtable ();
 				var properties = new Hashtable();
 				properties.Add(PlayerProperty.Status, (int)PlayerNetworkStatus.Waiting);
 				properties.Add(PlayerProperty.MorkoLevel, 0.0f);
-				properties.Add(PlayerProperty.AvatarId, UnityEngine.Random.Range(0, characterPrefabs.Length));
+				properties.Add(PlayerProperty.AvatarId, 0);
 
 				player.SetCustomProperties(properties);
 				uiController.AddPlayer(player.ActorNumber, player.NickName, PlayerNetworkStatus.Waiting);
@@ -225,6 +224,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 					break;
 
 				case PlayerProperty.AvatarId:
+					/* Note(Leo): Cool, player expressed themselves by selecting a character :thumb_up: */
 					break;
 
 				case PlayerProperty.MorkoLevel:
@@ -326,6 +326,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	[PunRPC]
 	void StartGameRPC()
 	{
+		var properties = PhotonNetwork.LocalPlayer.CustomProperties;
+		properties[PlayerProperty.AvatarId] = uiController.HAXOR_BAD_CODE_GetSelectedCharacterIndex();
+		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+
 		uiController.SetLoadingScreen();
 		connectedCharacters = new Dictionary<int, Character>();
 		currentMorkoActorNumber = -1;
@@ -408,11 +412,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		gameCamera.CreateMask();
 
 		int characterIndex 		= (int)PhotonNetwork.LocalPlayer.CustomProperties[PlayerProperty.AvatarId];
+
 		string prefabName 		= characterPrefabs[characterIndex].name;
 		var localPlayer 		= PhotonNetwork.Instantiate(prefabName,
 															startPosition,
 															startRotation);
-        localPlayer.name 		= "Local Player";
+        localPlayer.name 		= $"Local Player ({characterNames[characterIndex]})";
 		cameraController.target = localPlayer.transform;
         visibilityEffect 		= Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
