@@ -35,6 +35,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public PPBlender visibilityEffectPrefab;
 	private PPBlender visibilityEffect;
+	public GameObject remoteVisibilityObjectPrefab;
 
 	public GameObject[] characterPrefabs;
 	public static GameObject[] GetCharacterPrefabs => instance.characterPrefabs;
@@ -430,9 +431,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
         }
 
         gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
-
 		uiController.Hide();
-
 		OnGameStartLocal?.Invoke();
 	}
 
@@ -509,9 +508,15 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		if (instance.sceneState != SceneState.Map)
 			return;
 
-		// Note(Leo): This should be same as PhotonNetwork.LocalPlayer.ActorNumber, is it??
 		if (character.photonView.IsMine)
+		{
 			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
+		}
+		else
+		{
+			// Instantiate(instance.remoteVisibilityObjectPrefab, character.transform);
+		}
+
 
 		SetTextureToChildren( 	character.gameObject,
 								Shader.PropertyToID("_VisibilityMask"),

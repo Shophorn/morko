@@ -282,6 +282,8 @@ MonoBehaviour:
     type: 3}
   visibilityEffectPrefab: {fileID: 2770545079808731319, guid: 65c931b6a859fb542b25f26f20467814,
     type: 3}
+  remoteVisibilityObjectPrefab: {fileID: 7994423162267434590, guid: 61767c2e8d243214f9adda73b729fbc9,
+    type: 3}
   characterPrefabs:
   - {fileID: 3593296432942239937, guid: 3a71de3e20a29034ab9809fa37d9ab76, type: 3}
   - {fileID: 1640491983170310785, guid: 6cc2d8bb6baf4e448ada5008178ef215, type: 3}
@@ -482,7 +484,7 @@ MonoBehaviour:
   audioSRC: {fileID: 942324882}
   audioSRCMusic: {fileID: 942324877}
   gameStartJingle: {fileID: 8300000, guid: 11a4399f553c5bd4aa05d06486a8d5ce, type: 3}
-  endScreenJingle: {fileID: 8300000, guid: 1037a5a7fa5ff5244ad39c3d474466de, type: 3}
+  endScreenJingle: {fileID: 0}
 --- !u!114 &999229554 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6173783979890051035, guid: b85a2b3b7e476064782a1fa7f16ff2c8,
