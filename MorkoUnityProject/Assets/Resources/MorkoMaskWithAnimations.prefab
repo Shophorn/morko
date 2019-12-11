@@ -282,7 +282,7 @@ MonoBehaviour:
   navMeshAgent: {fileID: 1942082360609387272}
   secondsBeforeMaskMovesAtStart: 3
   secondsBeforeMaskMovesToNewTarget: 0
-  afterCollisionFreezeTime: 3
+  afterCollisionFreezeTime: 1.6
   startMovementSpeed: 3
   changingMovementSpeed: 4
   acceleration: 10

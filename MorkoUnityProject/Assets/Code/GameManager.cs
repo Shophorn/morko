@@ -52,6 +52,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	private Dictionary<int, Character> connectedCharacters;
 	private int currentMorkoActorNumber;
 	private int localCharacterActorNumber;
+	private Character localCharacter => connectedCharacters[localCharacterActorNumber];
 
 	[SerializeField] private ParticleSystem morkoChangeParticlesPrefab;
 	[SerializeField] private GameObject maskPrefab;
@@ -463,6 +464,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		if (currentMorkoActorNumber == localCharacterActorNumber)
 		{
 			visibilityEffect.FadeToMorko();
+			localCharacter.GetComponent<PlayerController>().SetToMorko();
 		}
 		else
 		{

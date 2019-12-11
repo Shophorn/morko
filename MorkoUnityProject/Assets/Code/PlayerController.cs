@@ -84,32 +84,40 @@ public class PlayerController : MonoBehaviourPun
 		WalkBackwards,
 		Run,
 	}
-	public void ChangeStateTo(bool morko)
-	{
-		isMorko = morko;
-	}
+	// public void ChangeStateTo(bool morko)
+	// {
+	// 	isMorko = morko;
+	// }
 
-	public void ChangeState()
-	{
-		isMorko = !isMorko;
+	// public void ChangeState()
+	// {
+	// 	isMorko = !isMorko;
 		
-		if (isMorko)
-		{
-			// Change to morko anims, stuns, mask on, etc
-			ToMorko();
-		}
-		else
-		{
-			// Change to human, mask off
-			ToNormal();
-		}
-	}
+	// 	if (isMorko)
+	// 	{
+	// 		// Change to morko anims, stuns, mask on, etc
+	// 		ToMorko();
+	// 	}
+	// 	else
+	// 	{
+	// 		// Change to human, mask off
+	// 		ToNormal();
+	// 	}
+	// }
 
-	private void ToMorko()
+	// private void ToMorko()
+	// {
+	// }
+	// private static void ToNormal()
+	// {
+	// }
+
+	public void SetToMorko()
 	{
-	}
-	private static void ToNormal()
-	{
+		if(photonView.IsMine == false)
+			return;
+
+		animator.SetTrigger("Roar");
 	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)

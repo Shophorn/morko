@@ -318,26 +318,23 @@ public class MaskController : MonoBehaviourPun
         navMeshAgent.enabled = false;
 
         lookingForStartingMorko = false;
-        maskMovingToNewMorko = false;
-        maskJumpingOn = false;
+        maskMovingToNewMorko    = false;
+        maskJumpingOn           = false;
 
-        animator.applyRootMotion = false;
-        morkoHeadJoint.localScale = Vector3.zero;
-        transform.forward = nextMorko.forward;
+        animator.applyRootMotion    = false;
+        morkoHeadJoint.localScale   = Vector3.zero;
+
         transform.SetParent(morkoNeckJoint);
-        transform.localPosition = maskOnToNeckOffset;
-        transform.forward = nextMorko.forward;
-        transform.localRotation = Quaternion.Euler(maskOnToNeckRotation);
+        transform.localPosition     = maskOnToNeckOffset;
+        transform.localRotation     = Quaternion.Euler(maskOnToNeckRotation);
 
         SetAnimatorState(AnimatorBooleans.Idle);
         
-        currentMorko = nextMorko;
-        currenMorkoController = currentMorko.GetComponent<PlayerController>();
+        currentMorko            = nextMorko;
+        currenMorkoController   = currentMorko.GetComponent<PlayerController>();
         currenMorkoController.isMorko = true;
 
         Instantiate(jumpSmokeEffectOnCollision, transform.position, Quaternion.identity);
-
-
         nextMorko.GetComponent<Character>().FreezeForSeconds(afterCollisionFreezeTime);
 
         IsTransferingToOtherCharacter = false;
