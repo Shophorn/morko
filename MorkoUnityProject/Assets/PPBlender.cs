@@ -8,6 +8,8 @@ public class PPBlender : MonoBehaviour
     public PostProcessVolume normal;
     public PostProcessVolume morko;
     public PostProcessVolume morkoGhost;
+
+    public GameObject lite;
     
     [Range(0f,2f), SerializeField]
     private float blendToMorko = 0;
@@ -52,14 +54,17 @@ public class PPBlender : MonoBehaviour
 
     public void FadeToMorko()
     {
+        lite.SetActive(false);
         StartCoroutine(Fade(1));
     }
     public void FadeToGhost()
     {
+        lite.SetActive(false);
         StartCoroutine(Fade(2));
     }
     public void FadeToHuman()
     {
+        lite.SetActive(true);
         StartCoroutine(Fade(0));
     }
 
@@ -70,6 +75,8 @@ public class PPBlender : MonoBehaviour
 
         if (blendToMorko < 0.0001)
         {
+            
+
             fov.doRaycast = true;
             normal.weight = 1;
             morko.weight = 0;
@@ -77,6 +84,8 @@ public class PPBlender : MonoBehaviour
         }
         else if (blendToMorko < 1.01)
         {
+            
+
             normal.weight = 1 - blendToMorko;
             morko.weight = blendToMorko;
             morkoGhost.weight = 0;
@@ -84,6 +93,7 @@ public class PPBlender : MonoBehaviour
         }
         else
         {
+
             normal.weight = 0;
             morko.weight = 2f - blendToMorko;
             morkoGhost.weight = blendToMorko - 1f;
