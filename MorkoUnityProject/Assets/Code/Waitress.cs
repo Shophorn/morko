@@ -5,21 +5,27 @@ using UnityEngine;
 public class Waitress : MonoBehaviour
 {
 
-    public AudioSource audioSrc;
-    public AudioClip clip;
-    private AudioController ac;
+
+    public CanvasGroup group;
 
     void Start()
     {
+        if (group == null)
+            group = GetComponent<CanvasGroup>();
+        group.alpha = 1f;
         StartCoroutine(Waiter());
     }
 
     IEnumerator Waiter()
     {
-        yield return new WaitForSeconds(0.3f);
-        audioSrc.PlayOneShot(clip);
-        ac = FindObjectOfType<AudioController>();
-        if (ac != null)
-            ac.OnGameEnd();
+        yield return new WaitForSeconds(0.2f);
+        float time = 1.5f;
+        while (time > 0f)
+        {
+            time -= 1 * Time.deltaTime;
+            group.alpha = time/1.5f;
+            yield return null;
+        }
+
     }
 }

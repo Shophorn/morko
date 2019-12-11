@@ -423,6 +423,7 @@ MonoBehaviour:
   maskCutDistance: 0
   viewMeshFilter: {fileID: 9194018676881763298}
   fullMeshFilter: {fileID: 0}
+  doRaycast: 1
   meshResolution: 10
 --- !u!114 &2770545079808731319
 MonoBehaviour:
@@ -439,4 +440,10 @@ MonoBehaviour:
   normal: {fileID: 4541289107805767493}
   morko: {fileID: 6692877130089774461}
   morkoGhost: {fileID: 1791861376691598655}
+  lite: {fileID: 1990391833}
   blendToMorko: 0
+  fov: {fileID: 0}
+  baseViewAngle: 0
+  toMorko: 0
+  toGhost: 0
+  toHuman: 0
