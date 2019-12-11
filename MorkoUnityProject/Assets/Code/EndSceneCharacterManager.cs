@@ -17,10 +17,10 @@ public class EndSceneCharacterManager : MonoBehaviour
 
 		for (int i = 0; i < endResult.characterCount; i++)
 		{
-			Vector3 position = lineStartPosition + Vector3.right * i * characterOffset;
+			Vector3 position = lineStartPosition + Vector3.right * i * characterOffset + Vector3.up * 0.5f;
 			if (i == endResult.winningCharacterIndex)
 			{
-				position += new Vector3(0, 0.5f, -3f);
+				position += new Vector3(0, 0, -3f);
 				winner = true;
 			}
 			else
