@@ -7,6 +7,7 @@ public class EndSceneCharacterManager : MonoBehaviour
 	private void Start()
 	{
 		var endResult = GameManager.GetEndResult();
+		bool winner = false;
 
 		float fullCharacterLineLength = (endResult.characterCount - 1) * characterOffset;
 		Vector3 lineStartPosition = Vector3.left * (fullCharacterLineLength / 2);
@@ -16,11 +17,20 @@ public class EndSceneCharacterManager : MonoBehaviour
 			Vector3 position = lineStartPosition + Vector3.right * i * characterOffset;
 			if (i == endResult.winningCharacterIndex)
 			{
-				position += new Vector3(0, 0.5f, 0);
+				position += new Vector3(0, 0.5f, -3f);
+				winner = true;
 			}
+			else
+				winner = false;
 
 			int avatarIndex = endResult.playerAvatarIds[i];
 			var character = Instantiate(GameManager.GetCharacterPrefabs[avatarIndex], transform, false);
+			
+			if (winner)
+				character.GetComponent<Animator>().SetTrigger("Win");
+			else
+				character.GetComponent<Animator>().SetTrigger("Lose");
+			
 			character.transform.position = position;
 			Destroy(character.GetComponent<PlayerController>());
 		}
