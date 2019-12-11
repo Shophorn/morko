@@ -51,4 +51,5 @@ public struct GameEndResult
 	public int characterCount;
 	public int winningCharacterIndex;
 	public int [] playerAvatarIds;
+	public string [] playerNickNames;
 }

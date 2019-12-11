@@ -35,6 +35,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	public PPBlender visibilityEffectPrefab;
 	private PPBlender visibilityEffect;
+	public GameObject remoteVisibilityObjectPrefab;
 
 	public GameObject[] characterPrefabs;
 	public static GameObject[] GetCharacterPrefabs => instance.characterPrefabs;
@@ -183,11 +184,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		{
 			if (player.IsLocal)
 			{
-				// var properties = new Hashtable ();
 				var properties = new Hashtable();
 				properties.Add(PlayerProperty.Status, (int)PlayerNetworkStatus.Waiting);
 				properties.Add(PlayerProperty.MorkoLevel, 0.0f);
-				properties.Add(PlayerProperty.AvatarId, UnityEngine.Random.Range(0, characterPrefabs.Length));
+				properties.Add(PlayerProperty.AvatarId, 0);
 
 				player.SetCustomProperties(properties);
 				uiController.AddPlayer(player.ActorNumber, player.NickName, PlayerNetworkStatus.Waiting);
@@ -225,6 +225,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 					break;
 
 				case PlayerProperty.AvatarId:
+					/* Note(Leo): Cool, player expressed themselves by selecting a character :thumb_up: */
 					break;
 
 				case PlayerProperty.MorkoLevel:
@@ -241,6 +242,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		var players 		= PhotonNetwork.CurrentRoom.Players;
 		var sortedPlayers 	= players.OrderBy(entry => entry.Key);
 		var avatarIds 		= new int [players.Count];
+		var nickNames		= new string [players.Count];
 
 		int runningIndex = 0;
 		int winningIndex = -1;
@@ -259,14 +261,17 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 			}
 
 			avatarIds [runningIndex] = (int)properties[PlayerProperty.AvatarId];
+			nickNames [runningIndex] = player.NickName;
+
 			runningIndex++;
 		}
 
 		var endResult = new GameEndResult
 		{
-			characterCount = instance.connectedCharacters.Count,
-			winningCharacterIndex = winningIndex,
-			playerAvatarIds = avatarIds
+			characterCount 			= instance.connectedCharacters.Count,
+			winningCharacterIndex 	= winningIndex,
+			playerAvatarIds 		= avatarIds,
+			playerNickNames			= nickNames
 		};
 		return endResult;
 	}
@@ -326,6 +331,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	[PunRPC]
 	void StartGameRPC()
 	{
+		var properties = PhotonNetwork.LocalPlayer.CustomProperties;
+		properties[PlayerProperty.AvatarId] = uiController.HAXOR_BAD_CODE_GetSelectedCharacterIndex();
+		PhotonNetwork.LocalPlayer.SetCustomProperties(properties);
+
 		uiController.SetLoadingScreen();
 		connectedCharacters = new Dictionary<int, Character>();
 		currentMorkoActorNumber = -1;
@@ -408,11 +417,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		gameCamera.CreateMask();
 
 		int characterIndex 		= (int)PhotonNetwork.LocalPlayer.CustomProperties[PlayerProperty.AvatarId];
+
 		string prefabName 		= characterPrefabs[characterIndex].name;
 		var localPlayer 		= PhotonNetwork.Instantiate(prefabName,
 															startPosition,
 															startRotation);
-        localPlayer.name 		= "Local Player";
+        localPlayer.name 		= $"Local Player ({characterNames[characterIndex]})";
 		cameraController.target = localPlayer.transform;
         visibilityEffect 		= Instantiate(visibilityEffectPrefab, localPlayer.transform);
 
@@ -425,9 +435,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
         }
 
         gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
-
 		uiController.Hide();
-
 		OnGameStartLocal?.Invoke();
 	}
 
@@ -504,9 +512,15 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		if (instance.sceneState != SceneState.Map)
 			return;
 
-		// Note(Leo): This should be same as PhotonNetwork.LocalPlayer.ActorNumber, is it??
 		if (character.photonView.IsMine)
+		{
 			instance.localCharacterActorNumber = character.photonView.Owner.ActorNumber;
+		}
+		else
+		{
+			// Instantiate(instance.remoteVisibilityObjectPrefab, character.transform);
+		}
+
 
 		SetTextureToChildren( 	character.gameObject,
 								Shader.PropertyToID("_VisibilityMask"),

@@ -12,6 +12,7 @@ public class CircularScroll : Selectable /*,IBeginDragHandler, IDragHandler, IEn
 	public ListItem[] listElements;
 
 	public ScrollContent content;
+	public int SelectedIndex => content.SelectedIndex;
 
 	public Button scrollLeft;
 	public Button scrollRight;

@@ -25,6 +25,11 @@ public partial class UIController
     }
     [SerializeField] private RoomView roomView;
 
+    public int HAXOR_BAD_CODE_GetSelectedCharacterIndex()
+    {
+        return roomView.characterSelectionList.SelectedIndex;
+    }
+
     private void InitializeRoomView()
     {
         roomView.view.OnShow += () =>
