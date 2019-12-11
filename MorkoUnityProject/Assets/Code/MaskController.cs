@@ -298,9 +298,10 @@ public class MaskController : MonoBehaviourPun
             if (interpolation >= jumpInterpolationCutOff)
             {
                 maskJumpingOff = false;
-                SetAnimatorState(AnimatorBooleans.Idle);
-                // animator.Play("Idle");
-                this.InvokeAfter(() => MoveMaskToTarget(nextMorko, changingMovementSpeed), secondsBeforeMaskMovesToNewTarget);
+                JumpToHead(/*this is ignored anyway*/null);
+                // SetAnimatorState(AnimatorBooleans.Idle);
+                // // animator.Play("Idle");
+                // this.InvokeAfter(() => MoveMaskToTarget(nextMorko, changingMovementSpeed), secondsBeforeMaskMovesToNewTarget);
             }
         }
     }
