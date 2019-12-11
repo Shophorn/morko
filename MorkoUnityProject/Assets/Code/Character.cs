@@ -6,6 +6,7 @@ public class Character : MonoBehaviourPun
 {
 	public bool Frozen { get; private set; }
 	private float freezeEndTime;
+	public Transform flashlight;
 
 	public void FreezeForSeconds(float seconds)
 	{
@@ -26,4 +27,9 @@ public class Character : MonoBehaviourPun
 	}
 
 	public void SetMorkoLevel(float level) {}
+
+	public void EnableFlashlight(bool enable)
+	{
+		flashlight.gameObject.SetActive(enable);
+	}
 }
