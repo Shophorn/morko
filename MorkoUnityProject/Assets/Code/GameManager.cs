@@ -343,14 +343,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	void INetUIControllable.LeaveRoom()
 	{
-		Debug.Log("[GAME MANAGER]: UI told to leave room");
 		PhotonNetwork.LeaveRoom();
 		uiController.SetMainView();
 	}
 
 	public void ExitCurrentMatch()
 	{
-		Debug.Log("[GAME MANAGER]: Exited the current match");
 		PhotonNetwork.LeaveRoom();
 		uiController.Show();
 		uiController.SetMainView();

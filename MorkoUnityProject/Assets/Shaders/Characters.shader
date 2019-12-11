@@ -71,8 +71,8 @@
             o.Specular = lerp(specular.rgb, color.rgb, _IsMetallic);
             o.Smoothness = lerp(specular.a, _MetallicSmooth, _IsMetallic);
             o.Emission = _EmissionColor;
-            
-            o.Normal = tex2D(_NormalMap, IN.uv_MainTex);
+
+            o.Normal = UnpackNormal(tex2D(_NormalMap, IN.uv_MainTex));
 
 
 
