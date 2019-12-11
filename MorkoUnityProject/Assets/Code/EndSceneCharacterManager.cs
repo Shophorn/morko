@@ -25,7 +25,8 @@ public class EndSceneCharacterManager : MonoBehaviour
 
 			int avatarIndex = endResult.playerAvatarIds[i];
 			var character = Instantiate(GameManager.GetCharacterPrefabs[avatarIndex], transform, false);
-			
+
+			character.GetComponent<Character>().EnableFlashlight(false);
 			if (winner)
 				character.GetComponent<Animator>().SetTrigger("Win");
 			else
