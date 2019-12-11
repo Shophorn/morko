@@ -24,6 +24,11 @@ public class PPBlender : MonoBehaviour
     public FieldOfView fov;
     public float baseViewAngle;
 
+    [Header("Camera")]
+    public LocalCameraController cc;
+    public float defaultHeight = 13f;
+    public float morkoHeight = 16f;
+
     [Header("Debug")]
     public bool toMorko;
     public bool toGhost;
@@ -36,17 +41,18 @@ public class PPBlender : MonoBehaviour
         BlendEffects();
     }
 
-    private IEnumerator Fade(float targetValue, float speed = 2f)
+    private IEnumerator Fade(float targetValue, float targetCameraHeight, float speed = 2f)
     {
         speed = Mathf.Clamp(speed, 0.5f, 10f);
 
         float blendTime = 1f;
 
         while (blendTime > 0f)
-        {
+        {      
             blendTime -= Time.deltaTime * 1f * speed;
             blendTime = Mathf.Clamp01(blendTime);
             blendToMorko = Mathf.Lerp(blendToMorko, targetValue, 1 - blendTime);
+            cc.distance = Mathf.Lerp(cc.distance, targetCameraHeight, 1 - blendTime);
             BlendEffects();
             yield return null;
         }
@@ -55,17 +61,17 @@ public class PPBlender : MonoBehaviour
     public void FadeToMorko()
     {
         lite.SetActive(false);
-        StartCoroutine(Fade(1));
+        StartCoroutine(Fade(1, morkoHeight));
     }
     public void FadeToGhost()
     {
         lite.SetActive(false);
-        StartCoroutine(Fade(2));
+        StartCoroutine(Fade(2, morkoHeight));
     }
     public void FadeToHuman()
     {
         lite.SetActive(true);
-        StartCoroutine(Fade(0));
+        StartCoroutine(Fade(0, defaultHeight));
     }
 
     public void BlendEffects()

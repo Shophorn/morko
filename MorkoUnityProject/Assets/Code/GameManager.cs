@@ -439,8 +439,10 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
         localPlayer.name 		= $"Local Player ({characterNames[characterIndex]})";
 		cameraController.target = localPlayer.transform;
         visibilityEffect 		= Instantiate(visibilityEffectPrefab, localPlayer.transform);
+        //line by irtsa
+        visibilityEffect.cc = cameraController;
 
-        if (photonView.IsMine)
+        if (photonView.IsMine) //TODO: Tsekkaa onko oikea
         {
         	var maskPlacement = SpawnPoint.GetMaskPlacement();
         	PhotonNetwork.Instantiate(	maskPrefab.name,
