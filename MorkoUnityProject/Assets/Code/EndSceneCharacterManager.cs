@@ -1,8 +1,11 @@
+using TMPro;
 using UnityEngine;
 
 public class EndSceneCharacterManager : MonoBehaviour
 {
 	public float characterOffset = 3f;
+	public GameObject namePrefab;
+	public Vector3 nameOffset = new Vector3(0f, 2.5f, 0f);
 
 	private void Start()
 	{
@@ -25,7 +28,10 @@ public class EndSceneCharacterManager : MonoBehaviour
 
 			int avatarIndex = endResult.playerAvatarIds[i];
 			var character = Instantiate(GameManager.GetCharacterPrefabs[avatarIndex], transform, false);
-
+			var name = Instantiate(namePrefab, character.transform, false);
+			
+			name.GetComponent<TextMeshPro>().text = "Sampo";
+			
 			character.GetComponent<Character>().EnableFlashlight(false);
 			if (winner)
 				character.GetComponent<Animator>().SetTrigger("Win");
@@ -33,6 +39,8 @@ public class EndSceneCharacterManager : MonoBehaviour
 				character.GetComponent<Animator>().SetTrigger("Lose");
 			
 			character.transform.position = position;
+			name.transform.position = nameOffset;
+
 			Destroy(character.GetComponent<PlayerController>());
 		}
 	}

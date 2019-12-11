@@ -1199,6 +1199,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterOffset: 3
+  namePrefab: {fileID: 3130798732279598625, guid: bbee74c87cee95b4eb3908e0ee93820e,
+    type: 3}
+  nameOffset: {x: 0, y: 3, z: 0}
 --- !u!4 &1931867859
 Transform:
   m_ObjectHideFlags: 0
