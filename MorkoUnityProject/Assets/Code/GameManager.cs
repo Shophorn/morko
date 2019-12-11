@@ -242,6 +242,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		var players 		= PhotonNetwork.CurrentRoom.Players;
 		var sortedPlayers 	= players.OrderBy(entry => entry.Key);
 		var avatarIds 		= new int [players.Count];
+		var nickNames		= new string [players.Count];
 
 		int runningIndex = 0;
 		int winningIndex = -1;
@@ -260,14 +261,17 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 			}
 
 			avatarIds [runningIndex] = (int)properties[PlayerProperty.AvatarId];
+			nickNames [runningIndex] = player.NickName;
+
 			runningIndex++;
 		}
 
 		var endResult = new GameEndResult
 		{
-			characterCount = instance.connectedCharacters.Count,
-			winningCharacterIndex = winningIndex,
-			playerAvatarIds = avatarIds
+			characterCount 			= instance.connectedCharacters.Count,
+			winningCharacterIndex 	= winningIndex,
+			playerAvatarIds 		= avatarIds,
+			playerNickNames			= nickNames
 		};
 		return endResult;
 	}
