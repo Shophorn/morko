@@ -147,7 +147,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 				}
 
 				DoInGameMenu();
-				if (PhotonNetwork.IsMasterClient && gameEndTime < Time.time)
+
+
+				bool 	loadEndScene = PhotonNetwork.IsMasterClient
+						&& gameEndTime < Time.time;
+
+				if (loadEndScene)
 				{
 					photonView.RPC(nameof(EndGameRPC), RpcTarget.All);
 				}
@@ -345,10 +350,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	}
 
 	[PunRPC]
-	void EndGameRPC()
+	private void EndGameRPC()
 	{
 		// Todo(Leo): Any other functionality, like sound effects, animation triggers, etc
 		LoadScene(SceneLoader.Photon, endSceneName, OnEndSceneLoaded);
+		
+		Debug.Log("[GAME MANAGER]: End scene load called");
 	}
 
 	void INetUIControllable.LeaveRoom()
@@ -373,8 +380,13 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	///////////////////////////////////////////////////////////////////////////
 	private enum SceneLoader { Photon, UnityEngine }
 
+	private bool loadingScene;
 	private void LoadScene(SceneLoader sceneLoader, string sceneName, UnityAction<Scene, LoadSceneMode> callback)
 	{
+		if (loadingScene == true)
+			return;
+
+		loadingScene = true;
 		SceneManager.sceneLoaded += callback;
 		switch (sceneLoader)
 		{
@@ -396,6 +408,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void OnMenuSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
+		loadingScene = false;
 		SceneManager.sceneLoaded -= OnMenuSceneLoaded;
 		sceneState = SceneState.Menu;
 	
@@ -404,6 +417,7 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void OnMapSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
+		loadingScene = false;
 		SceneManager.sceneLoaded -= OnMapSceneLoaded;
 		sceneState = SceneState.Map;
 
@@ -441,6 +455,12 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 
 	private void OnEndSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
+		loadingScene = false;
+
+
+		Debug.Log("[GAME MANAGER]: End scene loaded");
+
+
 		SceneManager.sceneLoaded -= OnEndSceneLoaded;
 		sceneState = SceneState.End;
 
