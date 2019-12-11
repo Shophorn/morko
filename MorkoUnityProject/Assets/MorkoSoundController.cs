@@ -13,6 +13,8 @@ public class MorkoSoundController : MonoBehaviour
 
     public void Start()
     {
+        if (audioSrc == null)
+            audioSrc = GetComponent<AudioSource>();
         volume = audioSrc.volume;
     }
 
