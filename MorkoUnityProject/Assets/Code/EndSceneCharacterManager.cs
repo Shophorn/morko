@@ -24,7 +24,9 @@ public class EndSceneCharacterManager : MonoBehaviour
 				winner = true;
 			}
 			else
+			{
 				winner = false;
+			}
 
 			int avatarIndex = endResult.playerAvatarIds[i];
 			var character = Instantiate(GameManager.GetCharacterPrefabs[avatarIndex], transform, false);
