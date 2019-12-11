@@ -132,7 +132,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420704}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -518,8 +518,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d07b8e574f98cc24eac0b6ec98fc0a72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioSrc: {fileID: 0}
-  roar: {fileID: 0}
+  audioSrcActive: {fileID: 7501735948832781211}
+  jumpRoar: {fileID: 8300000, guid: ce8495ffa4a6cdf4b9bc7091141a11e6, type: 3}
+  attackRoar: {fileID: 8300000, guid: dcc2e21bf4fccd64582df0d7f74f6394, type: 3}
+  attach: {fileID: 8300000, guid: f0dda48323c2e57469f22fc5ab6564f6, type: 3}
+  audioSrcPassive: {fileID: 82193242653134862}
+  madness: {fileID: 8300000, guid: 4bac160e4a26ae74a94d2d0e8f4da77e, type: 3}
   volume: 0
   currentVolume: 0
   roarPlaying: 0
@@ -534,7 +538,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 243191619540873224, guid: d8b05df30c704db48aab0335b91457ce,
     type: 2}
-  m_audioClip: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: ce8495ffa4a6cdf4b9bc7091141a11e6, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.8
   m_Pitch: 1
@@ -665,7 +669,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420708}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -749,7 +753,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420710}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -929,7 +933,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420718}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -1013,7 +1017,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420720}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -1097,7 +1101,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420722}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -1212,7 +1216,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942082360609420726}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
@@ -3947,7 +3951,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3616010055913850492}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1

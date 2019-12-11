@@ -6,8 +6,6 @@ public class FadeToGame : MonoBehaviour
 {
     public GameObject loadingText;
     public CanvasGroup group;
-    public AudioSource audioSrc;
-    public AudioController ac;
 
     void Start()
     {
@@ -19,10 +17,6 @@ public class FadeToGame : MonoBehaviour
         group.alpha = 1f;
         loadingText.SetActive(false);
         StartCoroutine(Fade());
-        audioSrc.PlayOneShot(audioSrc.clip);
-        ac = FindObjectOfType<AudioController>();
-        if (ac != null)
-            ac.OnGameStart();
     }
 
     IEnumerator Fade()

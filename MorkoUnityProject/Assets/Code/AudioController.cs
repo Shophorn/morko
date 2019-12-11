@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.Audio;
 
 public class AudioController : MonoBehaviour, IAudioUIControllable
@@ -20,6 +22,7 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
 
     [Header("Other sounds")]
     public AudioClip gameStartJingle;
+    public AudioClip endScreenJingle;
     /* Note(Leo): Implementing these explicitly we get a nice
     compiler error if the interface changes anytime */
     void IAudioUIControllable.SetMasterVolume(float value)
@@ -48,11 +51,15 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     void IAudioUIControllable.SetSfxVolume(float value) { /* Todo: Add functionality */ }
     public void OnGameStart()
     {
-        Debug.Log("GAME STARTED XXXDDD");
+        audioSRC.PlayOneShot(gameStartJingle);
         audioSRCMusic.Stop();
     }
     public void OnLoadingStart() { Debug.Log("LOADING STARTED XXXDDD"); }
     public void OnGameEnd()
+    {
+        audioSRC.PlayOneShot(endScreenJingle);
+    }
+    public void OnReturnToMenu()
     {
         audioSRCMusic.Play();
     }
@@ -61,6 +68,12 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     private void Awake()
     {
         
+    }
+    private void Start()
+    {
+        GameManager.OnReturnToMenuLocal += OnReturnToMenu;
+        GameManager.OnGameEndLocal += OnGameEnd;
+        GameManager.OnGameStartLocal += OnGameStart;
     }
     /// <summary>
     /// volume 0 - 1

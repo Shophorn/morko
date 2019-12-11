@@ -9,6 +9,9 @@ TagManager:
   - Avatar
   - HardSurface
   - Grass
+  - Roof
+  - StoneWall
+  - WoodenFence
   layers:
   - Default
   - TransparentFX
