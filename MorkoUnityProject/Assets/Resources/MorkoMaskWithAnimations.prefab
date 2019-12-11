@@ -521,6 +521,7 @@ MonoBehaviour:
   audioSrcActive: {fileID: 7501735948832781211}
   jumpRoar: {fileID: 8300000, guid: ce8495ffa4a6cdf4b9bc7091141a11e6, type: 3}
   attackRoar: {fileID: 8300000, guid: dcc2e21bf4fccd64582df0d7f74f6394, type: 3}
+  attach: {fileID: 8300000, guid: f0dda48323c2e57469f22fc5ab6564f6, type: 3}
   audioSrcPassive: {fileID: 82193242653134862}
   madness: {fileID: 8300000, guid: 4bac160e4a26ae74a94d2d0e8f4da77e, type: 3}
   volume: 0

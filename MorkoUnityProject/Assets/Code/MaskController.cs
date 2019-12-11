@@ -318,6 +318,10 @@ public class MaskController : MonoBehaviourPun
 
     private void MaskOnNewMorko()
     {
+        MorkoSoundController msc = GetComponent<MorkoSoundController>();
+        msc.PlayAttach();
+
+
         navMeshAgent.enabled = false;
 
         lookingForStartingMorko = false;

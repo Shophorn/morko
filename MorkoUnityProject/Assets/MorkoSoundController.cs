@@ -7,6 +7,7 @@ public class MorkoSoundController : MonoBehaviour
     public AudioSource audioSrcActive;
     public AudioClip jumpRoar;
     public AudioClip attackRoar;
+    public AudioClip attach;
 
     public AudioSource audioSrcPassive;
     public AudioClip madness;
@@ -24,18 +25,35 @@ public class MorkoSoundController : MonoBehaviour
 
     public void PlayRoar()
     {
-        if (roarPlaying == false)
-            StartCoroutine(Roar());
+        //if (roarPlaying == false)
+        //    StartCoroutine(Roar());
+        audioSrcActive.PlayOneShot(jumpRoar);
     }
 
     public void PlayAttack()
     {
+        Debug.Log("ATTACK PALYED");
         StopCoroutine(Roar());
         //if (roarPlaying == false)
         //{
         audioSrcActive.volume = volume;
         audioSrcActive.Stop();
         audioSrcActive.PlayOneShot(attackRoar);
+        //}
+
+
+    }
+
+
+    public void PlayAttach()
+    {
+        Debug.Log("ATTACH PALYED");
+        StopCoroutine(Roar());
+        //if (roarPlaying == false)
+        //{
+        audioSrcActive.volume = volume;
+        audioSrcActive.Stop();
+        audioSrcActive.PlayOneShot(attach);
         //}
         
             
