@@ -30,7 +30,7 @@ public class EndSceneCharacterManager : MonoBehaviour
 			var character = Instantiate(GameManager.GetCharacterPrefabs[avatarIndex], transform, false);
 			var name = Instantiate(namePrefab, character.transform, false);
 			
-			name.GetComponent<TextMeshPro>().text = "Sampo";
+			name.GetComponent<TextMeshPro>().text = endResult.playerNickNames[i];
 			
 			character.GetComponent<Character>().EnableFlashlight(false);
 			if (winner)

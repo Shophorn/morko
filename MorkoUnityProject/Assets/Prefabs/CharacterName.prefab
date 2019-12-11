@@ -110,7 +110,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Sampo11
+  m_text: Unknown
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bdb763e3c6f252b44bd087869b2cd709, type: 2}
   m_sharedMaterial: {fileID: 21686595071332614, guid: bdb763e3c6f252b44bd087869b2cd709,
