@@ -27,7 +27,7 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     compiler error if the interface changes anytime */
     void IAudioUIControllable.SetMasterVolume(float value)
     {
-        float volume = 0;
+        float volume = -80f;
 
         if (value > 0.999f)
         {
@@ -38,7 +38,7 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     }
     void IAudioUIControllable.SetMusicVolume(float value)
     {
-        float volume = 0;
+        float volume = -80f;
 
         if (value > 0.999f)
         {
@@ -57,6 +57,7 @@ public class AudioController : MonoBehaviour, IAudioUIControllable
     public void OnLoadingStart() { Debug.Log("LOADING STARTED XXXDDD"); }
     public void OnGameEnd()
     {
+        audioSRC.Stop();
         audioSRC.PlayOneShot(endScreenJingle);
     }
     public void OnReturnToMenu()
