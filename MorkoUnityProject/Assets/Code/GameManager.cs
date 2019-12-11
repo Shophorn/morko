@@ -329,6 +329,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		connectedCharacters = new Dictionary<int, Character>();
 		currentMorkoActorNumber = -1;
 
+		OnLoadingStartLocal?.Invoke();
+
 		LoadScene(SceneLoader.Photon, mapSceneName, OnMapSceneLoaded);
 	}
 
@@ -388,6 +390,8 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 	{
 		SceneManager.sceneLoaded -= OnMenuSceneLoaded;
 		sceneState = SceneState.Menu;
+	
+		OnReturnToMenuLocal?.Invoke();
 	}
 
 	private void OnMapSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -424,12 +428,16 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
         gameEndTime = Time.time + (int)PhotonNetwork.CurrentRoom.CustomProperties[RoomProperty.GameDuration];
 
 		uiController.Hide();
+
+		OnGameStartLocal?.Invoke();
 	}
 
 	private void OnEndSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
 		SceneManager.sceneLoaded -= OnEndSceneLoaded;
 		sceneState = SceneState.End;
+
+		OnGameEndLocal?.Invoke();
 	}
 
 	///---------------------------------------------------------------------///
