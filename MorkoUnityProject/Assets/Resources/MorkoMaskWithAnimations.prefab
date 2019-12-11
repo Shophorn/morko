@@ -286,7 +286,7 @@ MonoBehaviour:
   startMovementSpeed: 3
   changingMovementSpeed: 4
   acceleration: 10
-  jumpMinDistanceFromCharacter: 4
+  jumpMinDistanceFromCharacter: 2
   jumpInterpolationCutOff: 0.9
   jumpParabolaSize: 1
   jumpSmokeEffectOnCollision: {fileID: 7888064212085631768, guid: 504319fc5c92a964597d10723faf1598,
