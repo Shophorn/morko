@@ -149,6 +149,9 @@ public class MaskController : MonoBehaviourPun
     
     public void SwitchMorko(Transform newMorko)
     {
+        MorkoSoundController msc = GetComponent<MorkoSoundController>();
+        msc.PlayAttack();
+
         IsTransferingToOtherCharacter = true;
 
         nextMorko = newMorko;

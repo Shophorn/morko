@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class MorkoSoundController : MonoBehaviour
 {
-    public AudioSource audioSrc;
-    public AudioClip roar;
+    public AudioSource audioSrcActive;
+    public AudioClip jumpRoar;
+    public AudioClip attackRoar;
+
+    public AudioSource audioSrcPassive;
+    public AudioClip madness;
 
     public float volume;
     public float currentVolume;
@@ -13,9 +17,9 @@ public class MorkoSoundController : MonoBehaviour
 
     public void Start()
     {
-        if (audioSrc == null)
-            audioSrc = GetComponent<AudioSource>();
-        volume = audioSrc.volume;
+        if (audioSrcActive == null)
+            audioSrcActive = GetComponent<AudioSource>();
+        volume = audioSrcActive.volume;
     }
 
     public void PlayRoar()
@@ -24,21 +28,35 @@ public class MorkoSoundController : MonoBehaviour
             StartCoroutine(Roar());
     }
 
+    public void PlayAttack()
+    {
+        StopCoroutine(Roar());
+        //if (roarPlaying == false)
+        //{
+        audioSrcActive.volume = volume;
+        audioSrcActive.Stop();
+        audioSrcActive.PlayOneShot(attackRoar);
+        //}
+        
+            
+    }
+
     IEnumerator Roar()
     {
         roarPlaying = true;
-        audioSrc.clip = roar;
-        audioSrc.Play();
+        audioSrcActive.clip = jumpRoar;
+        audioSrcActive.Play();
 
         float time = 2f;
         while (time > 0f)
         {
             time -= 1 * Time.deltaTime;
             currentVolume = volume * (time / 2f);
-            audioSrc.volume = currentVolume;
+            audioSrcActive.volume = currentVolume;
             yield return null;
         }
         roarPlaying = false;
-        audioSrc.Stop();
+        audioSrcActive.Stop();
+        audioSrcActive.volume = volume;
     }
 }
