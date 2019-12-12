@@ -157,6 +157,10 @@ public partial class UIController : MonoBehaviour
 			notPauseMenuActive = !notPauseMenuActive;
 
 		notPauseWindow.SetActive(notPauseMenuActive);
+
+        //Line by Irtsa
+        if (notPauseWindow.activeSelf)
+            EventSystem.current.SetSelectedGameObject(exitMatchButton.gameObject);
 	}
 
 		public void Show()
@@ -187,7 +191,7 @@ public partial class UIController : MonoBehaviour
 		Debug.LogError("MapNameFromIndex not properly implemented!!!");
 
 		// Todo(Leo): Obviously this is not correct, please fix
-		return "Somber Bomber Suburbinator";
+		return "Suburbs";
 	}
 
 	public void AddPlayer(int uniqueId, string name, PlayerNetworkStatus status)
