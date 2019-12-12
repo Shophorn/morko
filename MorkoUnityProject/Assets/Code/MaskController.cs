@@ -145,23 +145,21 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
 
     private void SetCurrentMorko(Transform newCurrentMorko)
     {   
-
-        if (currentMorko != null)
-            currentMorkoController.isMorko = false;
-
         currentMorko = newCurrentMorko;
         currentMorkoActorNumber = currentMorko.GetComponent<Character>().photonView.Owner.ActorNumber;
 
         photonView.RPC(nameof(SetCurrentMorkoRPC), RpcTarget.Others, currentMorkoActorNumber);
-
-        currentMorkoController.isMorko = true;
     }
 
     [PunRPC]
     private void SetCurrentMorkoRPC(int actorNumber)
     {
+        if (currentMorko != null)
+            currentMorkoController.isMorko = false;
+ 
         currentMorkoActorNumber = actorNumber;
         currentMorko = GameManager.GetCharacterByActorNumber(actorNumber).transform;
+        currentMorkoController.isMorko = true;
     }
 
     private void Update()
