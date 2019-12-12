@@ -38,7 +38,7 @@ public class MorkoSoundController : MonoBehaviour
         //{
         audioSrcActive.volume = volume;
         audioSrcActive.Stop();
-        audioSrcActive.PlayOneShot(attackRoar);
+        audioSrcActive.PlayOneShot(attach);
         //}
 
 
@@ -53,7 +53,7 @@ public class MorkoSoundController : MonoBehaviour
         //{
         audioSrcActive.volume = volume;
         audioSrcActive.Stop();
-        audioSrcActive.PlayOneShot(attach);
+        audioSrcActive.PlayOneShot(attackRoar);
         //}
         
             
