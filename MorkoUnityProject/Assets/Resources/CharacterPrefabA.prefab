@@ -1154,6 +1154,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flashlight: {fileID: 8255654868176474285}
+  neckJoint: {fileID: 4354427426823012124}
+  headJoint: {fileID: 816624012768763231}
 --- !u!114 &2128388933653630375
 MonoBehaviour:
   m_ObjectHideFlags: 0

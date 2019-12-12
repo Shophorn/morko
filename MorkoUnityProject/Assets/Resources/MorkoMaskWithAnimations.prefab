@@ -301,6 +301,7 @@ MonoBehaviour:
   startMaskControllerInStartMethod: 1
   maskOnToNeckOffset: {x: 0.058, y: -0.106, z: 0}
   maskOnToNeckRotation: {x: -118, y: 86.4, z: 0}
+  TEST: {fileID: 0}
 --- !u!114 &860583297372687953
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -321,6 +322,8 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 2966174741917430528}
   - {fileID: 3723024473151008063}
+  - {fileID: 114090078071894554}
+  - {fileID: 1942082360609387273}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0

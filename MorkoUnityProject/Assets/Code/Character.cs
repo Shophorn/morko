@@ -8,6 +8,12 @@ public class Character : MonoBehaviourPun
 	private float freezeEndTime;
 	public Transform flashlight;
 
+	[SerializeField] private Transform neckJoint;
+	[SerializeField] private Transform headJoint;
+
+	public Transform MaskTarget => neckJoint;
+	public Transform Head => headJoint;
+
 	public void FreezeForSeconds(float seconds)
 	{
 		freezeEndTime = Time.time + seconds;

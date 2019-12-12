@@ -455,6 +455,11 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		OnGameStartLocal?.Invoke();
 	}
 
+	public static Character GetCharacterByActorNumber(int actorNumber)
+	{
+		return instance.connectedCharacters[actorNumber];
+	}
+
 	private void OnEndSceneLoaded(Scene scene, LoadSceneMode mode)
 	{
 		loadingScene = false;

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
-public class MaskController : MonoBehaviourPun
+public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCallbacks
 {
     public List<Transform> characterTransforms;
     public NavMeshAgent navMeshAgent;
@@ -35,6 +36,7 @@ public class MaskController : MonoBehaviourPun
     [Space]
     [Header("Morko Info")]
     public Transform currentMorko;
+    private PlayerController currentMorkoController;
     public Transform nextMorko;
 
     private Animator animator;
@@ -48,17 +50,21 @@ public class MaskController : MonoBehaviourPun
     private Vector3 startJumpingPosition;
     private Vector3 targetJumpingPosition;
 
-    private Transform morkoHeadJoint;
-    private Transform morkoNeckJoint;
+    private Transform morkoHeadJoint => currentMorkoCharacter.Head;
+    private Transform morkoNeckJoint => currentMorkoCharacter.MaskTarget;
 
-    private PlayerController currenMorkoController;
 
     public bool startMaskControllerInStartMethod = true;
     public Vector3 maskOnToNeckOffset;
     public Vector3 maskOnToNeckRotation;
 
+    public int currentMorkoActorNumber;
+
     // Todo(Leo): HACKHACKACK
     public bool IsTransferingToOtherCharacter { get; private set; }
+
+    // HACKHACKHACK
+    private Character currentMorkoCharacter => currentMorko.GetComponent<Character>();
 
     public enum AnimatorBooleans
     {
@@ -72,10 +78,45 @@ public class MaskController : MonoBehaviourPun
         Run
     }
 
+    public enum MorkoState
+    {
+        IdleInBeginning,
+        ChasingFirstTime,
+        OnHead,
+        SwitchingOff,
+        SwitchingOn,
+    }
+
+    public MorkoState morkoState;// {get; private set;}
+
+    // Note(Leo): Not used
+    void IPunOwnershipCallbacks.OnOwnershipRequest (PhotonView targetView, Player requestingPlayer) {}
+ 
+    void IPunOwnershipCallbacks.OnOwnershipTransfered (PhotonView targetView, Player previousOwner)
+    {
+        currentMorko = GameManager.GetCharacterByActorNumber(currentMorkoActorNumber).transform;
+        currentMorkoController = currentMorko.GetComponent<PlayerController>();
+    }
+
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if(stream.IsWriting)
+        {
+            int state = (int)morkoState;
+            stream.SendNext(state);
+        }
+        else if (stream.IsReading)
+        {
+            morkoState = (MorkoState)stream.ReceiveNext();
+        }
+    }
+
     private void Awake()
     {
         GameManager.RegisterMask(this);
     }
+
+    public Transform TEST;
 
     private void Start()
     {
@@ -84,50 +125,116 @@ public class MaskController : MonoBehaviourPun
         animator = transform.GetComponent<Animator>();
 
         if (startMaskControllerInStartMethod)
-            this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
+            this.InvokeAfter (  () => morkoState = MorkoState.ChasingFirstTime,
+                                secondsBeforeMaskMovesAtStart);
 
-        enabled = false;
+        // enabled = false;
+    }
+
+    private void SetCurrentMorko(Transform newCurrentMorko)
+    {
+        currentMorkoController.isMorko = false;
+
+        currentMorko = newCurrentMorko;
+
+        if (currentMorko == null)
+            return;
+
+        currentMorkoActorNumber = currentMorko.GetComponent<Character>().photonView.Owner.ActorNumber;
+        currentMorkoController = currentMorko.GetComponent<PlayerController>();
+        currentMorkoController.isMorko = true;
     }
 
     private void Update()
     {
         if (photonView.IsMine == false)
             return;
-        
-        if (lookingForStartingMorko && startWaitDurationWaited && !maskJumpingOn && !maskIsBeingPutOn)
-            FindStartingCharacter();
-        
-        else if (maskMovingToNewMorko && !maskJumpingOn && !maskJumpingOff && !maskIsBeingPutOn)
-            CheckMaskDistanceFromCharacter(nextMorko);
 
-        else if (maskJumpingOn)
-            JumpToHead(nextMorko);
-        
-        else if (maskJumpingOff)
-            JumpOffHead(Vector3.zero);
+        switch(morkoState)
+        {
+            case MorkoState.IdleInBeginning:
+                break;
 
-        if (!lookingForStartingMorko)
-            SetAnimatorState();
+            case MorkoState.ChasingFirstTime:
+                FindStartingCharacter();
+                break;
+
+            case MorkoState.OnHead:
+                SetAnimatorState();
+                transform.position = currentMorkoCharacter.MaskTarget.position + maskOnToNeckOffset;
+                transform.rotation = currentMorkoCharacter.MaskTarget.rotation * Quaternion.Euler(maskOnToNeckRotation);
+                break;
+
+            case MorkoState.SwitchingOff:
+                JumpOffHead(nextMorko.position);
+                break;
+
+            case MorkoState.SwitchingOn:
+                JumpToHead();
+                break;
+
+        }
+
+        
+        // if (lookingForStartingMorko && startWaitDurationWaited && !maskJumpingOn && !maskIsBeingPutOn)
+        //     FindStartingCharacter();
+        
+        // else if (maskMovingToNewMorko && !maskJumpingOn && !maskJumpingOff && !maskIsBeingPutOn)
+        //     CheckMaskDistanceFromCharacter(nextMorko);
+
+        // else if (maskJumpingOn)
+        //     JumpToHead();
+        
+        // else if (maskJumpingOff)
+        //     JumpOffHead(Vector3.zero);
+
+        // if (!lookingForStartingMorko)
+        // {
+        // }
     }
 
-    public void StartMaskController()
-    {
-        this.InvokeAfter (FindStartingCharacter, secondsBeforeMaskMovesAtStart);
-    }
+    // public void StartMaskController()
+    // {
+    //     this.InvokeAfter (() => morkoState = MorkoState.ChasingFirstTime, secondsBeforeMaskMovesAtStart);
+    // }
 
     private void FindStartingCharacter()
     {
         enabled = true;
 
-        startWaitDurationWaited = true;
-        lookingForStartingMorko = true;
+        var previousNextMorko = nextMorko;
         nextMorko = FindClosestCharacter();
         
-        morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
-        morkoHeadJoint = morkoNeckJoint.GetChild(0);
+        if (previousNextMorko != nextMorko)
+        {
+            photonView.TransferOwnership(nextMorko.GetComponent<Character>().photonView.Owner);
+        }
+
+        // morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
+        // morkoHeadJoint = morkoNeckJoint.GetChild(0);
         
-        MoveMaskToTarget(nextMorko, startMovementSpeed);
+        // MoveMaskToTarget(nextMorko, startMovementSpeed);
+        animator.applyRootMotion    = true;
+        SetAnimatorState(AnimatorBooleans.Move);
+        
+        navMeshAgent.enabled        = true;
+        navMeshAgent.speed          = startMovementSpeed;
+        navMeshAgent.acceleration   = acceleration;
+        navMeshAgent.destination    = nextMorko.position;
         CheckMaskDistanceFromCharacter(nextMorko);
+
+
+        // enabled = true;
+
+        // startWaitDurationWaited = true;
+        // lookingForStartingMorko = true;
+        // nextMorko = FindClosestCharacter();
+        
+        // morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
+        // morkoHeadJoint = morkoNeckJoint.GetChild(0);
+        
+        // MoveMaskToTarget(nextMorko, startMovementSpeed);
+        // CheckMaskDistanceFromCharacter(nextMorko);
     }
 
     private Transform FindClosestCharacter()
@@ -155,33 +262,33 @@ public class MaskController : MonoBehaviourPun
         IsTransferingToOtherCharacter = true;
 
         nextMorko = newMorko;
-        currentMorko = null;
-        currenMorkoController.isMorko = false;
-        currenMorkoController = null;
         
-        maskJumpingOn = false;
-        maskIsBeingPutOn = false;
-        
-        JumpOffHead(nextMorko.position);
+        StartJumpOffHead();
+        // JumpOffHead(nextMorko.position);
     }
     
     private void MoveMaskToTarget(Transform target, float speed)
     {
-        maskMovingToNewMorko        = true;
-        animator.applyRootMotion    = true;
-        SetAnimatorState(AnimatorBooleans.Move);
+        // maskMovingToNewMorko        = true;
+        // animator.applyRootMotion    = true;
+        // SetAnimatorState(AnimatorBooleans.Move);
         
-        navMeshAgent.enabled        = true;
-        navMeshAgent.speed          = speed;
-        navMeshAgent.acceleration   = acceleration;
-        navMeshAgent.destination    = target.position;
+        // navMeshAgent.enabled        = true;
+        // navMeshAgent.speed          = speed;
+        // navMeshAgent.acceleration   = acceleration;
+        // navMeshAgent.destination    = target.position;
     }
     
     private void CheckMaskDistanceFromCharacter(Transform target)
     {
         var distance = Vector3.Distance(transform.position, target.position);
         if (distance <= jumpMinDistanceFromCharacter)
-            JumpToHead(target);
+        {
+            // JumpToHead();
+            StartJumpToHead();
+            // morkoState = MorkoState.SwitchingOn;
+        }
+
     }
     
     // Hack(Leo): HACKHACKHACK
@@ -191,19 +298,20 @@ public class MaskController : MonoBehaviourPun
     Vector3 jumpStartPosition;
     Transform jumpTargetTransform;
 
-    private void JumpToHead(Transform REMOVE_ME_IM_UNUSED)
+    private void StartJumpToHead()
+    {
+        morkoState = MorkoState.SwitchingOn;
+
+        jumpStartPosition           = transform.position;
+        currentJumpInterpolation    = 0.0f;
+        jumpTargetTransform         = nextMorko.GetComponent<Character>().Head;
+
+        animator.SetTrigger("JumpToHead");        
+    }
+
+    private void JumpToHead()
     {
         navMeshAgent.enabled = false;
-        if (maskJumpingOn == false)
-        {
-            maskJumpingOn = true;
-
-            jumpStartPosition           = transform.position;
-            currentJumpInterpolation    = 0.0f;
-            jumpTargetTransform         = morkoHeadJoint.transform;
-
-            animator.SetTrigger("JumpToHead");
-        }
 
         // Todo(Leo): Add parabola, but this is not how. Also wont bother now, because it is not seen in game anyway        
         // var targetPosition = jumpTargetTransform.position;
@@ -220,129 +328,105 @@ public class MaskController : MonoBehaviourPun
          
             MaskOnNewMorko();
         }
+    }
 
-        // animator.Play("Attack", 0, currentJumpInterpolation);
+    private void StartJumpOffHead()
+    {
+        // MaskOffMorko();
 
-        /*
-        navMeshAgent.enabled = false;
+    // transform.SetParent(null);
+        var direction = (nextMorko.position - transform.position).normalized;
+        transform.rotation = Quaternion.LookRotation(direction);
+        morkoHeadJoint.localScale = Vector3.one;
+        
 
-        if (maskJumpingOn == false)
+        SetCurrentMorko(null);
+        // currentMorko = null;
+        // currentMorkoController.isMorko = false;
+        currentMorkoController = null;
+
+
+        Vector3 targetLocation = nextMorko.position;
+        morkoState = MorkoState.SwitchingOff;
+
+        animator.applyRootMotion = true;
+        
+        startJumpingPosition = transform.localPosition;
+
+        // Note(Leo): Test if should immediately jump on next morko
+        float distanceToTarget = Vector2.Distance(new Vector2(startJumpingPosition.x, startJumpingPosition.z), new Vector2(targetLocation.x, targetLocation.z));
+        if (distanceToTarget <= jumpMinDistanceFromCharacter)
+        // if (distanceToTarget <= 2 * jumpMinDistanceFromCharacter)
         {
-            startJumpingPosition = transform.position;
+            JumpToHead();
+            return;
         }
         
-        Vector3 toMorkoHeadPosition = morkoHeadJoint.position;
-        
-        float distanceToTarget        = Vector3.Distance(startJumpingPosition, toMorkoHeadPosition);
-        float currentDistanceToTarget = Vector3.Distance(transform.position, toMorkoHeadPosition);
-        float interpolation         = (distanceToTarget - currentDistanceToTarget) / distanceToTarget;
-        interpolation               = Mathf.Clamp01(interpolation);
-
-        toMorkoHeadPosition = new Vector3(toMorkoHeadPosition.x, toMorkoHeadPosition.y + (jumpParabolaSize - interpolation * jumpParabolaSize), toMorkoHeadPosition.z);
-
-        transform.position = Vector3.MoveTowards(transform.position, toMorkoHeadPosition, Time.deltaTime * jumpSpeed);
-        transform.forward = toMorkoHeadPosition - transform.position;
-        animator.Play("Attack", 0, interpolation);
-        
-        maskJumpingOn = true;
-
-        if (interpolation >= jumpInterpolationCutOff)
-        {
-            maskJumpingOn = false;
-            maskIsBeingPutOn = true;
-            Instantiate(jumpSmokeEffectOnCollision, transform.position, Quaternion.identity);
-            animator.Play("Idle");
-            MaskOnNewMorko();
-        }
-        */
+        // TODO(Leo): REUSE 'direction' please fix
+        direction = Vector3.Normalize(targetLocation - startJumpingPosition);
+        targetJumpingPosition = startJumpingPosition + direction * jumpMinDistanceFromCharacter;
+        targetJumpingPosition.y = -5f;
+        // targetJumpingPosition = new Vector3(targetJumpingPosition.x, -5f, targetJumpingPosition.z);
     }
 
     private void JumpOffHead(Vector3 targetLocation)
     {
         navMeshAgent.enabled = false;
 
-        if (!maskJumpingOff)
-        {
-            MaskOffMorko();
-            animator.applyRootMotion = true;
-            
-            startJumpingPosition = transform.localPosition;
+        float distanceToTarget          = Vector3.Distance(startJumpingPosition, targetJumpingPosition);
+        float currentDistanceToTarget   = Vector3.Distance(transform.position, targetJumpingPosition);
+        float interpolation             = (distanceToTarget - currentDistanceToTarget) / distanceToTarget;
+        interpolation                   = Mathf.Clamp01(interpolation);
 
-            // Note(Leo): Test if should immediately jump on next morko
-            float distanceToTarget = Vector2.Distance(new Vector2(startJumpingPosition.x, startJumpingPosition.z), new Vector2(targetLocation.x, targetLocation.z));
-            if (distanceToTarget <= jumpMinDistanceFromCharacter)
-            // if (distanceToTarget <= 2 * jumpMinDistanceFromCharacter)
-            {
-                JumpToHead(nextMorko);
-                return;
-            }
-            
-            Vector3 direction = Vector3.Normalize(targetLocation - startJumpingPosition);
-            targetJumpingPosition = startJumpingPosition + direction * jumpMinDistanceFromCharacter;
-            targetJumpingPosition.y = -5f;
-            // targetJumpingPosition = new Vector3(targetJumpingPosition.x, -5f, targetJumpingPosition.z);
-        }
+        transform.position = Vector3.MoveTowards(transform.position, targetJumpingPosition, Time.deltaTime * jumpSpeed);
+        animator.Play("Roar", 0, interpolation);
         
-        // Just a scope....
+        maskJumpingOff = true;
+
+        if (interpolation >= jumpInterpolationCutOff)
         {
-            float distanceToTarget          = Vector3.Distance(startJumpingPosition, targetJumpingPosition);
-            float currentDistanceToTarget   = Vector3.Distance(transform.position, targetJumpingPosition);
-            float interpolation             = (distanceToTarget - currentDistanceToTarget) / distanceToTarget;
-            interpolation                   = Mathf.Clamp01(interpolation);
-
-            transform.position = Vector3.MoveTowards(transform.position, targetJumpingPosition, Time.deltaTime * jumpSpeed);
-            animator.Play("Roar", 0, interpolation);
-            
-            maskJumpingOff = true;
-
-            if (interpolation >= jumpInterpolationCutOff)
-            {
-                maskJumpingOff = false;
-                JumpToHead(/*this is ignored anyway*/null);
-                // SetAnimatorState(AnimatorBooleans.Idle);
-                // // animator.Play("Idle");
-                // this.InvokeAfter(() => MoveMaskToTarget(nextMorko, changingMovementSpeed), secondsBeforeMaskMovesToNewTarget);
-            }
+            maskJumpingOff = false;
+            JumpToHead();
+            // SetAnimatorState(AnimatorBooleans.Idle);
+            // // animator.Play("Idle");
+            // this.InvokeAfter(() => MoveMaskToTarget(nextMorko, changingMovementSpeed), secondsBeforeMaskMovesToNewTarget);
         }
     }
     
-    public void MaskOffMorko()
-    {
-        transform.SetParent(null);
-        var direction = (nextMorko.position - transform.position).normalized;
-        transform.rotation = Quaternion.LookRotation(direction);
-        morkoHeadJoint.localScale = Vector3.one;
+    // public void MaskOffMorko()
+    // {
         
-        morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
-        morkoHeadJoint = morkoNeckJoint.GetChild(0);
-    }
+    //     // morkoNeckJoint = nextMorko.transform.GetChild(1).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(1);
+    //     // morkoHeadJoint = morkoNeckJoint.GetChild(0);
+    // }
 
     private void MaskOnNewMorko()
     {
-        MorkoSoundController msc = GetComponent<MorkoSoundController>();
-        msc.PlayAttach();
-
+        SetCurrentMorko(nextMorko);
+        // currentMorko                    = nextMorko;
+        // currentMorkoController           = currentMorko.GetComponent<PlayerController>();
+        // currentMorkoController.isMorko   = true;
 
         navMeshAgent.enabled = false;
-
-        lookingForStartingMorko = false;
-        maskMovingToNewMorko    = false;
-        maskJumpingOn           = false;
+        morkoState = MorkoState.OnHead;
+        // lookingForStartingMorko = false;
+        // maskMovingToNewMorko    = false;
+        // maskJumpingOn           = false;
 
         animator.applyRootMotion    = false;
         morkoHeadJoint.localScale   = Vector3.zero;
 
-        transform.SetParent(morkoNeckJoint);
-        transform.localPosition     = maskOnToNeckOffset;
-        transform.localRotation     = Quaternion.Euler(maskOnToNeckRotation);
+        // transform.SetParent(morkoNeckJoint);
+        // transform.localPosition     = maskOnToNeckOffset;
+        // transform.localRotation     = Quaternion.Euler(maskOnToNeckRotation);
 
         SetAnimatorState(AnimatorBooleans.Idle);
         
-        currentMorko            = nextMorko;
-        currenMorkoController   = currentMorko.GetComponent<PlayerController>();
-        currenMorkoController.isMorko = true;
 
         Instantiate(jumpSmokeEffectOnCollision, transform.position, Quaternion.identity);
+        MorkoSoundController msc = GetComponent<MorkoSoundController>();
+        msc.PlayAttach();
+
         nextMorko.GetComponent<Character>().FreezeForSeconds(afterCollisionFreezeTime);
 
         IsTransferingToOtherCharacter = false;
@@ -375,9 +459,9 @@ public class MaskController : MonoBehaviourPun
         animator.SetBool("WalkSidewaysRight", false);
         animator.SetBool("WalkBackwards", false);
 
-        if (currenMorkoController)
+        if (currentMorkoController)
         {
-            var morkoAnimation = currenMorkoController.currentAnimation;
+            var morkoAnimation = currentMorkoController.currentAnimation;
             switch (morkoAnimation)
             {
                 case PlayerController.AnimatorState.Idle:
