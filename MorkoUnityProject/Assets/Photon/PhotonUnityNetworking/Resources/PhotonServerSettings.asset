@@ -43,5 +43,7 @@ MonoBehaviour:
   - StartGameRPC
   - EndGameRPC
   - SetEndTimer
+  - UnsetCharacterMorkoRPC
+  - SetCurrentMorkoRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0

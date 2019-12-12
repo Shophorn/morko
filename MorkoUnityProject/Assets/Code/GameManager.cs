@@ -482,6 +482,21 @@ public partial class GameManager : 	MonoBehaviourPunCallbacks,
 		return result;
 	}
 
+	public static void UnsetCharacterMorko()
+	{
+
+	}
+
+	[PunRPC]
+	private void UnsetCharacterMorkoRPC()
+	{
+		if (currentMorkoActorNumber == localCharacterActorNumber)
+		{
+			visibilityEffect.FadeToHuman();
+		}
+		currentMorkoActorNumber = -1;
+	}
+
 	public static void SetCharacterMorko(Character character)
 	{
 		instance.photonView.RPC(nameof(SetCharacterMorkoRPC),
