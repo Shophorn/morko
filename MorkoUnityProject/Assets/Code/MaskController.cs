@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
-public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCallbacks
+public class MaskController : MonoBehaviourPun
 {
     public List<Transform> characterTransforms;
     public NavMeshAgent navMeshAgent;
@@ -46,18 +46,8 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
     }
 
     public Transform nextMorko;
-
     private Animator animator;
-    private bool startWaitDurationWaited = false;
-    private bool lookingForStartingMorko = false;
-    private bool maskMovingToNewMorko = false;
-    private bool maskJumpingOn = false;
-    private bool maskJumpingOff = false;
-    private bool maskIsBeingPutOn = false;
-
-    private Vector3 startJumpingPosition;
-    private Vector3 targetJumpOffPosition;
-
+    
     private Transform morkoHeadJoint => currentMorkoCharacter.Head;
     private Transform morkoNeckJoint => currentMorkoCharacter.MaskTarget;
 
@@ -67,6 +57,9 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
     public Vector3 maskOnToNeckRotation;
 
     public int currentMorkoActorNumber;
+
+    public AnimationCurve jumpOffCurve;
+    public AnimationCurve jumpOnCurve;
 
     // Todo(Leo): HACKHACKACK
     public bool IsTransferingToOtherCharacter { get; private set; }
@@ -96,34 +89,6 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
     }
 
     public MorkoState morkoState;// {get; private set;}
-
-    // Note(Leo): Not used
-    void IPunOwnershipCallbacks.OnOwnershipRequest (PhotonView targetView, Player requestingPlayer) {}
- 
-    void IPunOwnershipCallbacks.OnOwnershipTransfered (PhotonView targetView, Player previousOwner)
-    {
-        // currentMorko = GameManager.GetCharacterByActorNumber(currentMorkoActorNumber).transform;
-        // currentMorkoController = currentMorko.GetComponent<PlayerController>();
-    }
-
-    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        // if(stream.IsWriting)
-        // {
-        //     int state = (int)morkoState;
-        //     stream.SendNext(state);
-
-        //     // stream.SendNext(currentMorkoActorNumber);
-        // }
-        // else if (stream.IsReading)
-        // {
-        //     int state = (int)stream.ReceiveNext();
-        //     morkoState = (MorkoState)state;
-
-        //     // currentMorkoActorNumber = (int)stream.ReceiveNext();
-        //     // currentMorko = GameManager.GetCharacterByActorNumber(currentMorkoActorNumber).transform;
-        // }
-    }
 
     private void Awake()
     {
@@ -191,7 +156,7 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
                 break;
 
             case MorkoState.SwitchingOn:
-                JumpToHead();
+                JumpOnHead();
                 break;
 
         }
@@ -218,7 +183,7 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
         var distance = Vector3.Distance(transform.position, target.position);
         if (distance <= jumpMinDistanceFromCharacter)
         {
-            StartJumpToHead();
+            StartJumpOnHead();
         }
 
     }
@@ -267,34 +232,17 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
         morkoState                  = MorkoState.SwitchingOff;
         morkoHeadJoint.localScale   = Vector3.one;
         
-
-        var direction               = (nextMorko.position - transform.position).normalized;
-        transform.rotation          = Quaternion.LookRotation(direction);
         Vector3 targetLocation      = nextMorko.position;
-        
-
-        animator.applyRootMotion    = true;
-        
-        startJumpingPosition        = transform.localPosition;
-
-        // Note(Leo): Test if should immediately jump on next morko
-        float distanceToTarget      = Vector2.Distance( new Vector2(startJumpingPosition.x, startJumpingPosition.z),
-                                                        new Vector2(targetLocation.x, targetLocation.z));
-        // Note(Leo): Only uncomment these when all else works
-        // if (distanceToTarget <= jumpMinDistanceFromCharacter)
-        // {
-        //     StartJumpToHead();
-        //     return;
-        // }
-        
-        // TODO(Leo): REUSE 'direction' please fix
-        direction               = Vector3.Normalize(targetLocation - startJumpingPosition);
-        targetJumpOffPosition   = startJumpingPosition + direction * jumpMinDistanceFromCharacter;
+        // animator.applyRootMotion    = true;
+        var direction               = Vector3.Normalize(targetLocation - transform.position);
 
         currentJumpOffInterpolation = 0.0f;
         jumpOffStartPosition = transform.position;
         jumpOffTargetPosition = Vector3.Lerp(transform.position, nextMorko.position, 0.5f);//direction * Mathf.Min(distanceToTarget / 2f, jumpMinDistanceFromCharacter);
-        jumpOffTargetPosition.y = -5f;
+
+        const float BAD_HAXOR_HARD_CODED_REMOVE_groundLevel = -5f;
+        const float maskClearance = 0.3f;
+        jumpOffTargetPosition.y = BAD_HAXOR_HARD_CODED_REMOVE_groundLevel + maskClearance;
 
 
         animator.SetTrigger("Roar");
@@ -304,78 +252,74 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
     {
         navMeshAgent.enabled = false;
 
-        // float distanceToTarget          = Vector3.Distance(startJumpingPosition, targetJumpOffPosition);
-        // float currentDistanceToTarget   = Vector3.Distance(transform.position, targetJumpOffPosition);
-        // float interpolation             = (distanceToTarget - currentDistanceToTarget) / distanceToTarget;
-        // interpolation                   = Mathf.Clamp01(interpolation);
-
-        // transform.position = Vector3.MoveTowards(transform.position, targetJumpOffPosition, Time.deltaTime * jumpSpeed);
-        // animator.Play("Roar", 0, interpolation);
-        
-        // maskJumpingOff = true;
-
-        // if (interpolation >= jumpInterpolationCutOff)
-        // {
-        //     maskJumpingOff = false;
-        //     StartJumpToHead();
-        // }
-
-
         currentJumpOffInterpolation += Time.deltaTime / jumpOffHeadTime;
-        transform.position = Vector3.Lerp(  transform.position,
+        var currentPosition = Vector3.Lerp( jumpOffStartPosition,
                                             jumpOffTargetPosition,
                                             currentJumpOffInterpolation);
+
+        float currentYInterpolation = jumpOffCurve.Evaluate(currentJumpOffInterpolation);
+        currentPosition.y = Mathf.LerpUnclamped(jumpOffStartPosition.y, jumpOffTargetPosition.y, currentYInterpolation);
+
+
+        transform.position = currentPosition;
         transform.LookAt(jumpOffTargetPosition);
 
         if (currentJumpOffInterpolation >= 1.0f)
         {
-            StartJumpToHead();            
+            StartJumpOnHead();            
         }
     }
 
     // Hack(Leo): HACKHACKHACK
-    // Note(Leo): timeToJumpToHead must be the length of attack animation. It is't because animation triggering does not work...
-    float timeToJumpToHead = 0.8f;
+    // Note(Leo): timeToJumpOnHead must be the length of attack animation. It is't because animation triggering does not work...
+    float timeToJumpOnHead = 0.8f;
     float currentJumpInterpolation = 0.0f;
-    Vector3 jumpToStartPosition;
-    Transform jumpToTargetTransform;
+    Vector3 jumpOnStartPosition;
+    Transform jumpOnTargetTransform;
 
-    private void StartJumpToHead()
+    private void StartJumpOnHead()
     {
         SetCurrentMorko(nextMorko);
         nextMorko = null;
+
+        SetAnimatorState(AnimatorBooleans.Idle);
       
         photonView.TransferOwnership(currentMorkoCharacter.photonView.Owner);
-        photonView.RPC(nameof(StartJumpToHeadRPC), RpcTarget.Others, currentMorkoActorNumber);
+        photonView.RPC(nameof(StartJumpOnHeadRPC), RpcTarget.Others, currentMorkoActorNumber);
     }
 
     [PunRPC]
-    private void StartJumpToHeadRPC(int actorNumber)
+    private void StartJumpOnHeadRPC(int actorNumber)
     {
         if (actorNumber != photonView.Owner.ActorNumber)
             return;
 
         morkoState = MorkoState.SwitchingOn;
-        jumpToStartPosition       = transform.position;
+        jumpOnStartPosition       = transform.position;
         currentJumpInterpolation  = 0.0f;
-        jumpToTargetTransform     = morkoHeadJoint;
+        jumpOnTargetTransform     = morkoHeadJoint;
 
-        animator.SetTrigger("JumpToHead");          
+        animator.SetTrigger("JumpOnHead");          
     }
 
-    private void JumpToHead()
+    private void JumpOnHead()
     {
         navMeshAgent.enabled = false;
 
         // Todo(Leo): Add parabola, but this is not how. Also wont bother now, because it is not seen in game anyway        
-        // var targetPosition = jumpToTargetTransform.position;
+        // var targetPosition = jumpOnTargetTransform.position;
         // targetPosition = new Vector3(targetPosition.x, targetPosition.y + (jumpParabolaSize - interpolation * jumpParabolaSize), targetPosition.z);
 
-        currentJumpInterpolation += Time.deltaTime / timeToJumpToHead;
-        transform.position = Vector3.Lerp(  jumpToStartPosition,
-                                            jumpToTargetTransform.position,
+        currentJumpInterpolation += Time.deltaTime / timeToJumpOnHead;
+        var currentPosition = Vector3.Lerp( jumpOnStartPosition,
+                                            jumpOnTargetTransform.position,
                                             currentJumpInterpolation);
-        transform.LookAt(jumpToTargetTransform.position);
+
+        float currentYInterpolation = jumpOnCurve.Evaluate(currentJumpInterpolation);
+        currentPosition.y = Mathf.LerpUnclamped(jumpOnStartPosition.y, jumpOnTargetTransform.position.y, currentYInterpolation);
+
+        transform.position = currentPosition;
+        transform.LookAt(jumpOnTargetTransform.position);
 
         if (currentJumpInterpolation >= 1.0f)
         {
@@ -416,7 +360,7 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
     private void ResetAnimatorTriggers()
     {
         animator.ResetTrigger("Roar");
-        animator.ResetTrigger("JumpToHead");
+        animator.ResetTrigger("JumpOnHead");
         animator.ResetTrigger("JumpOffHead");
     }
 
