@@ -157,6 +157,10 @@ public partial class UIController : MonoBehaviour
 			notPauseMenuActive = !notPauseMenuActive;
 
 		notPauseWindow.SetActive(notPauseMenuActive);
+
+        //Line by Irtsa
+        if (notPauseWindow.activeSelf)
+            EventSystem.current.SetSelectedGameObject(exitMatchButton.gameObject);
 	}
 
 		public void Show()
