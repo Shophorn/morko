@@ -15,8 +15,8 @@ public partial class UIController
 		MenuView IMenuLayout.View => view;
 		bool IMenuLayout.BelongsToMainMenu => true;
 
-		public const string defaultServerName = "WRITE NAME";
-		public const string defaultPlayerName = "WRITE NAME";
+		public const string defaultServerName = "ROOM NAME";
+		public const string defaultPlayerName = "PLAYER";
 
 		public Button cancelButton;
 		public Button createRoomButton;
