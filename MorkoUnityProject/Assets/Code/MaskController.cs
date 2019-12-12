@@ -145,8 +145,12 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
 
     private void SetCurrentMorko(Transform newCurrentMorko)
     {   
+        if (currentMorko != null)
+            currentMorkoController.isMorko = false;
+
         currentMorko = newCurrentMorko;
         currentMorkoActorNumber = currentMorko.GetComponent<Character>().photonView.Owner.ActorNumber;
+        currentMorkoController.isMorko = true;
 
         photonView.RPC(nameof(SetCurrentMorkoRPC), RpcTarget.Others, currentMorkoActorNumber);
     }
@@ -289,7 +293,7 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
 
         currentJumpOffInterpolation = 0.0f;
         jumpOffStartPosition = transform.position;
-        jumpOffTargetPosition = transform.position + direction * Mathf.Min(distanceToTarget / 2f, jumpMinDistanceFromCharacter);
+        jumpOffTargetPosition = Vector3.Lerp(transform.position, nextMorko.position, 0.5f);//direction * Mathf.Min(distanceToTarget / 2f, jumpMinDistanceFromCharacter);
         jumpOffTargetPosition.y = -5f;
 
 
@@ -338,19 +342,25 @@ public class MaskController : MonoBehaviourPun, IPunObservable, IPunOwnershipCal
 
     private void StartJumpToHead()
     {
-        morkoState = MorkoState.SwitchingOn;
-
         SetCurrentMorko(nextMorko);
         nextMorko = null;
+      
+        photonView.TransferOwnership(currentMorkoCharacter.photonView.Owner);
+        photonView.RPC(nameof(StartJumpToHeadRPC), RpcTarget.Others, currentMorkoActorNumber);
+    }
 
+    [PunRPC]
+    private void StartJumpToHeadRPC(int actorNumber)
+    {
+        if (actorNumber != photonView.Owner.ActorNumber)
+            return;
+
+        morkoState = MorkoState.SwitchingOn;
         jumpToStartPosition       = transform.position;
         currentJumpInterpolation  = 0.0f;
         jumpToTargetTransform     = morkoHeadJoint;
 
-        animator.SetTrigger("JumpToHead");        
-
-        photonView.TransferOwnership(currentMorkoCharacter.photonView.Owner);
-
+        animator.SetTrigger("JumpToHead");          
     }
 
     private void JumpToHead()

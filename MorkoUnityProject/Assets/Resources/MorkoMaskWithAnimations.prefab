@@ -406,12 +406,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8508ba4c0e3457e408e7baee6f4d5f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  angledViewRange: 5
+  angledViewRange: 6
   angledViewAngle: 50
   characterLayerMask:
     serializedVersion: 2
     m_Bits: 33554432
-  radialViewRange: 2
+  radialViewRange: 3
   waitBeforeCatchingAgainTime: 5
 --- !u!82 &82193242653134862
 AudioSource:
